@@ -1,14 +1,16 @@
-# ADR 0004 — Position approchée : le centre de placette au GNSS du téléphone, les arbres par leur rang
+# ADR 0004 — Position approchée : le centre au GNSS du téléphone et au piquet, les arbres par leur rang et un numéro peint
 
 - **Date :** 2026-10-28
-- **Statut :** proposée d'après l'arbitrage de Pascal du 2026-10-28 (« position approchée suffit »)
+- **Statut :** acceptée par Pascal (2026-10-28, porte n° 1), après critique du `contradicteur`
 - **Proposée par :** Claude (orchestrateur)
 - **Tranchée par :** Pascal
 
 ## La décision en une phrase
 
-Ramulus relève le centre de chaque placette au GNSS du téléphone, moyenné, avec sa précision, et désigne chaque
-arbre noté par son rang dans la règle de la campagne, sans position propre.
+Ramulus relève le centre de chaque placette au GNSS du téléphone, moyenné, et le centre est matérialisé par un
+piquet ; chaque arbre noté, sans position propre, est pris dans l'ordre d'un tour d'horizon depuis le nord (sens
+horaire) parmi les arbres de la règle, et porte un numéro peint saisi dans la tournée, pour retrouver les mêmes
+arbres l'année suivante et à la contre-notation.
 
 ## Contexte
 
@@ -19,12 +21,24 @@ arbre noté par son rang dans la règle de la campagne, sans position propre.
 - Le bilan DEPERIS d'un peuplement ne demande que les classes des arbres d'une placette rattachée à son unité de
   gestion (note DGAL 2018-433 : placettes de 20 arbres) : la position de chaque arbre n'y entre pas.
 
+## Arbitrages après la critique (Pascal, 2026-10-28)
+
+- **État et suivi** : position approchée gardée, avec un **repère léger** : piquet au centre, **numéro à la
+  peinture** sur chaque arbre noté (colonne `repere` de `notations`). Le suivi des mêmes arbres et la contre-notation
+  sur les mêmes arbres tiennent.
+- **Ordre** : `regle_choix` porte un ordre fixe, **tour d'horizon depuis le nord dans le sens horaire**, parmi les
+  arbres de Kraft 1 à 3 par défaut ; le rang est la position dans ce tour.
+- **Seuil de 30 m** : simple signal d'erreur grossière ; il ne détecte pas un changement de lot d'arbres (erreur
+  GNSS sous couvert : 6,1 m en moyenne, 13,4 m au CEP95, Purfürst 2022, repris de Surculus ADR 0003) ; c'est le
+  piquet et le numéro peint qui le font.
+
 ## Conséquences sur le contrat (ADR 0003)
 
 - `centres` (POINT) : position moyennée, précision horizontale, nombre de mesures, source (`telephone`, ou `rtk` si
   un récepteur est branché), `date_releve`.
 - `notations` et `contre_notations` deviennent des **tables d'attributs sans géométrie** (GeoPackage, table
-  `attributes`), rattachées par `plot_id` et `rang` ; plus de distance, d'azimut, ni de convergence des méridiens.
+  `attributes`, variante par défaut de GDAL), rattachées par `plot_id`, `rang` et `repere` (numéro peint) ; une
+  fixture vérifie qu'elles se relisent en R et dans QField ; plus de distance, d'azimut, ni de convergence des méridiens.
 - Un test vérifie qu'un centre relevé en France tombe en France, et qu'un centre à plus de N mètres du point prévu
   est signalé (N à fixer par Pascal ; proposition : 30 m, de l'ordre de la précision d'un téléphone sous couvert
   forestier, à vérifier par l'`acquereur`).
@@ -42,18 +56,20 @@ arbre noté par son rang dans la règle de la campagne, sans position propre.
 
 ## Valeurs sacrifiées
 
-- **Le suivi du même arbre d'une année à l'autre** : sans position, on suit la placette, pas l'arbre ; un arbre
-  mort, abattu ou remplacé par la règle ne se distingue pas.
-- **La contre-notation sur les mêmes arbres** : le second opérateur doit retrouver les arbres par la seule règle et
-  le rang ; un écart de choix se confond avec un écart de note. **À confirmer par Pascal**, ou à compenser par un
-  repère sur l'arbre (marque, plaquette) noté dans la tournée.
+- **La position de chaque arbre** : on retrouve l'arbre par son numéro peint, pas par ses coordonnées ; un numéro
+  effacé se refait par le tour d'horizon depuis le piquet.
+- **Le temps** de peindre un numéro et de planter un piquet à la première visite.
+- **La mesure de la mortalité sans repère** : un arbre mort reste repérable par son numéro ; un arbre abattu et
+  remplacé par la règle sort de la série (état « non noté » non retenu, spec § 4).
 - **Le rapprochement avec Groma** (inventaire arbre par arbre) : impossible sans position.
 
 ## Sources
 
 - Note DGAL/SDQSPV/2018-433 du DSF, « Quantifier l'état de santé de la forêt, méthode simplifiée » :
   <https://agriculture.gouv.fr/telecharger/90879>.
-- Arbitrage de Pascal, journal du 2026-10-28.
+- Arbitrages de Pascal, journal du 2026-10-28.
+- Manuel ICP Forests, partie IV, § 5.2.12 et 6.1.2.1.
+- Purfürst 2022, PMC8838512, tableau 4 (cité par Surculus, ADR 0003).
 
 ## Question de contrôle
 

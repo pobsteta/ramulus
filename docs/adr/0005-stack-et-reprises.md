@@ -1,7 +1,7 @@
 # ADR 0005 — Stack et reprises : la pile de Surculus, son journal et sa sauvegarde
 
 - **Date :** 2026-10-28
-- **Statut :** proposée (reprise acceptée sur le principe par Pascal le 2026-10-28)
+- **Statut :** acceptée par Pascal (2026-10-28, porte n° 1), après critique du `contradicteur`
 - **Proposée par :** Claude (orchestrateur)
 - **Tranchée par :** Pascal
 

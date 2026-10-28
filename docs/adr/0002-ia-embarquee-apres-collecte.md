@@ -1,7 +1,7 @@
 # ADR 0002 — IA embarquée, entraînée après la collecte, livrée au-dessus d'un seuil mesuré par placette
 
 - **Date :** 2026-10-28
-- **Statut :** proposée, amendée après critique du `contradicteur` (2026-10-28)
+- **Statut :** acceptée par Pascal (2026-10-28, porte n° 1), après critique du `contradicteur`
 - **Proposée par :** Claude (orchestrateur)
 - **Tranchée par :** Pascal
 

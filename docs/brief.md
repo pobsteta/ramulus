@@ -1,7 +1,7 @@
 # Ramulus — brief
 
-> **Brouillon du 28 octobre 2026, amendé le même jour** d'après la réponse d'abord et les arbitrages de Pascal
-> (journal). **À relire par Pascal, puis à critiquer par le `contradicteur` (porte n° 1).** Ce que Pascal n'a pas
+> **Rédigé le 28 octobre 2026** d'après la réponse d'abord et les arbitrages de Pascal, critiqué par le
+> `contradicteur` et **validé par Pascal le même jour (porte n° 1)** (journal). Ce que Pascal n'a pas
 > tranché s'écrit « à trancher par Pascal ».
 
 ## Ma réponse d'abord
@@ -47,11 +47,10 @@ embarqué (Pascal, 2026-10-28).
   placette. Le DSF ne fixe pas cette règle (note DGAL 2018-433 : « 20 à 50 arbres répartis en placettes ») : **le
   nombre d'arbres et la règle sont des paramètres de la campagne**, écrits par Nemeton dans la tournée (Pascal,
   2026-10-28) ; défaut proposé : classes de Kraft 1 à 3 (manuel ICP Forests, partie IV). Brief à écrire vers
-  Nemeton : sait-il tirer ce plan ? Qui écrit la tournée que reçoit Ramulus, nemeton ou sommieR : à trancher par
-  Pascal.
+  Nemeton : sait-il tirer ce plan ? La tournée est écrite par Nemeton (Pascal, 2026-10-28, ADR 0003).
 - **Contrôle de qualité** (Pascal, 2026-10-28) : **5 % des placettes renotées à l'aveugle** par un second opérateur,
   comme le pratique ICP Forests, pour mesurer l'accord entre notateurs, que le DSF ne chiffre pas.
-- **Ce qu'elle produit** : les arbres notés (position, essence, notes, classe, photos), **renvoyés vers sommieR et
+- **Ce qu'elle produit** : les arbres notés (placette, rang, repère peint, essence, notes, classe, photos), **renvoyés vers sommieR et
   Nemeton** (réponse d'abord). **Nemeton fait foi** (Pascal, 2026-10-28) : il importe le paquet arbre par arbre,
   puisqu'il a fait le plan ; **sommieR reçoit de Nemeton** le bilan par unité de gestion pour le sommier.
 
@@ -83,5 +82,6 @@ sur 26 ; il sous-estime la mortalité de branches. Rapport :
    remplacement dans le plan.
 4. **Quatre incohérences** relevées dans les fiches (pin d'Alep, pin laricio, deux pins sylvestres) : à signaler au
    DSF ; qui écrit : à trancher par Pascal.
-5. **Position** : centre de placette au RTK comme Marculus et Surculus, ou GNSS du téléphone ; arbres repérés par
-   distance et azimut depuis le centre ? À trancher par Pascal.
+5. **Position** — tranché par Pascal le 2026-10-28 (ADR 0004) : centre au GNSS du téléphone, matérialisé par un
+   piquet ; arbres sans position propre, pris dans l'ordre d'un tour d'horizon depuis le nord et numérotés à la
+   peinture, pour suivre les mêmes arbres d'une année à l'autre.

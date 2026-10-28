@@ -1,17 +1,18 @@
 # Ramulus — spécification
 
 > **Rédigée le 28 octobre 2026 d'après le brief validé par Pascal le même jour**, critiquée par le `contradicteur`
-> et amendée d'après les arbitrages de Pascal (journal). **À valider par Pascal : porte n° 1.** Ce qu'il n'a pas
-> tranché s'écrit « à trancher par Pascal » et renvoie à une ADR.
+> et amendée d'après les arbitrages de Pascal (journal). **Validée par Pascal le 2026-10-28 (porte n° 1).** Ce
+> qu'il n'a pas tranché s'écrit « à trancher par Pascal » et renvoie à une ADR.
 
 ## 1. Le parcours sur le terrain
 
 1. **Recevoir la tournée.** Au bureau, Nemeton tire le plan d'échantillonnage et **écrit la tournée** DEPERIS (un
    GeoPackage, ADR 0003 ; Pascal, 2026-10-28). L'opérateur la copie sur le téléphone ; Ramulus l'ouvre hors ligne.
 2. **Aller à la placette.** Carte des placettes à faire, guidage jusqu'au point prévu, centre relevé au GNSS du
-   téléphone, moyenné (ADR 0004 ; Pascal, 2026-10-28 : « position approchée suffit »).
+   téléphone, moyenné, et matérialisé par un piquet à la première visite (ADR 0004).
 3. **Choisir les arbres.** Ramulus rappelle la règle de la campagne (nombre d'arbres, règle de choix, par défaut
-   classes de Kraft 1 à 3) ; chaque arbre retenu est désigné par son **rang** dans la règle, sans position propre.
+   classes de Kraft 1 à 3) ; les arbres sont pris dans l'ordre d'un **tour d'horizon depuis le nord, sens horaire** ; chaque
+   arbre a son rang et un **numéro peint** saisi dans la tournée (ADR 0004), sans position propre.
 4. **Noter chaque arbre.** Essence (une des 19 essences du référentiel ; un arbre d'une autre essence n'est pas
    noté, § 4), MB, puis MR ou MA ; la classe s'affiche par l'abaque. La fiche de référence du DSF s'ouvre en lien, pour la saison de la
    campagne.
@@ -34,7 +35,7 @@ Couches et colonnes : ADR 0003 (seule source). En bref :
 | Placettes du plan, colonnes de plan jamais modifiées, paramètres de campagne (`nb_arbres`, `regle_choix`, `saison`, `collecte_photos`, `contre_notation`) | Nemeton | couche `placettes` |
 | État de la placette | Ramulus | `placettes.etat` |
 | Centre relevé | Ramulus | couche `centres` |
-| Arbre noté : `uuid`, rang, essence, type, MB, MR ou MA, classe, saison, date, opérateur, photos ; colonnes réservées de l'IA (première note, proposition) | Ramulus | table `notations`, sans géométrie |
+| Arbre noté : `uuid`, rang, numéro peint (`repere`), essence, type, MB, MR ou MA, classe, saison, date, opérateur, photos ; colonnes réservées de l'IA (première note, proposition) | Ramulus | table `notations`, sans géométrie |
 | Contre-notation | Ramulus, second opérateur | table `contre_notations`, tournée à part |
 | Journal des saisies (ajout seul, union sur l'UUID) | Ramulus | base Room, sauvegardée (ADR 0005) |
 | Photos | Ramulus | dossier `photos/` du `.zip`, nom et empreinte dans `notations` |
@@ -91,12 +92,12 @@ dégradé au-delà de 20 % de E-F (comparaison stricte). Source : fiches DSF 202
 
 | ADR | Objet | État |
 | --- | --- | --- |
-| 0001 | L'IA propose, l'opérateur décide ; proposition affichée après la note | proposée, amendée |
-| 0002 | IA embarquée après la collecte ; seuil mesuré par placette et campagne | proposée, amendée |
-| 0003 | Échange avec Nemeton : tournée écrite par Nemeton, règles de Groma, import tout ou rien, contre-notation à part | proposée, amendée |
-| 0004 | Position approchée : centre au GNSS du téléphone, arbres par leur rang | proposée |
-| 0005 | Stack et reprises de Surculus (journal, sauvegarde, sqlite-jdbc) | proposée |
-| 0006 | Photos : convention de prise de vue ; jeu détenu par le projet Nemeton, Etalab 2.0 | proposée, amendée |
+| 0001 | L'IA propose, l'opérateur décide ; proposition affichée après la note | acceptée |
+| 0002 | IA embarquée après la collecte ; seuil mesuré par placette et campagne | acceptée |
+| 0003 | Échange avec Nemeton : tournée écrite par Nemeton, règles de Groma, import tout ou rien, contre-notation à part | acceptée |
+| 0004 | Position approchée : centre au GNSS et au piquet, arbres par rang et numéro peint | acceptée |
+| 0005 | Stack et reprises de Surculus (journal, sauvegarde, sqlite-jdbc) | acceptée |
+| 0006 | Photos : convention de prise de vue ; jeu détenu par le projet Nemeton, Etalab 2.0 | acceptée |
 
 Brief à écrire vers Nemeton après l'acceptation de l'ADR 0003 : sait-il tirer ce plan et écrire cette tournée ?
 

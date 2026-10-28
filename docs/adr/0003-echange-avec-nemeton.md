@@ -1,7 +1,7 @@
 # ADR 0003 — Échange avec Nemeton : une tournée GeoPackage écrite par Nemeton, complétée par Ramulus, importée tout ou rien
 
 - **Date :** 2026-10-28
-- **Statut :** proposée, amendée après critique du `contradicteur` et arbitrages de Pascal (2026-10-28)
+- **Statut :** acceptée par Pascal (2026-10-28, porte n° 1), après critique du `contradicteur`
 - **Proposée par :** Claude (orchestrateur)
 - **Tranchée par :** Pascal
 
@@ -34,11 +34,11 @@ voyage dans une tournée et une couche à part.
    ignorant les champs nouveaux (Surculus ADR 0007).
 3. **Couches** :
    - `placettes` (POINT prévu) : colonnes du plan Nemeton (`plot_id`, `wgt`, `ip`, `stratum`…), **jamais
-     modifiées**, contrôlées à l'import ; paramètres de campagne `nb_arbres`, `regle_choix` (défaut `kraft_1_3`),
+     modifiées**, contrôlées à l'import ; paramètres de campagne `nb_arbres`, `regle_choix` (défaut : Kraft 1 à 3, tour d'horizon depuis le nord, sens horaire),
      `saison`, `collecte_photos`, `contre_notation` ; `etat` écrit par Ramulus ;
    - `centres` (POINT relevé au GNSS du téléphone, moyenné ; ADR 0004) : `plot_id`, précision, nombre de mesures,
      source, `date_releve`, opérateur ;
-   - `notations` (**table d'attributs, sans géométrie** ; ADR 0004) : `uuid`, `plot_id`, `rang`, `essence`, `type` (feuillu / résineux), `mb`, `second`, `critere`, `classe`, `saison`,
+   - `notations` (**table d'attributs, sans géométrie** ; ADR 0004) : `uuid`, `plot_id`, `rang`, `repere` (numéro peint), `essence`, `type` (feuillu / résineux), `mb`, `second`, `critere`, `classe`, `saison`,
      `date_notation`, `operateur`, `photos` (noms et empreintes), colonnes réservées de l'IA (ADR 0001 :
      première note, proposition, confiance, modèle), vides en tranche 1.
 4. **Contre-notation** : Nemeton écrit pour le second opérateur une **tournée à part**, sans couche `notations` ;

@@ -1,7 +1,7 @@
 # ADR 0001 — L'IA propose, l'opérateur décide ; la proposition s'affiche après la note
 
 - **Date :** 2026-10-28
-- **Statut :** proposée, amendée après critique du `contradicteur` et arbitrages de Pascal (2026-10-28)
+- **Statut :** acceptée par Pascal (2026-10-28, porte n° 1), après critique du `contradicteur`
 - **Proposée par :** Claude (orchestrateur)
 - **Tranchée par :** Pascal
 

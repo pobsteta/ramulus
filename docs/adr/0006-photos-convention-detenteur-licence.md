@@ -1,7 +1,7 @@
 # ADR 0006 — Photos : convention de prise de vue, détenteur, licence, sortie de l'appareil
 
 - **Date :** 2026-10-28
-- **Statut :** proposée, amendée après critique du `contradicteur` et arbitrages de Pascal (2026-10-28)
+- **Statut :** acceptée par Pascal (2026-10-28, porte n° 1), après critique du `contradicteur`
 - **Proposée par :** Claude (orchestrateur), après critique du `contradicteur`
 - **Tranchée par :** Pascal
 
