@@ -6,14 +6,18 @@
 
 ## Ma réponse d'abord
 
-**2026-10-28, Pascal** (question de départ, recopiée de la session) :
+**2026-10-28, Pascal** (réponse à « Qu'attends-tu de Ramulus, et pourquoi ? », recopiée mot pour mot) :
+
+> J'attends de ramulus, la capcité à noter des arbres in situ et de renvoyer ces informations vers sommieR et
+> Nemeton. Nemeton et/ou sommieR doivent préparer le répérage des arbres à noter via un plan d'échantillonnage fait
+> sur Nemeton
+
+Question de départ de la session, même jour :
 
 > pourrait-on envisager avec l'IA embarquée de noter à partir de plusieurs photos, selon la méthode ARCHI ou
 > DEPERIS, à toi de me dire, un arbre pris en photo en forêt ?
 
-Choix fait le même jour : **DEPERIS d'abord**. Le protocole est visuel, depuis le sol, sur le houppier seul, avec
-deux notes ordinales et un abaque. ARCHI demande de lire l'architecture et une dynamique, avec des clés par essence,
-et se prête mal à la photo en peuplement dense. **[à trancher : ARCHI en tranche ultérieure, ou hors périmètre]**
+Choix fait le même jour : **DEPERIS d'abord**. **[à trancher : ARCHI en tranche ultérieure, ou hors périmètre]**
 
 ## Le problème, et pour qui (Abstraction)
 
@@ -35,9 +39,12 @@ et se prête mal à la photo en peuplement dense. **[à trancher : ARCHI en tran
   l'arbre, guidé (distance, contre-jour) ; il voit la fiche de référence de l'essence ; il pose MB et MR ou MA, ou
   valide ce que l'IA propose ; la classe s'affiche ; il passe à l'arbre suivant. Le bilan du peuplement se tient à
   jour.
-- **Ce qu'elle produit** (destinataire **reporté par Pascal le 2026-10-28** : export générique en tranche 1) : un GeoPackage des arbres notés (position, essence, notes,
-  classe, proposition de l'IA, photos), à verser dans **nemeton** (indicateurs de santé du peuplement, comme Groma
-  pour l'inventaire) ou dans **sommieR** (registre de suivi).
+- **D'où viennent les arbres à noter** (Pascal, réponse d'abord) : d'un **plan d'échantillonnage fait sur Nemeton** ;
+  Nemeton et/ou sommieR préparent le repérage. **[à trancher : forme du plan (arbres pré-repérés ou placettes avec
+  règle de choix), et qui écrit la tournée : nemeton ou sommieR]**
+- **Ce qu'elle produit** : les arbres notés (position, essence, notes, classe, photos, proposition de l'IA plus tard),
+  **renvoyés vers sommieR et Nemeton** (Pascal, réponse d'abord). **[à trancher : lequel fait foi, et sous quelle
+  forme chacun reçoit]**
 
 ## Ce que Ramulus ne fait pas
 
