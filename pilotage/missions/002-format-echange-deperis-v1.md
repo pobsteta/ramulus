@@ -32,11 +32,11 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
 
 ## Harnais
 
-- **Peut aussi :** ajouter à `.github/workflows/ci.yml` l'installation de GDAL et une étape qui passe chaque
-  GeoPackage d'exemple à `ogrinfo` (M1, option b).
 - **Peut :** écrire `docs/formats/deperis-v1.md`, `docs/formats/deperis-v1.schema.json`, `fixtures/echange/`
   (tournée de départ, tournée de contre-notation, paquet rendu, cas refusés) et le script qui génère les
   GeoPackages d'exemple.
+- **Peut aussi :** ajouter à `.github/workflows/ci.yml` l'installation de GDAL et une étape qui passe chaque
+  GeoPackage d'exemple à `ogrinfo` (M1, option b).
 - **Ne doit pas :** changer une décision des ADR 0003 et 0004 (une contradiction remonte à Pascal) ; inventer une
   essence, une classe ou une règle ; toucher à `main`.
 - **Sources autorisées :** ADR 0001 à 0006 ; `docs/spec.md` § 2 ; `docs/referentiels/deperis/` ;
