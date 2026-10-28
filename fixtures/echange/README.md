@@ -1,0 +1,98 @@
+# Cas communs du format `deperis-v1`
+
+Format : [`docs/formats/deperis-v1.md`](../../docs/formats/deperis-v1.md) ; schéma :
+[`deperis-v1.schema.json`](../../docs/formats/deperis-v1.schema.json). Ces cas sont la référence commune de Ramulus
+(Kotlin) et de Nemeton (R) : chacun les rejoue et doit conclure comme `attendu.json` (ADR 0003 § 7).
+
+## Contenu d'un cas
+
+Chaque dossier contient :
+
+- le ou les fichiers : `deperis.gpkg` (tournée écrite par Nemeton, lue par Ramulus) ou `<code_tournee>.zip` (paquet
+  rendu par Ramulus, `deperis.gpkg` et `photos/`, importé par Nemeton) ;
+- `<nom>.instantane.json` : l'instantané JSON de chaque fichier, tel que le décrit le format (lisible et comparable
+  sans SQLite) ;
+- `attendu.json` : `lecteur` (`ramulus` à l'ouverture d'une tournée, `nemeton` à l'import d'un rendu), `depart` (la
+  tournée de départ à laquelle comparer un rendu), `attendu` (`accepte`, `signale` ou `refuse`), `motifs` (codes du
+  catalogue), `source`, et `notes` : chaque note du fichier, avec la photo des fiches DSF 2025 dont elle reprend les
+  notes (`photo_dsf`, `null` si le cas les a modifiées).
+
+## Données
+
+- Code de tournée `EXEMPLE-2027-01` (contre-notation : `EXEMPLE-2027-01-CN`), campagne d'été 2027.
+- Trois placettes **synthétiques** en Côte-d'Or, à environ 300 m les unes des autres (P001 à 5,0650° E,
+  47,1150° N ; P002 à 5,0690° E, 47,1150° N ; P003 à 5,0650° E, 47,1180° N ; longitude puis latitude, en degrés),
+  converties en EPSG:2154 (X = est, Y = nord, en mètres). Aucune forêt n'est nommée ; **les notes ne disent rien de
+  l'état réel du lieu** (ADR 0006). Le site est un choix de l'agent : à remplacer si Pascal en propose un.
+- Notes reprises telles quelles de photos des fiches DSF 2025 (`fixtures/fiches-dsf-2025.json`), hors des quatre
+  incohérences connues : Chêne sessile, Hêtre, Charme (arbre mort, 5/5, F) sur P001 ; Sapin, Mélèze, Cèdre (A,
+  repère « 12b ») sur P002 ; Hêtre et Mélèze sur P003.
+- P001 est marquée « collecte » (deux photos par arbre), P002 « contre-notation ». Les photos sont de petites images
+  JPEG de 8 × 8 pixels.
+- Opérateurs `operateur-A`, `operateur-B` (première notation) et `operateur-C` (contre-notation) : identifiants
+  d'exemple, sans nom d'agent.
+- `delai_contre_notation_jours` = 15 : **valeur provisoire**, non fixée par Pascal.
+
+## Les cas
+
+| Cas | Dossier | Lecteur | Attendu | Motifs |
+|---|---|---|---|---|
+| A1 | `A1-tournee-depart` | ramulus | accepté | — |
+| A2 | `A2-tournee-contre-notation` | ramulus | accepté | — |
+| A3 | `A3-rendu` | nemeton | accepté | — |
+| A4 | `A4-rendu-contre-notation` | nemeton | accepté | — |
+| A5 | `A5-fusion-deux-operateurs` | nemeton | accepté ; l'union des deux paquets redonne A3 | — |
+| A6 | `A6-version-suivante` | ramulus | accepté, colonnes et table nouvelles ignorées | — |
+| S1 | `S1-doublon-arbre` | nemeton | signalé | `doublon_arbre` |
+| S2 | `S2-centre-eloigne` | nemeton | signalé | `centre_eloigne` |
+| R1a | `R1a-plan-valeur-modifiee` | nemeton | refusé | `plan_modifie` |
+| R1b | `R1b-plan-colonne-renommee` | nemeton | refusé | `plan_modifie` |
+| R1c | `R1c-plan-colonne-supprimee` | nemeton | refusé | `plan_modifie` |
+| R1d | `R1d-centre-contre-notation-modifie` | nemeton | refusé | `plan_modifie` |
+| R2 | `R2-classe-differente-abaque` | nemeton | refusé | `classe_differente_abaque` |
+| R3a | `R3a-centre-mogadiscio` | nemeton | refusé | `hors_france` |
+| R3b | `R3b-centre-xy-inverses` | nemeton | refusé | `hors_france` |
+| R5a | `R5a-index-spatial-placettes` | ramulus | refusé | `index_spatial` |
+| R5b | `R5b-index-spatial-centres` | ramulus | refusé | `index_spatial` |
+| R6 | `R6-contre-notation-avec-notations` | ramulus | refusé | `notations_dans_contre_notation` |
+| R7 | `R7-essence-hors-referentiel` | nemeton | refusé | `essence_hors_referentiel` |
+| R8a | `R8a-note-hors-bornes` | nemeton | refusé | `note_hors_bornes` |
+| R8b | `R8b-critere-incoherent` | nemeton | refusé | `critere_incoherent` |
+| R9 | `R9-colonne-date` | ramulus | refusé | `colonne_date` |
+| R10a | `R10a-photo-absente` | nemeton | refusé | `photo_absente` |
+| R10b | `R10b-empreinte-photo-differente` | nemeton | refusé | `empreinte_photo_differente` |
+| R10c | `R10c-photo-non-citee` | nemeton | refusé | `photo_non_citee` |
+| R11 | `R11-repere-autre-que-2154` | ramulus | refusé | `hors_france`, `repere_hors_2154` |
+
+Le titre et la source de chaque cas sont dans son `attendu.json`. R4 (version N+1 refusée) a été retiré : Pascal suit
+l'ADR 0003, une version N+1 est lue (Q1, cas A6). R10 et R11 sont proposés par l'agent.
+
+## Régénérer et vérifier
+
+```sh
+python3 fixtures/echange/generer.py                              # réécrit les cas et les listes du schéma
+python3 -m unittest discover -s fixtures/echange/tests -v        # schéma, cas, contrôle de référence, fusion
+python3 fixtures/echange/verifier_ogrinfo.py                     # GDAL : chaque GeoPackage s'ouvre (CI)
+```
+
+Les GeoPackages sont écrits avec le module `sqlite3` de Python selon OGC 12-128 (M1, option b). Les tests comparent
+les fichiers par leur **contenu** (instantané), jamais par leur empreinte : l'octet près dépend de la version de
+SQLite (Surculus ADR 0011).
+
+## Ce que Pascal vérifie sur le terrain
+
+`A3-rendu/EXEMPLE-2027-01.zip`, décompressé :
+
+1. dans **QField** (ou QGIS) : trois points en Côte-d'Or, au sud de Dijon ; `notations` et `tournee` listées comme
+   tables sans géométrie ;
+2. dans **R** :
+
+   ```r
+   sf::st_layers("deperis.gpkg")
+   p <- sf::st_read("deperis.gpkg", "placettes")          # 3 points, EPSG:2154
+   sf::st_coordinates(sf::st_transform(p, 4326))          # longitudes vers 5,06 à 5,07, latitudes vers 47,11 à 47,12
+   n <- sf::st_read("deperis.gpkg", "notations")          # table sans géométrie, 9 lignes
+   n[, c("plot_id", "rang", "repere", "essence", "mb", "second", "classe")]   # accents intacts
+   ```
+
+3. pour chaque note, la classe est celle de la fiche DSF de la photo citée dans `attendu.json` (`photo_dsf`).
