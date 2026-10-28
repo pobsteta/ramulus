@@ -157,7 +157,10 @@ internal object Ecriture {
     fun enregistrerNotation(gpkg: File, notationJson: String): String {
         val note = lireObjet(notationJson, "notation")
         // La classe ne se saisit pas, juste ou fausse : elle est calculée par l'abaque (ADR 0001, spec § 4 ; Pascal, T2).
-        if (!JsonOutils.estNul(note["classe"])) {
+        // Absente, `null`, `""` ou faite de blancs : la classe compte comme absente et se calcule, sans refus (Pascal, Q4 de 010).
+        val classeFournie = note["classe"]
+        val classeAbsente = JsonOutils.estNul(classeFournie) || (JsonOutils.estTexte(classeFournie) && classeFournie!!.asString.isBlank())
+        if (!classeAbsente) {
             throw EchangeRefuse(listOf("classe_saisie"), "la classe ne se saisit pas, elle est calculée par l'abaque à partir de MB et de MR ou MA")
         }
         val inconnus = note.keySet() - COLONNES_NOTE.toSet() - "classe"

@@ -38,7 +38,7 @@ object EchangeDeperis {
 
     /**
      * Union sur l'`uuid` de paquets rendus, contrôlée comme un paquet, et écrite dans `sortie` sauf refus.
-     * Rend `{"verdict", "motifs", "messages", "ecartes": [{"objet", "cle", "message"}]}`.
+     * Rend `{"verdict", "motifs", "messages", "ecartes": [{"objet", "cle", "message", "plot_id" (centres)}], "placettes_signalees": ["P001"]}`.
      */
     @JvmStatic
     fun fusionner(zips: List<File>, depart: File, operateur: String, versionRamulus: String, sortie: File): String {
@@ -58,10 +58,11 @@ object EchangeDeperis {
             val inst = lireInstantane(temp, photos)
             val r = Controle.controler(inst, photos, departLu.inst)
             val motifs = if (union.ecartes.isEmpty()) r.motifs else (r.motifs + Controle.MOTIF_CONFLIT).distinct().sorted()
-            val messages = r.messages + union.ecartes.map { "${Controle.MOTIF_CONFLIT} : ${it.message}" }
+            val messages = r.messages + union.ecartes.map { "${Controle.MOTIF_CONFLIT} : ${it.message}" } +
+                union.placettesSignalees.map { "${Controle.MOTIF_CONFLIT} : placette $it signalée, gardée avec ses notes et sans centre ; dire quel centre fait foi, puis rendre de nouveau" }
             val resultat = Resultat(Controle.statut(motifs), motifs, messages)
             if (!resultat.refuse) Paquets.ecrireZip(temp, photos.values, sortie)
-            return verdict(resultat, union.ecartes)
+            return verdict(resultat, union.ecartes, union.placettesSignalees)
         } finally {
             temp.delete()
             paquets.forEach { it.close() }
@@ -134,7 +135,7 @@ object EchangeDeperis {
     private fun lireInstantane(gpkg: File, photos: Map<String, PhotoPaquet>): JsonObject =
         Gpkg.ouvrir(gpkg, lectureSeule = true).use { Instantane.lire(it, photos.values.sortedBy { p -> p.nom }.map { p -> p.nom to p.sha256 }) }
 
-    private fun verdict(r: Resultat, ecartes: List<Ecarte>?): String {
+    private fun verdict(r: Resultat, ecartes: List<Ecarte>?, placettesSignalees: List<String> = emptyList()): String {
         val o = JsonObject()
         o.addProperty("verdict", r.statut)
         o.add("motifs", JsonArray().also { a -> r.motifs.forEach { a.add(it) } })
@@ -144,10 +145,11 @@ object EchangeDeperis {
                 "ecartes",
                 JsonArray().also { a ->
                     ecartes.forEach { e ->
-                        a.add(JsonObject().also { x -> x.addProperty("objet", e.objet); x.addProperty("cle", e.cle); x.addProperty("message", e.message) })
+                        a.add(JsonObject().also { x -> x.addProperty("objet", e.objet); x.addProperty("cle", e.cle); x.addProperty("message", e.message); e.plotId?.let { p -> x.addProperty("plot_id", p) } })
                     }
                 },
             )
+            o.add("placettes_signalees", JsonArray().also { a -> placettesSignalees.forEach { a.add(it) } })
         }
         return JsonOutils.gson.toJson(o)
     }

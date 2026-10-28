@@ -5,7 +5,7 @@ import com.google.gson.JsonObject
 import java.io.File
 
 /** Une version écartée de l'union : `objet` est une table (`centres`, `notations`, `contre_notations`) ou `photos`. */
-internal data class Ecarte(val objet: String, val cle: String, val message: String)
+internal data class Ecarte(val objet: String, val cle: String, val message: String, val plotId: String? = null)
 
 /** L'union de paquets rendus : les lignes gardées par table, les photos gardées, les placettes notées, les conflits. */
 internal class Union(
@@ -13,7 +13,10 @@ internal class Union(
     val photos: Map<String, PhotoPaquet>,
     val notees: Set<String>,
     val ecartes: List<Ecarte>,
-)
+) {
+    /** Placettes dont le centre est écarté pour conflit, quel que soit leur `etat` (F1) : gardées avec leurs notes, sans centre. */
+    val placettesSignalees: List<String> get() = ecartes.filter { it.objet == "centres" }.mapNotNull { it.plotId }.distinct().sorted()
+}
 
 /**
  * Fusion de paquets rendus : union sur l'`uuid` des centres et des notes (ADR 0003 § 5, ADR 0005), rejouable.
@@ -60,7 +63,8 @@ internal object Fusion {
             for ((u, vus) in versions.getValue(table)) {
                 if (vus.size > 1) {
                     val cles = vus.flatMap { it.keySet() }.toSet().filter { k -> vus.any { a -> vus.any { b -> !JsonOutils.egal(a[k], b[k]) } } }.sorted()
-                    conflits += Ecarte(table, u, "$table : uuid $u porte ${vus.size} contenus différents (colonnes $cles) ; aucune version gardée")
+                    val plot = if (table == "centres") vus.mapNotNull { JsonOutils.texte(it["plot_id"]) }.distinct().sorted().joinToString("/").ifEmpty { null } else null
+                    conflits += Ecarte(table, u, "$table : uuid $u porte ${vus.size} contenus différents (colonnes $cles) ; aucune version gardée", plot)
                     ecartes.getValue(table) += u
                 }
             }

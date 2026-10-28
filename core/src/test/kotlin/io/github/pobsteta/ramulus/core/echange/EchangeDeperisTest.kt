@@ -79,6 +79,51 @@ class EchangeDeperisTest {
     }
 
     @Test
+    fun `une classe vide ou faite de blancs compte comme absente et est calculee, sans refus`(@TempDir tmp: File) {
+        val attendue = lignes(attendu(), "notations").first()
+        for ((i, vide) in listOf("", " ", "  ", "\t \n").withIndex()) {
+            val travail = copie(depart1, tmp, "travail$i.gpkg")
+            val note = attendue.deepCopy().also { it.remove("fid"); it.addProperty("classe", vide) }
+            val enregistree = json(EchangeDeperis.enregistrerNotation(travail, note.toString()))
+            assertEquals(attendue["classe"].asString, enregistree["classe"].asString, "classe \"$vide\" : calculée par l'abaque")
+            val relue = lignes(json(EchangeDeperis.instantane(travail)), "notations").single()
+            assertEquals(attendue["classe"].asString, relue["classe"].asString)
+        }
+    }
+
+    @Test
+    fun `une classe remplie de lettres entourees de blancs reste une classe fournie, refusee`(@TempDir tmp: File) {
+        val travail = copie(depart1, tmp, "travail.gpkg")
+        val octets = travail.readBytes()
+        val note = lignes(attendu(), "notations").first().deepCopy().also { it.remove("fid"); it.addProperty("classe", " D ") }
+        val e = assertThrows(EchangeRefuse::class.java) { EchangeDeperis.enregistrerNotation(travail, note.toString()) }
+        assertEquals(listOf("classe_saisie"), e.motifs)
+        assertArrayEquals(octets, travail.readBytes())
+    }
+
+    @Test
+    fun `une ecriture sur une tournee qui porte deja un motif de refus est refusee et le fichier reste intact`(@TempDir tmp: File) {
+        // R9 : colonne de type date, tournée déjà refusée à l'ouverture (règle stricte, Pascal : Q1 de 004).
+        val refusee = File(communs, "R9-colonne-date/deperis.gpkg").canonicalFile
+        val travail = copie(refusee, tmp, "travail.gpkg")
+        val octets = travail.readBytes()
+        val ouverture = EchangeDeperis.ouvrir(travail)
+        assertEquals("refuse", statut(ouverture))
+        val motif = motifs(ouverture).single()
+
+        val noteValide = saisie(lignes(attendu(), "notations").first())
+        val ecritures = listOf<() -> Unit>(
+            { EchangeDeperis.enregistrerNotation(travail, noteValide) },
+            { EchangeDeperis.cloturerPlacette(travail, "P001") },
+        )
+        for (ecriture in ecritures) {
+            val e = assertThrows(EchangeRefuse::class.java) { ecriture() }
+            assertTrue(motif in e.motifs, "le refus porte le motif de la tournée ($motif) : ${e.message}")
+            assertArrayEquals(octets, travail.readBytes(), "aucun octet écrit")
+        }
+    }
+
+    @Test
     fun `une colonne inconnue dans une saisie est refusee (structure), pas ignoree`(@TempDir tmp: File) {
         val travail = copie(depart1, tmp, "travail.gpkg")
         val note = json(saisie(lignes(attendu(), "notations").first())).also { it.addProperty("couleur", "rouge") }
@@ -185,12 +230,35 @@ class EchangeDeperisTest {
         assertEquals(setOf("uuid_contenu_different"), motifs(v))
         val ecartes = json(v).getAsJsonArray("ecartes").map { it.asJsonObject["objet"].asString }
         assertEquals(listOf("centres"), ecartes)
+        assertEquals(listOf("P001"), json(v).getAsJsonArray("placettes_signalees").map { it.asString }, "placette signalée")
+        assertEquals("P001", json(v).getAsJsonArray("ecartes").single().asJsonObject["plot_id"].asString)
+        assertTrue(json(v).getAsJsonArray("messages").any { it.asString.contains("placette P001 signalée") })
         assertTrue(sortie.isFile, "un signalement n'empêche pas d'écrire le paquet")
         val union = json(EchangeDeperis.instantane(sortie))
         assertTrue(lignes(union, "centres").isEmpty(), "ni l'une ni l'autre version du centre")
         val notesP001 = lignes(union, "notations").filter { it["plot_id"].asString == "P001" }
         assertEquals(4, notesP001.size, "les quatre notes de P001 sont gardées")
         assertEquals("notee", lignes(union, "placettes").first { it["plot_id"].asString == "P001" }["etat"].asString)
+    }
+
+    @Test
+    fun `F1 - la placette au centre ecarte est signalee quel que soit son etat`(@TempDir tmp: File) {
+        // Deux opérateurs relèvent le centre de P001 sans le clore : l'état n'est pas « notee », la placette est signalée.
+        val a = copie(depart1, tmp, "a.gpkg")
+        val b = copie(depart1, tmp, "b.gpkg")
+        val centre = lignes(attendu(), "centres").first { it["plot_id"].asString == "P001" }.deepCopy().also { it.remove("fid") }
+        EchangeDeperis.enregistrerCentre(a, centre.deepCopy().also { it.addProperty("precision_m", 2.0) }.toString())
+        EchangeDeperis.enregistrerCentre(b, centre.deepCopy().also { it.addProperty("precision_m", 3.5) }.toString())
+        val racine = File(tmp, "vide").also { it.mkdirs() }
+        val za = File(tmp, "a.zip")
+        val zb = File(tmp, "b.zip")
+        EchangeDeperis.rendre(a, depart1, racine, "operateur-A", "exemple", za)
+        EchangeDeperis.rendre(b, depart1, racine, "operateur-B", "exemple", zb)
+        val sortie = File(tmp, "union.zip")
+        val v = EchangeDeperis.fusionner(listOf(za, zb), depart1, "operateur-A", "exemple", sortie)
+        assertEquals(listOf("P001"), json(v).getAsJsonArray("placettes_signalees").map { it.asString })
+        val etat = lignes(json(EchangeDeperis.instantane(sortie)), "placettes").first { it["plot_id"].asString == "P001" }["etat"]
+        assertTrue(etat == null || etat.isJsonNull, "P001 n'a jamais été close : son état reste vide")
     }
 
     @Test

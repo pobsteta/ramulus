@@ -62,9 +62,9 @@ class ValidateurSchemaTest {
     }
 
     @Test
-    fun `le schema du format se charge avec ses 24 motifs, tous de statut refuse ou signale`() {
+    fun `le schema du format se charge avec ses 25 motifs, tous de statut refuse ou signale`() {
         val catalogue: Map<String, String> = Controle.catalogue
-        assertEquals(24, catalogue.size)
+        assertEquals(25, catalogue.size)
         assertTrue(catalogue.values.all { it == "refuse" || it == "signale" })
         assertEquals(setOf("doublon_arbre", "centre_eloigne", "uuid_contenu_different"), catalogue.filterValues { it == "signale" }.keys)
         val racine: JsonObject = Controle.schema
