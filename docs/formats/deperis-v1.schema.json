@@ -124,6 +124,10 @@
       "statut": "refuse",
       "description": "Classe différente de l'abaque appliqué à MB et MR/MA (ADR 0003 § 6 ; abaque.csv)."
     },
+    "classe_saisie": {
+      "statut": "refuse",
+      "description": "Note qui arrive à Ramulus avec une classe déjà remplie, juste ou fausse : refusée à l'enregistrement, car la classe ne se saisit pas, elle se calcule par l'abaque (ADR 0001 ; Pascal, 2026-10-28, T2 bis). Motif de l'enregistrement par Ramulus seulement : le contrôle d'un paquet rendu garde classe_differente_abaque (R2)."
+    },
     "ia_incomplete": {
       "statut": "refuse",
       "description": "Colonnes de l'IA ni toutes vides ni toutes remplies (ADR 0001)."

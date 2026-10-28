@@ -517,6 +517,26 @@ def cas() -> list[dict]:
 
     note_s3 = _note(a3.inst, "P001", 1)
 
+    def f1(inst, _):
+        # Le centre de P001 est relevé deux fois (même uuid), à 4 m d'écart : chaque paquet seul est conforme (le
+        # centre reste à moins de 30 m du point prévu). Leur union écarte les deux versions du centre.
+        _centre(inst, "P001")["geom"]["x"] += 4.0
+
+    def sans_centre_p001(inst, _):
+        # Union attendue de F1, écrite sans passer par la fusion : A3 privé du centre de P001 ; la placette P001 reste
+        # « notee » et ses quatre notes restent.
+        lignes = [l for l in inst["tables"]["centres"]["lignes"] if l["plot_id"] != "P001"]
+        inst["tables"]["centres"]["lignes"] = numeroter(lignes, COLONNES_CENTRES)
+
+    centre_f1 = _centre(a3.inst, "P001")
+
+    def saisie_avec_classe(classe):
+        # La note de P001 rang 1 telle qu'elle arrive à Ramulus pour être enregistrée, sans fid, avec une classe.
+        return dict({k: v for k, v in _note(a3.inst, "P001", 1).items() if k != "fid"}, classe=classe)
+
+    classe_juste = _note(a3.inst, "P001", 1)["classe"]
+    classe_fausse = "A" if classe_juste != "A" else "B"
+
     def r11(inst, _):
         t = inst["tables"]["placettes"]
         t["geometrie"]["srs"] = {"organisation": "EPSG", "code": 4326}
@@ -566,6 +586,27 @@ def cas() -> list[dict]:
                      "chaque_fichier": "accepte",
                      "ecartes": [{"objet": "notations", "cle": note_s3["uuid"], "plot_id": "P001", "rang": 1}]
                      + [{"objet": "photos", "cle": ph["nom"]} for ph in note_s3["photos"]]}),
+        dict(cas="F1", dossier="F1-fusion-conflit-centre",
+             fichiers={f"{CODE}-1.zip": a3, f"{CODE}-2.zip": v(op1, f1)}, lecteur="nemeton", depart=depart_a1,
+             attendu="signale", motifs=["uuid_contenu_different"],
+             source="Pascal, 2026-10-28 (F1) ; Surculus, docs/formats/sursync-v1.md, l. 63 ; ADR 0005",
+             titre="Deux paquets, chacun conforme, qui portent le centre de P001 (même uuid) avec deux contenus "
+                   "(à 4 m l'un de l'autre) : les deux versions du centre sont écartées, la placette P001 « notee » "
+                   "et ses quatre notes sont gardées, la placette est signalée",
+             resultat=(f"{CODE}.zip", v(a3, sans_centre_p001)),
+             fusion={"operateur": "operateur-A", "version_ramulus": VERSION_RAMULUS, "resultat": f"{CODE}.zip",
+                     "chaque_fichier": "accepte",
+                     "ecartes": [{"objet": "centres", "cle": centre_f1["uuid"], "plot_id": "P001"}],
+                     "placettes_signalees": ["P001"]}),
+        dict(cas="T2", dossier="T2-classe-saisie", fichiers={"deperis.gpkg": a1}, lecteur="ramulus",
+             attendu="refuse", motifs=["classe_saisie"], source="Pascal, 2026-10-28 (T2 bis) ; ADR 0001",
+             titre="Enregistrement par Ramulus d'une note qui arrive avec une classe déjà remplie, juste ou fausse : "
+                   "refusée (la classe se calcule par l'abaque). Le fichier est la tournée de départ A1, intacte ; "
+                   "le refus porte sur la saisie, pas sur le fichier",
+             enregistrement={"table": "notations",
+                             "saisies": [
+                                 {"nom": "classe fournie, juste", "ligne": saisie_avec_classe(classe_juste)},
+                                 {"nom": "classe fournie, fausse", "ligne": saisie_avec_classe(classe_fausse)}]}),
         dict(cas="R1a", dossier="R1a-plan-valeur-modifiee", fichiers={zip_a3: v(a3, r1a)}, lecteur="nemeton",
              depart=depart_a1, attendu="refuse", motifs=["plan_modifie"], source="ADR 0003 § 6",
              titre="Colonne de plan changée : wgt de P001"),
@@ -709,6 +750,8 @@ def generer(dossier: Path = ICI, schema: bool = True) -> list[dict]:
             "fusion": c.get("fusion"),
             "notes": notes,
         }
+        if "enregistrement" in c:  # cas T2 : un refus à l'enregistrement, pas à la lecture d'un fichier
+            attendu["enregistrement"] = c["enregistrement"]
         ecrire_json(cible / "attendu.json", attendu)
         attendus.append(attendu)
     return attendus

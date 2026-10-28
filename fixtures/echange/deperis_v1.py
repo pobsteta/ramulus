@@ -688,10 +688,12 @@ MOTIF_CONFLIT = "uuid_contenu_different"
 @dataclass(frozen=True)
 class Conflit:
     """Une version écartée de l'union : `objet` est une table (`centres`, `notations`, `contre_notations`) ou
-    `photos` ; `cle` est l'uuid de la ligne ou le nom de la photo ; `message` dit pourquoi."""
+    `photos` ; `cle` est l'uuid de la ligne ou le nom de la photo ; `message` dit pourquoi. `plot_id` est la placette
+    de la ligne écartée (`None` pour une photo)."""
     objet: str
     cle: str
     message: str
+    plot_id: str | None = None
 
 
 def fusionner(paquets: list[Paquet], operateur: str, version_ramulus: str) -> tuple[Paquet, list[Conflit]]:
@@ -706,6 +708,10 @@ def fusionner(paquets: list[Paquet], operateur: str, version_ramulus: str) -> tu
     conflits (jamais en silence). Une photo appartient à la note qui la cite (`photos/<uuid>_<n>.jpg`, Q2) : les
     photos d'une note écartée sont écartées avec elle, et deux photos de même nom au contenu différent sont un
     conflit sur la note qui les cite, écartée avec toutes ses photos.
+
+    Centre en conflit (F1, Pascal, 2026-10-28) : les deux versions du centre sont écartées, mais la placette et ses
+    notes sont **gardées** (`etat` « notee » conservé), et la placette est **signalée** (`placettes_signalees`) :
+    l'opérateur dit quel centre fait foi, puis rend de nouveau.
     """
     tables = [t for t in ("centres",) + TABLES_NOTES if t in paquets[0].inst["tables"]]
     versions: dict[str, dict[str, list[dict]]] = {t: {} for t in tables}
@@ -730,7 +736,8 @@ def fusionner(paquets: list[Paquet], operateur: str, version_ramulus: str) -> tu
             if len(vus) > 1:
                 ecarts = sorted({k for a in vus for b in vus for k in set(a) | set(b) if a.get(k) != b.get(k)})
                 conflits.append(Conflit(table, u, f"{table} : uuid {u} porte {len(vus)} contenus différents "
-                                                  f"(colonnes {ecarts}) ; aucune version gardée"))
+                                                  f"(colonnes {ecarts}) ; aucune version gardée",
+                                        vus[0].get("plot_id")))
                 ecartes[table].add(u)
     photos_en_conflit = {nom for nom, vus in photos_versions.items() if len(vus) > 1}
     for nom in sorted(photos_en_conflit):
@@ -747,7 +754,7 @@ def fusionner(paquets: list[Paquet], operateur: str, version_ramulus: str) -> tu
             if u not in ecartes[table] and noms & photos_en_conflit:
                 ecartes[table].add(u)
                 conflits.append(Conflit(table, u, f"{table} : uuid {u} écartée avec sa photo en conflit "
-                                                  f"({sorted(noms & photos_en_conflit)})"))
+                                                  f"({sorted(noms & photos_en_conflit)})", vus[0].get("plot_id")))
     photos_ecartees = set(photos_en_conflit)
     for table in TABLES_NOTES:
         for u in ecartes.get(table, ()):
@@ -775,6 +782,12 @@ def fusionner(paquets: list[Paquet], operateur: str, version_ramulus: str) -> tu
     return Paquet(base, photos), conflits
 
 
+def placettes_signalees(conflits: list[Conflit]) -> list[str]:
+    """Placettes dont le centre est écarté pour conflit (F1) : elles restent dans l'union avec leurs notes, sans
+    centre, et attendent que l'opérateur dise quel centre fait foi."""
+    return sorted({c.plot_id for c in conflits if c.objet == "centres" and c.plot_id})
+
+
 def _statut(motifs: set[str] | list[str], catalogue: dict[str, dict]) -> str:
     if any(catalogue[m]["statut"] == "refuse" for m in motifs):
         return "refuse"
@@ -787,7 +800,8 @@ def controler_fusion(paquets: list[Paquet], operateur: str, version_ramulus: str
 
     Un conflit (même uuid, ou même photo, avec deux contenus) écarte les versions en conflit et garde le reste de
     l'union ; il est **signalé** (`uuid_contenu_different`), avec un message par version écartée. Le statut de
-    l'union est celui de ses propres motifs, plus ce signalement.
+    l'union est celui de ses propres motifs, plus ce signalement. Pour un centre en conflit, un message de plus dit la
+    placette signalée (F1).
     """
     schema = schema or charger_schema()
     fusion, conflits = fusionner(paquets, operateur, version_ramulus)
@@ -795,6 +809,8 @@ def controler_fusion(paquets: list[Paquet], operateur: str, version_ramulus: str
     if conflits:
         motifs = set(r.motifs) | {MOTIF_CONFLIT}
         messages = r.messages + [f"{MOTIF_CONFLIT} : {c.message}" for c in conflits]
+        messages += [f"{MOTIF_CONFLIT} : placette {pid} signalée, gardée avec ses notes et sans centre ; "
+                     f"dire quel centre fait foi, puis rendre de nouveau" for pid in placettes_signalees(conflits)]
         r = Resultat(_statut(motifs, motifs_du_catalogue(schema)), sorted(motifs), messages)
     return r, fusion, conflits
 
@@ -814,3 +830,24 @@ def uuid7_deterministe(ms_unix: int, graine: int) -> str:
     valeur = (ms_unix & ((1 << 48) - 1)) << 80 | 0x7 << 76 | rand_a << 64 | 0b10 << 62 | rand_b
     h = f"{valeur:032x}"
     return f"{h[:8]}-{h[8:12]}-{h[12:16]}-{h[16:20]}-{h[20:]}"
+
+
+# --------------------------------------------------------------------------------------------------------------
+# Enregistrement d'une note par Ramulus
+# --------------------------------------------------------------------------------------------------------------
+
+MOTIF_CLASSE_SAISIE = "classe_saisie"
+
+
+def controler_enregistrement(ligne: dict, schema: dict | None = None) -> Resultat:
+    """Premier contrôle d'une note qui arrive à Ramulus pour être enregistrée (T2 bis, Pascal, 2026-10-28).
+
+    La classe ne se saisit pas, elle se calcule par l'abaque : une note qui arrive avec une classe déjà remplie
+    (ni absente ni `None`), juste ou fausse, est refusée avec `classe_saisie`. Ce motif n'existe qu'ici : le contrôle
+    d'un paquet rendu (`controler`) ne le produit jamais et garde `classe_differente_abaque` (R2). Les autres refus
+    d'une note sont ceux du catalogue, par `controler` sur le fichier une fois la note écrite.
+    """
+    catalogue = motifs_du_catalogue(schema or charger_schema())
+    motifs = [MOTIF_CLASSE_SAISIE] if ligne.get("classe") is not None else []
+    messages = [f"{MOTIF_CLASSE_SAISIE} : classe {ligne['classe']!r} fournie ; elle se calcule par l'abaque"] if motifs else []
+    return Resultat(_statut(set(motifs), catalogue), motifs, messages)
