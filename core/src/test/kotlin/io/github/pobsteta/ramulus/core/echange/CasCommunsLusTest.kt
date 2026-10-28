@@ -18,7 +18,7 @@ class CasCommunsLusTest {
     fun `chaque motif du catalogue du format a au moins un cas`() {
         val schema = JsonParser.parseString(File("../docs/formats/deperis-v1.schema.json").readText()).asJsonObject
         val catalogue = schema.getAsJsonObject("x-motifs").keySet()
-        assertEquals(24, catalogue.size, "motifs du catalogue (docs/formats/deperis-v1.md, tableau « Catalogue des motifs »)")
+        assertEquals(25, catalogue.size, "motifs du catalogue (docs/formats/deperis-v1.md, tableau « Catalogue des motifs »)")
         val couverts = cas.flatMap { it.motifs }.toSet()
         assertEquals(emptySet<String>(), catalogue - couverts, "motifs sans cas")
         assertEquals(emptySet<String>(), couverts - catalogue, "motifs de cas inconnus du catalogue")
@@ -26,7 +26,7 @@ class CasCommunsLusTest {
 
     @Test
     fun `les cas sont tous lus, avec leurs fichiers et leurs instantanes`() {
-        assertEquals(36, cas.size, "28 cas de 002 + 8 cas complémentaires X1 à X7b de 003, tous dans fixtures/echange")
+        assertEquals(38, cas.size, "28 cas de 002 + 8 cas complémentaires X1 à X7b de 003 + F1 et T2 de 010, tous dans fixtures/echange")
         assertEquals(cas.size, cas.map { it.id }.toSet().size, "identifiants de cas distincts")
         for (c in cas) {
             assertTrue(c.fichiers.isNotEmpty(), c.id)

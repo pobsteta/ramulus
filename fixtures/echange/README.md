@@ -16,11 +16,17 @@ Chaque dossier contient :
   tournée de départ à laquelle comparer un rendu), `attendu` (`accepte`, `signale` ou `refuse`), `motifs` (codes du
   catalogue), `source`, `fusion`, et `notes` : chaque note du fichier, avec la photo des fiches DSF 2025 dont elle
   reprend les notes (`photo_dsf`, `null` si le cas les a modifiées).
-- `fusion` est `null`, sauf pour les cas de plusieurs paquets (A5, S3). Alors chaque fichier, contrôlé seul, conclut
+- `fusion` est `null`, sauf pour les cas de plusieurs paquets (A5, S3, F1). Alors chaque fichier, contrôlé seul, conclut
   comme `fusion.chaque_fichier` ; `attendu` et `motifs` sont ceux de leur **union** sur l'`uuid`, faite au nom de
   `fusion.operateur` et `fusion.version_ramulus` ; `fusion.resultat` est le paquet que cette union doit redonner ;
   `fusion.ecartes` liste ce que l'union écarte pour conflit (`objet` : table ou `photos` ; `cle` : `uuid` ou nom de
-  photo), vide s'il n'y en a pas. Les `notes` sont celles des fichiers, pas de l'union.
+  photo), vide s'il n'y en a pas ; `plot_id` y dit la placette de la ligne écartée. `fusion.placettes_signalees`
+  (F1 seulement, absent sinon) liste les placettes dont le **centre** est écarté : elles restent dans l'union, avec
+  leurs notes et leur `etat` « notee », sans centre. Les `notes` sont celles des fichiers, pas de l'union.
+- `enregistrement` (T2 seulement, absent sinon) est un cas de **saisie**, pas de fichier : `table` et `saisies`, des
+  lignes de note qui arrivent à Ramulus pour être enregistrées. Le cas conclut sur la saisie (`attendu`, `motifs`) ;
+  `fichiers` est la tournée à laquelle on l'ajoute, qui doit rester intacte. Un lecteur qui joue les cas par la
+  lecture ou l'import d'un fichier **saute** les cas qui portent `enregistrement`.
 
 ## Données
 
@@ -53,6 +59,8 @@ Chaque dossier contient :
 | S1 | `S1-doublon-arbre` | nemeton | signalé | `doublon_arbre` |
 | S2 | `S2-centre-eloigne` | nemeton | signalé | `centre_eloigne` |
 | S3 | `S3-fusion-conflit-uuid` | nemeton | chaque paquet accepté seul ; leur union signalée, sans la note de P001 rang 1 ni ses photos, tout le reste gardé | `uuid_contenu_different` |
+| F1 | `F1-fusion-conflit-centre` | nemeton | chaque paquet accepté seul ; leur union signalée, sans le centre de P001, avec la placette P001 « notee » et ses quatre notes gardées et signalée | `uuid_contenu_different` |
+| T2 | `T2-classe-saisie` | ramulus | refusé : deux saisies de la note de P001 rang 1, l'une avec la bonne classe, l'autre avec une fausse (cas de saisie, voir `enregistrement`) | `classe_saisie` |
 | R1a | `R1a-plan-valeur-modifiee` | nemeton | refusé | `plan_modifie` |
 | R1b | `R1b-plan-colonne-renommee` | nemeton | refusé | `plan_modifie` |
 | R1c | `R1c-plan-colonne-supprimee` | nemeton | refusé | `plan_modifie` |
@@ -85,6 +93,11 @@ X1 à X7b sont les cas complémentaires du testeur (mission 003, déplacés ici 
 motifs du catalogue qu'aucun cas de 002 ne couvrait. Ils sont écrits par leur propre script,
 `generer_complements.py`, à partir de A3 ; `generer.py` (mission 002) ne les connaît pas. Les tests Python de 002 ne les
 rejouent pas non plus.
+
+F1 et T2 écrivent les deux décisions de Pascal du 2026-10-28 (mission 010) : F1, un centre qui arrive avec deux
+contenus à la fusion est écarté, mais la placette « notee » et ses notes sont gardées et la placette est signalée ;
+T2, une note qui arrive avec une classe déjà remplie, juste ou fausse, est refusée à l'enregistrement par Ramulus.
+`classe_saisie` n'est produit que par l'enregistrement : lire un paquet rendu garde `classe_differente_abaque` (R2).
 
 Le titre et la source de chaque cas sont dans son `attendu.json`. R4 (version N+1 refusée) a été retiré : Pascal suit
 l'ADR 0003, une version N+1 est lue (Q1, cas A6). R1d, R10c et R11, proposés par l'agent, sont validés par Pascal
@@ -122,3 +135,9 @@ SQLite (Surculus ADR 0011).
    ```
 
 3. pour chaque note, la classe est celle de la fiche DSF de la photo citée dans `attendu.json` (`photo_dsf`).
+
+`F1-fusion-conflit-centre/EXEMPLE-2027-01.zip` (l'union attendue), décompressé, dans **QField** : trois placettes,
+P001 incluse, **un seul** centre en moins (celui de P001) ; la table `notations` porte ses neuf lignes, dont les quatre
+de P001 ; la placette P001 est à l'état `notee`. Aucune colonne ne porte le signalement : on voit « P001 notee, sans
+centre » ; le signalement se lit dans le rapport du contrôle (message « placette P001 signalée »). Les deux versions du centre sont dans `EXEMPLE-2027-01-1.zip` (centre
+de départ) et `EXEMPLE-2027-01-2.zip` (à 4 m).
