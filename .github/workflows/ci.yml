@@ -42,3 +42,25 @@ jobs:
           name: app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+  # Format d'échange deperis-v1 (mission 002) : les GeoPackages d'exemple sont écrits avec le module sqlite3 de Python
+  # selon OGC 12-128, et validés ici par GDAL (M1, option b, Pascal le 2026-10-28).
+  format-echange:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Installer GDAL (ogrinfo) et jsonschema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gdal-bin
+          ogrinfo --version
+          python3 --version
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install jsonschema==4.26.0
+
+      - name: Tests du format (schéma, cas communs, contrôle de référence, fusion)
+        run: '"$RUNNER_TEMP/venv/bin/python" -m unittest discover -s fixtures/echange/tests -v'
+
+      - name: Chaque GeoPackage d'exemple passe ogrinfo
+        run: '"$RUNNER_TEMP/venv/bin/python" fixtures/echange/verifier_ogrinfo.py'
