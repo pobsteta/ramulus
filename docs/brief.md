@@ -34,16 +34,23 @@ embarqué (Pascal, 2026-10-28).
 
 ## Ce que fait Ramulus
 
-- **En une phrase** : application Android de terrain, hors ligne, qui aide à noter l'état du houppier selon
-  DEPERIS à partir de plusieurs photos de l'arbre, garde les photos avec la note, et rend le bilan du peuplement.
-- **Les gestes sur le terrain** : l'opérateur choisit l'essence ; il prend 2 à 4 photos du houppier autour de
-  l'arbre, guidé (distance, contre-jour) ; il voit la fiche de référence de l'essence ; il pose MB et MR ou MA, ou
-  valide ce que l'IA propose ; la classe s'affiche ; il passe à l'arbre suivant. Le bilan du peuplement se tient à
-  jour.
+- **En une phrase** : application Android de terrain, hors ligne, qui fait noter in situ l'état du houppier selon
+  DEPERIS sur les arbres d'un plan d'échantillonnage de Nemeton, et rend les notes et le bilan du peuplement à
+  Nemeton. **La note d'abord ; la photo sur un échantillon** (Pascal, 2026-10-28, après la critique du
+  contradicteur) : une photo par arbre, 2 à 4 sur une part des placettes, pour constituer le jeu d'entraînement.
+- **Les gestes sur le terrain** : l'opérateur ouvre la tournée et rejoint la placette ; il choisit les arbres selon
+  la règle de la campagne ; pour chaque arbre il pose MB et MR ou MA (la fiche de référence du DSF s'ouvre en lien),
+  la classe s'affiche ; il prend la ou les photos demandées ; il passe à l'arbre suivant. Le bilan du peuplement se
+  tient à jour. Quand l'IA viendra, sa proposition ne s'affichera qu'**après** la note de l'opérateur (ADR 0001).
 - **D'où viennent les arbres à noter** : d'un **plan d'échantillonnage fait sur Nemeton** (réponse d'abord). Forme
   retenue (Pascal, 2026-10-28) : **des placettes tirées par Nemeton, et une règle de choix des arbres** sur chaque
-  placette (les N arbres dominants ou codominants les plus proches du centre ; N et la règle sont à sourcer dans les
-  protocoles du DSF). Qui écrit la tournée que reçoit Ramulus, nemeton ou sommieR : à trancher par Pascal.
+  placette. Le DSF ne fixe pas cette règle (note DGAL 2018-433 : « 20 à 50 arbres répartis en placettes ») : **le
+  nombre d'arbres et la règle sont des paramètres de la campagne**, écrits par Nemeton dans la tournée (Pascal,
+  2026-10-28) ; défaut proposé : classes de Kraft 1 à 3 (manuel ICP Forests, partie IV). Brief à écrire vers
+  Nemeton : sait-il tirer ce plan ? Qui écrit la tournée que reçoit Ramulus, nemeton ou sommieR : à trancher par
+  Pascal.
+- **Contrôle de qualité** (Pascal, 2026-10-28) : **5 % des placettes renotées à l'aveugle** par un second opérateur,
+  comme le pratique ICP Forests, pour mesurer l'accord entre notateurs, que le DSF ne chiffre pas.
 - **Ce qu'elle produit** : les arbres notés (position, essence, notes, classe, photos), **renvoyés vers sommieR et
   Nemeton** (réponse d'abord). **Nemeton fait foi** (Pascal, 2026-10-28) : il importe le paquet arbre par arbre,
   puisqu'il a fait le plan ; **sommieR reçoit de Nemeton** le bilan par unité de gestion pour le sommier.
@@ -65,10 +72,15 @@ sur 26 ; il sous-estime la mortalité de branches. Rapport :
 
 1. **Où tourne l'IA** — tranché par Pascal le 2026-10-28 : notation manuelle d'abord (tranche 1 sans IA), avec
    collecte des photos notées ; un modèle embarqué, entraîné sur ces données, ensuite. ADR 0002 à écrire.
-2. **Données d'entraînement** : les 250 photos des fiches suffisent pour tester, pas pour entraîner. Il faut des
-   milliers d'arbres notés par des observateurs formés. Partenariat (DSF, ONF, CNPF) : à trancher par Pascal.
-3. **Droits sur les photos des fiches** : on n'en garde que les notes (fixtures) ; les images ne sont pas versées
-   au dépôt.
+2. **Données d'entraînement — le modèle embarqué est un pari.** Les 250 photos des fiches suffisent pour tester,
+   pas pour entraîner. L'opérateur note l'arbre entier vu sur place, pas ce que montrent les photos : une note n'est
+   pas une étiquette d'image. Le seul travail publié trouvé a utilisé environ 2 100 images (Kälin et al., WSL,
+   bioRxiv 441733). Il faut des milliers d'arbres notés selon une convention de prise de vue. Partenariat (DSF, ONF, CNPF) : à trancher par Pascal.
+3. **Droits sur les fiches** : la licence etalab-2.0 couvre le texte de la page du ministère, pas les PDF ni leurs
+   photos. Le dépôt n'en garde que les notes (fixtures) ; l'application ouvre la fiche en lien. Proposés par le
+   contradicteur et **non retenus par Pascal** le 2026-10-28 : demander l'accord du DSF pour un usage hors ligne ;
+   un état « non noté » avec motif codé (absent, abattu, mort déjà noté, essence hors fiches) et une règle de
+   remplacement dans le plan.
 4. **Quatre incohérences** relevées dans les fiches (pin d'Alep, pin laricio, deux pins sylvestres) : à signaler au
    DSF ; qui écrit : à trancher par Pascal.
 5. **Position** : centre de placette au RTK comme Marculus et Surculus, ou GNSS du téléphone ; arbres repérés par
