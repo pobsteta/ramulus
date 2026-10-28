@@ -6,7 +6,6 @@
 ## Bac à sable
 
 - **ARCHI** (diagnostic architectural, C. Drénou) : tranche ultérieure ou hors périmètre, à trancher au brief.
-- **Signaler au DSF** les quatre incohérences des fiches (pin d'Alep, pin laricio, deux pins sylvestres).
 - **Deuxième essai IA** : même jeu, avec la fiche de référence de l'essence fournie et une consigne contre la
   clémence sur MB ; mesurer le gain avant d'écrire l'ADR 0002.
 - **Bibliothèques communes** (`pobsteta/terrain`) : `terrain-gnss`, `terrain-journal`, `terrain-style` à consommer
@@ -21,6 +20,8 @@
 - **003** `testeur` · tests d'acceptation de l'échange, après 002 · [fiche](missions/003-tests-acceptation-echange.md)
 - **004 à 009** : fiches à écrire au cycle suivant (voir `equipe.md`).
 - **Orchestrateur** : brief vers Nemeton après 002.
+- **Pascal** : signaler au DSF les quatre incohérences des fiches (pin d'Alep, pin laricio, deux pins sylvestres) ;
+  relevé : `docs/essais/2026-10-28-essai-ia-a-l-aveugle.md`.
 
 ## En cours
 
