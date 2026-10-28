@@ -1,0 +1,13 @@
+# Documents sources : on garde leurs références, pas les fichiers (comme Surculus)
+docs/referentiels/**/*.pdf
+.claude/worktrees/
+
+# Gradle et Android
+.gradle/
+build/
+.kotlin/
+local.properties
+*.keystore
+*.jks
+.idea/
+__pycache__/
