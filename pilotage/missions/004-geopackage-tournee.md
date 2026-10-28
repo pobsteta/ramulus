@@ -108,3 +108,28 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
 ## Comment saura-t-on que ça marche ?
 
 La CI de 004 est verte avec `RAMULUS_ECHANGE_EXIGER=1`, et Nemeton relit le paquet rendu (cas communs rejoués en R).
+
+## Remarques du relecteur et décisions de Pascal — aller-retour 1/3 (2026-10-28, commit 984ddef)
+
+Relecteur : **à reprendre au rebase**. Le travail tient sa mission sur sa base : 271 tests verts avec
+`RAMULUS_ECHANGE_EXIGER=1`, tests de 003 intacts, classe de l'abaque, P001 en France, reprise de Surculus ADR 0011
+exacte.
+
+**D'abord :** rebaser la branche sur `origin/mission/014-tests-003-cas-de-saisie`, qui contient 010. Ordre de fusion :
+010 → 014 → 004.
+
+**Corrections :**
+1. **Classe absente (Pascal : Q4 de 010, puis précision).** Une `classe` absente, JSON `null`, `""` ou faite seulement
+   de blancs compte comme **absente** : elle est calculée par l'abaque, sans refus. Toute autre classe remplie est
+   refusée avec `classe_saisie`. Aujourd'hui, `Ecriture.kt` refuse `""` : à corriger. Les tests de 014 le vérifient.
+2. **F1 (Pascal : Q2 de 010).** Toute placette dont le centre est écarté à la fusion est signalée, **quel que soit son
+   `etat`**. Le motif et la sortie suivent le format amendé par 010 (`placettes_signalees`, cas
+   `F1-fusion-conflit-centre`).
+3. **Tournée déjà refusée (Pascal : Q1 de 004, règle stricte gardée).** Ajouter un test propre : une écriture sur une
+   tournée qui porte déjà un motif de refus est refusée, et le fichier reste intact.
+4. **Les tests de 003 et de 014 passent sans retouche :**
+   - `.claude/test-command` complète, verte ;
+   - `RAMULUS_ECHANGE_EXIGER=1 ./gradlew :core:cleanTest :core:test --no-build-cache` : 0 échec, 0 sauté.
+
+**Non demandé :** le point mineur de la classe provisoire « A » posée pour des notes hors bornes. On le garde, car le
+contrôle le refuse.
