@@ -54,4 +54,4 @@
   (`docs/referentiels/` : Kraft, saison, distance et lumière de prise de vue, précision GNSS sous couvert) et le paquet
   d'exemple `fixtures/echange/A3-rendu/EXEMPLE-2027-01.zip`, qu'il ouvre dans QField. De plus que le cycle 1 : un
   premier objet à confronter au terrain, là où le cycle 1 ne livrait rien d'utilisable. Proposée par l'orchestrateur,
-  inscrite après le « continue » de Pascal (à corriger s'il ne la retient pas).
+  retenue par Pascal le 2026-10-28.
