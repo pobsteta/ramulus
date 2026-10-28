@@ -711,7 +711,8 @@ def fusionner(paquets: list[Paquet], operateur: str, version_ramulus: str) -> tu
 
     Centre en conflit (F1, Pascal, 2026-10-28) : les deux versions du centre sont écartées, mais la placette et ses
     notes sont **gardées** (`etat` « notee » conservé), et la placette est **signalée** (`placettes_signalees`) :
-    l'opérateur dit quel centre fait foi, puis rend de nouveau.
+    l'opérateur dit quel centre fait foi, puis rend de nouveau. Toute placette dont le centre est écarté est signalée,
+    quel que soit son `etat` ; une note ou une photo écartée ne signale aucune placette.
     """
     tables = [t for t in ("centres",) + TABLES_NOTES if t in paquets[0].inst["tables"]]
     versions: dict[str, dict[str, list[dict]]] = {t: {} for t in tables}
@@ -843,11 +844,13 @@ def controler_enregistrement(ligne: dict, schema: dict | None = None) -> Resulta
     """Premier contrôle d'une note qui arrive à Ramulus pour être enregistrée (T2 bis, Pascal, 2026-10-28).
 
     La classe ne se saisit pas, elle se calcule par l'abaque : une note qui arrive avec une classe déjà remplie
-    (ni absente ni `None`), juste ou fausse, est refusée avec `classe_saisie`. Ce motif n'existe qu'ici : le contrôle
+    (ni absente, ni `None`, ni vide), juste ou fausse, est refusée avec `classe_saisie`. Ce motif n'existe qu'ici : le contrôle
     d'un paquet rendu (`controler`) ne le produit jamais et garde `classe_differente_abaque` (R2). Les autres refus
     d'une note sont ceux du catalogue, par `controler` sur le fichier une fois la note écrite.
     """
     catalogue = motifs_du_catalogue(schema or charger_schema())
-    motifs = [MOTIF_CLASSE_SAISIE] if ligne.get("classe") is not None else []
+    classe = ligne.get("classe")
+    fournie = classe is not None and not (isinstance(classe, str) and classe == "")  # `""` compte comme absente (Pascal, 2026-10-28)
+    motifs = [MOTIF_CLASSE_SAISIE] if fournie else []
     messages = [f"{MOTIF_CLASSE_SAISIE} : classe {ligne['classe']!r} fournie ; elle se calcule par l'abaque"] if motifs else []
     return Resultat(_statut(set(motifs), catalogue), motifs, messages)

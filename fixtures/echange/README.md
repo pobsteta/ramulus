@@ -138,5 +138,6 @@ SQLite (Surculus ADR 0011).
 
 `F1-fusion-conflit-centre/EXEMPLE-2027-01.zip` (l'union attendue), décompressé, dans **QField** : trois placettes,
 P001 incluse, **un seul** centre en moins (celui de P001) ; la table `notations` porte ses neuf lignes, dont les quatre
-de P001 ; la placette P001 est à l'état `notee`. Les deux versions du centre sont dans `EXEMPLE-2027-01-1.zip` (centre
+de P001 ; la placette P001 est à l'état `notee`. Aucune colonne ne porte le signalement : on voit « P001 notee, sans
+centre » ; le signalement se lit dans le rapport du contrôle (message « placette P001 signalée »). Les deux versions du centre sont dans `EXEMPLE-2027-01-1.zip` (centre
 de départ) et `EXEMPLE-2027-01-2.zip` (à 4 m).

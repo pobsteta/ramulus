@@ -193,7 +193,9 @@ corrections concurrentes signalées comme conflit » ; Pascal, 2026-10-28) :
 conflit, mais la **placette « notee » et ses notes sont gardées** (`etat` reste `notee`, aucune note n'est touchée) et
 la **placette est signalée** : l'union la rend sans centre, la liste des conflits donne son `plot_id` pour chaque centre
 écarté, et le contrôle de référence ajoute un message par placette signalée. L'opérateur dit alors quel centre fait foi,
-puis rend de nouveau (cas F1). Une note ou une photo écartée ne signale pas de placette.
+puis rend de nouveau (cas F1). Toute placette dont le centre est écarté est signalée, **quel que soit son `etat`** ;
+une note ou une photo écartée ne signale pas de placette. Dans QField, le centre absent suffit (aucune colonne de
+signalement) : le signalement se lit dans le rapport du contrôle (Ramulus, import Nemeton).
 
 Une photo appartient à la note qui la cite (`photos/<uuid>_<n>.jpg`, Q2) : les photos d'une note écartée sont écartées
 avec elle (sinon l'union porterait des photos citées par aucune note). Deux photos de même nom et de contenu différent
@@ -205,7 +207,7 @@ qu'une fois.
 ## Enregistrement d'une note par Ramulus
 
 Ramulus **calcule** la classe par l'abaque à partir de `mb` et de `second` : elle ne se saisit pas. Une note qui lui
-arrive avec une classe déjà remplie (ni absente, ni vide), **juste ou fausse**, est refusée à l'enregistrement avec le
+arrive avec une classe déjà remplie (ni absente, ni vide : une `classe` vide, `""`, compte comme absente et est calculée sans refus), **juste ou fausse**, est refusée à l'enregistrement avec le
 motif `classe_saisie`, et le fichier reste intact (cas T2, deux saisies). Ce motif n'existe qu'à l'enregistrement : le
 contrôle d'un paquet rendu ne le produit jamais, une classe fausse y reste `classe_differente_abaque` (R2) et une
 classe juste y est acceptée. Les autres refus d'une note à l'enregistrement sont ceux du catalogue.

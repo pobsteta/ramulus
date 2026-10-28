@@ -694,6 +694,18 @@ class Fusion(unittest.TestCase):
         self.assertEqual(["P001"], d.placettes_signalees(conflits))
         self.assertEqual(["P001"], [c.plot_id for c in conflits])
 
+    def test_conflit_de_centre_signale_la_placette_quel_que_soit_son_etat(self):
+        for etat in ("", "notee", None):
+            with self.subTest(etat=etat):
+                a, b = copy.deepcopy(self.p1), copy.deepcopy(self.p1)
+                for p in (a, b):
+                    for l in p.inst["tables"]["placettes"]["lignes"]:
+                        if l["plot_id"] == "P001":
+                            l["etat"] = etat
+                b.inst["tables"]["centres"]["lignes"][0]["precision_m"] = 9.9
+                _, conflits = d.fusionner([a, b], self.op, self.v)
+                self.assertEqual(["P001"], d.placettes_signalees(conflits))
+
     def test_conflit_de_note_ne_signale_aucune_placette(self):
         """Seul un centre écarté signale sa placette (F1) : la décision ne dit rien d'une note écartée."""
         autre = copy.deepcopy(self.p1)
@@ -805,10 +817,6 @@ class Ecriture(unittest.TestCase):
         self.assertIn("Cèdre", essences)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class Enregistrement(unittest.TestCase):
     """T2 bis (Pascal, 2026-10-28) : une classe fournie à l'enregistrement est refusée avec `classe_saisie`, juste ou
     fausse ; le contrôle d'un paquet rendu ne change pas (`classe_differente_abaque`, R2)."""
@@ -840,10 +848,10 @@ class Enregistrement(unittest.TestCase):
 
     def test_sans_classe_la_saisie_passe(self):
         for s in self.a["enregistrement"]["saisies"]:
-            for vide in (None, "absente"):
+            for vide in (None, "absente", ""):
                 ligne = {k: v for k, v in s["ligne"].items() if k != "classe"}
-                if vide is None:
-                    ligne["classe"] = None
+                if vide != "absente":
+                    ligne["classe"] = vide
                 r = d.controler_enregistrement(ligne, SCHEMA)
                 self.assertEqual(("accepte", []), (r.statut, r.motifs))
 
@@ -863,3 +871,7 @@ class Enregistrement(unittest.TestCase):
         """A3 porte des classes justes : un paquet n'est pas refusé parce que ses notes ont une classe."""
         r = d.controler(paquet("A3"), paquet("A1"), SCHEMA)
         self.assertEqual(("accepte", []), (r.statut, r.motifs))
+
+
+if __name__ == "__main__":
+    unittest.main()
