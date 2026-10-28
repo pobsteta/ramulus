@@ -78,8 +78,8 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
 
 ## Terrain
 
-- **Échantillon que Pascal vérifiera :** le cas F1, lu dans QField. On doit y voir la placette signalée, ses notes
-  présentes et aucun centre.
+- **Échantillon que Pascal vérifiera :** le cas F1, lu dans QField. On doit y voir P001 « notee », ses notes et
+  aucun centre. Le signalement se lit dans le rapport du contrôle (Pascal, aller-retour 1/3).
 
 ## Qui veille, qui tranche
 
