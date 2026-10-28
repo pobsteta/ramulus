@@ -31,7 +31,7 @@ Couches et colonnes : ADR 0003 (seule source). En bref :
 | Donnée | Qui l'écrit | Où |
 | --- | --- | --- |
 | Version du fichier, préparation, opérateur | Nemeton, puis Ramulus | table `tournee` |
-| Placettes du plan, colonnes de plan jamais modifiées, paramètres de campagne (`nb_arbres`, `regle_choix`, `saison`, `collecte_photos`, `contre_notation`), azimut et convergence | Nemeton | couche `placettes` |
+| Placettes du plan, colonnes de plan jamais modifiées, paramètres de campagne (`nb_arbres`, `regle_choix`, `saison`, `collecte_photos`, `contre_notation`) | Nemeton | couche `placettes` |
 | État de la placette | Ramulus | `placettes.etat` |
 | Centre relevé | Ramulus | couche `centres` |
 | Arbre noté : `uuid`, rang, essence, type, MB, MR ou MA, classe, saison, date, opérateur, photos ; colonnes réservées de l'IA (première note, proposition) | Ramulus | table `notations`, sans géométrie |
