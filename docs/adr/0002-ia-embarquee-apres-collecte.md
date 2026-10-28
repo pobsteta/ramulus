@@ -31,8 +31,8 @@ test séparé par placette et par campagne, un seuil fixé par Pascal avant l'en
    dans l'entraînement.
    Conséquence de la mise à part de la dernière campagne : **aucun modèle ne peut être livré avant la fin d'une
    deuxième campagne**.
-   Saison : à trancher par Pascal — collecte de photos limitée à la saison feuillée, ou test découpé par saison
-   (ICP Forests recommande le milieu ou la fin de l'été ; Kälin et al. ont photographié en juillet-août).
+   Saison (Pascal, 2026-10-28) : **photos en toute saison, test découpé par saison** ; le seuil est atteint saison
+   par saison, ou le modèle n'est livré que pour les saisons qui l'atteignent.
 3. **Mesures** : classe exacte ; classe à un près ; erreur sur MB ; rappel des arbres D-E-F et des arbres F.
 4. **Seuil de livraison** : à fixer par Pascal avant l'entraînement — proposition : « le modèle s'accorde avec
    l'opérateur au moins autant que deux opérateurs entre eux », mesuré sur les placettes de contre-notation.

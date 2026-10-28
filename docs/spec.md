@@ -8,10 +8,10 @@
 
 1. **Recevoir la tournée.** Au bureau, Nemeton tire le plan d'échantillonnage et **écrit la tournée** DEPERIS (un
    GeoPackage, ADR 0003 ; Pascal, 2026-10-28). L'opérateur la copie sur le téléphone ; Ramulus l'ouvre hors ligne.
-2. **Aller à la placette.** Carte des placettes à faire, guidage jusqu'au point prévu, position du centre relevée
-   (GNSS du téléphone ou RTK : ADR 0004, à trancher par Pascal).
+2. **Aller à la placette.** Carte des placettes à faire, guidage jusqu'au point prévu, centre relevé au GNSS du
+   téléphone, moyenné (ADR 0004 ; Pascal, 2026-10-28 : « position approchée suffit »).
 3. **Choisir les arbres.** Ramulus rappelle la règle de la campagne (nombre d'arbres, règle de choix, par défaut
-   classes de Kraft 1 à 3) ; l'opérateur désigne chaque arbre retenu, numéroté dans l'ordre de la règle.
+   classes de Kraft 1 à 3) ; chaque arbre retenu est désigné par son **rang** dans la règle, sans position propre.
 4. **Noter chaque arbre.** Essence (une des 19 essences du référentiel ; un arbre d'une autre essence n'est pas
    noté, § 4), MB, puis MR ou MA ; la classe s'affiche par l'abaque. La fiche de référence du DSF s'ouvre en lien, pour la saison de la
    campagne.
@@ -34,8 +34,8 @@ Couches et colonnes : ADR 0003 (seule source). En bref :
 | Placettes du plan, colonnes de plan jamais modifiées, paramètres de campagne (`nb_arbres`, `regle_choix`, `saison`, `collecte_photos`, `contre_notation`), azimut et convergence | Nemeton | couche `placettes` |
 | État de la placette | Ramulus | `placettes.etat` |
 | Centre relevé | Ramulus | couche `centres` |
-| Arbre noté : `uuid`, rang, distance, azimut, point calculé, essence, type, MB, MR ou MA, classe, saison, date, opérateur, photos ; colonnes réservées de l'IA (première note, proposition) | Ramulus | couche `notations` |
-| Contre-notation | Ramulus, second opérateur | couche `contre_notations`, tournée à part |
+| Arbre noté : `uuid`, rang, essence, type, MB, MR ou MA, classe, saison, date, opérateur, photos ; colonnes réservées de l'IA (première note, proposition) | Ramulus | table `notations`, sans géométrie |
+| Contre-notation | Ramulus, second opérateur | table `contre_notations`, tournée à part |
 | Journal des saisies (ajout seul, union sur l'UUID) | Ramulus | base Room, sauvegardée (ADR 0005) |
 | Photos | Ramulus | dossier `photos/` du `.zip`, nom et empreinte dans `notations` |
 
@@ -94,9 +94,9 @@ dégradé au-delà de 20 % de E-F (comparaison stricte). Source : fiches DSF 202
 | 0001 | L'IA propose, l'opérateur décide ; proposition affichée après la note | proposée, amendée |
 | 0002 | IA embarquée après la collecte ; seuil mesuré par placette et campagne | proposée, amendée |
 | 0003 | Échange avec Nemeton : tournée écrite par Nemeton, règles de Groma, import tout ou rien, contre-notation à part | proposée, amendée |
-| 0004 | Position : centre et arbres (GNSS du téléphone, RTK, distance et azimut) | à écrire, à trancher par Pascal |
+| 0004 | Position approchée : centre au GNSS du téléphone, arbres par leur rang | proposée |
 | 0005 | Stack et reprises de Surculus (journal, sauvegarde, sqlite-jdbc) | proposée |
-| 0006 | Photos : convention de prise de vue, détenteur, licence, sortie de l'appareil | proposée, trois choix à trancher |
+| 0006 | Photos : convention de prise de vue ; jeu détenu par le projet Nemeton, Etalab 2.0 | proposée, amendée |
 
 Brief à écrire vers Nemeton après l'acceptation de l'ADR 0003 : sait-il tirer ce plan et écrire cette tournée ?
 

@@ -7,6 +7,6 @@ Gabarit : `adr-france.md` du skill `imperatrice:brief`.
 | [0001](0001-ia-propose-operateur-decide.md) | L'IA propose, l'opérateur décide ; proposition affichée après la note | proposée, amendée |
 | [0002](0002-ia-embarquee-apres-collecte.md) | IA embarquée après la collecte, seuil mesuré par placette | proposée, amendée |
 | [0003](0003-echange-avec-nemeton.md) | Échange avec Nemeton : tournée GeoPackage, import tout ou rien | proposée, amendée |
-| 0004 | Position du centre et des arbres | à écrire |
+| [0004](0004-position-approchee.md) | Position approchée : centre au GNSS du téléphone, arbres par leur rang | proposée |
 | [0005](0005-stack-et-reprises.md) | Stack et reprises de Surculus | proposée |
-| [0006](0006-photos-convention-detenteur-licence.md) | Photos : convention, détenteur, licence | proposée, trois choix ouverts |
+| [0006](0006-photos-convention-detenteur-licence.md) | Photos : convention, détenteur, licence | proposée, amendée |

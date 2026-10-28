@@ -18,8 +18,8 @@ voyage dans une tournée et une couche à part.
   gestion. Pascal, 2026-10-28 : **Nemeton écrit la tournée** ; les décisions de Groma et de Surculus sont
   **reprises telles quelles**.
 - Ce que Groma a appris : `groma/briefs/vers-nemeton/2026-10-12-inventaire-video.md`, § 2.1 à 2.3 (options GDAL,
-  déclencheurs R*Tree et SQLite d'Android, `date` mot réservé, convergence des méridiens, colonnes de plan
-  contrôlées).
+  déclencheurs R*Tree et SQLite d'Android, `date` mot réservé, colonnes de plan contrôlées ; la convergence des
+  méridiens ne sert plus, faute d'azimuts : ADR 0004).
 - Ce que Surculus a tranché : ADR 0011 (sqlite-jdbc sur l'appareil), ADR 0007 (version au niveau du fichier,
   repère lu dans `gpkg_spatial_ref_sys`), ADR 0005 (sauvegarde).
 - Options envisagées : sommieR prépare et reçoit (modèle Surculus) ; paquet propre à Ramulus (JSON) ; QField seul.
@@ -35,15 +35,14 @@ voyage dans une tournée et une couche à part.
 3. **Couches** :
    - `placettes` (POINT prévu) : colonnes du plan Nemeton (`plot_id`, `wgt`, `ip`, `stratum`…), **jamais
      modifiées**, contrôlées à l'import ; paramètres de campagne `nb_arbres`, `regle_choix` (défaut `kraft_1_3`),
-     `saison`, `collecte_photos`, `contre_notation` ; `unite_azimut`, `declinaison_deg`, `convergence_deg`
-     (Groma) ; `etat` écrit par Ramulus ;
-   - `centres` (POINT relevé) : `plot_id`, précision, source GNSS, `date_releve`, opérateur ;
-   - `notations` (**POINT calculé**) : `uuid`, `plot_id`, `rang`, `distance_m`, `azimut` (observations brutes en
-     colonnes), `essence`, `type` (feuillu / résineux), `mb`, `second`, `critere`, `classe`, `saison`,
+     `saison`, `collecte_photos`, `contre_notation` ; `etat` écrit par Ramulus ;
+   - `centres` (POINT relevé au GNSS du téléphone, moyenné ; ADR 0004) : `plot_id`, précision, nombre de mesures,
+     source, `date_releve`, opérateur ;
+   - `notations` (**table d'attributs, sans géométrie** ; ADR 0004) : `uuid`, `plot_id`, `rang`, `essence`, `type` (feuillu / résineux), `mb`, `second`, `critere`, `classe`, `saison`,
      `date_notation`, `operateur`, `photos` (noms et empreintes), colonnes réservées de l'IA (ADR 0001 :
      première note, proposition, confiance, modèle), vides en tranche 1.
 4. **Contre-notation** : Nemeton écrit pour le second opérateur une **tournée à part**, sans couche `notations` ;
-   il la rend dans une couche **`contre_notations`**. Délai maximal entre les deux passages : à fixer par Pascal
+   il la rend dans une table **`contre_notations`** (mêmes colonnes, sans géométrie). Délai maximal entre les deux passages : à fixer par Pascal
    (ICP Forests : « très près de la date » du premier). **La première note fait foi** dans le bilan.
 5. **Rendu** : un `.zip` contenant `deperis.gpkg` et le dossier `photos/` ; plusieurs opérateurs : fusion par
    union sur l'`uuid` avant de rendre ; deux notations du même arbre hors contre-notation signalées.

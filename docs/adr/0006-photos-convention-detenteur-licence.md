@@ -1,7 +1,7 @@
 # ADR 0006 — Photos : convention de prise de vue, détenteur, licence, sortie de l'appareil
 
 - **Date :** 2026-10-28
-- **Statut :** proposée ; trois choix restent à trancher par Pascal (marqués)
+- **Statut :** proposée, amendée après critique du `contradicteur` et arbitrages de Pascal (2026-10-28)
 - **Proposée par :** Claude (orchestrateur), après critique du `contradicteur`
 - **Tranchée par :** Pascal
 
@@ -27,7 +27,7 @@ leurs droits (cession, producteur, licence, entraînement) sont tranchés par Pa
 | Éviter le contre-jour : il fait surestimer la défoliation des résineux | Kälin et al. — sourcée |
 | Photos 2 à 4 à 90° les unes des autres (placettes « collecte ») | non sourcée |
 | Même direction d'une année à l'autre | non sourcée |
-| Saison feuillée pour les photos | ICP Forests (milieu ou fin de l'été) ; à trancher (ADR 0002) |
+| Toute saison ; la saison est gardée avec la photo et le test est découpé par saison | Pascal, 2026-10-28 (ADR 0002) |
 | Horodatage, position et azimut de visée gardés dans le GeoPackage ; **EXIF retiré** des photos versées au jeu | règle de confidentialité (ci-dessous) |
 | Contrôles à la prise (flou, contre-jour, houppier coupé), signalés sans bloquer | Pascal, 2026-10-28 |
 
@@ -52,11 +52,15 @@ protocole de prise de vue : l'`acquereur` lira le formulaire PHOT d'ICP avant la
 - **Stockage sur l'appareil** : photos sous `Documents/Ramulus/` (MediaStore), avec un `.nomedia`, pour qu'aucune
   galerie ne les indexe ni ne les envoie dans un nuage ; vérifié par un test sur appareil.
 
-## Choix à trancher par Pascal
+## Tranché par Pascal (2026-10-28)
 
-1. **Cession** : faire signer une cession des droits des opérateurs (à qui), ou s'en passer.
-2. **Producteur du jeu** : Pascal, le projet Nemeton, ou l'employeur.
-3. **Licence du jeu** : ouverte (Etalab 2.0 ou CC BY 4.0) ou fermée.
+1. **Cession** : les opérateurs cèdent par écrit leurs droits sur les photos **au projet Nemeton**.
+2. **Producteur du jeu** : **le projet Nemeton**.
+3. **Licence du jeu** : **ouverte, Etalab 2.0** ; EXIF retiré, visages et plaques floutés, aucune forêt désignée
+   « dégradée » sans l'accord de Nemeton.
+
+## Reste à trancher par Pascal (avant la tranche 2)
+
 4. **Entraînement** : où les photos sont rassemblées, et qui entraîne.
 
 ## Le crible FRANCE
@@ -64,11 +68,11 @@ protocole de prise de vue : l'`acquereur` lira le formulaire PHOT d'ICP avant la
 | Lettre | Réponse | Ce que ça coûte | Prêts à payer ? |
 |---|---|---|---|
 | **F** | Une convention simple, signalée sans bloquer | un peu de temps par arbre | à mesurer (spec, critère 7) |
-| **R** | Le détenteur répond des photos | à désigner | à trancher |
+| **R** | Le projet Nemeton détient le jeu et en répond | une cession à faire signer à chaque opérateur | oui (Pascal) |
 | **A** | Visages, véhicules, propriétés privées dans le champ : à flouter ou à écarter avant toute diffusion | traitement avant partage | à trancher |
 | **N** | Drone, photos hémisphériques : non examinés en v1 | — | dit |
 | **C** | Stockage des photos (quelques Mo par arbre) | volume à prévoir chez Nemeton | à chiffrer |
-| **É** | Un jeu ouvert servirait la recherche | dépend de la licence | à trancher |
+| **É** | Jeu ouvert sous Etalab 2.0, réutilisable par la recherche | nettoyage avant publication | oui (Pascal) |
 
 ## Valeurs sacrifiées
 
