@@ -1,12 +1,12 @@
 # Équipe de Ramulus
 
 > Produit par l'orchestrateur avec `/mission` le 2026-10-28, d'après le brief et la spec validés (porte n° 1).
-> **À valider par Pascal (porte n° 2).** Règle de staffing : `imperatrice:methode`.
+> **Validée par Pascal le 2026-10-28 (porte n° 2), telle que proposée.** Règle de staffing : `imperatrice:methode`.
 
-- **Statut :** proposée
-- **Validée par :** —
+- **Statut :** validée
+- **Validée par :** Pascal, 2026-10-28
 
-## Plafond humain (proposé : celui de Surculus)
+## Plafond humain (celui de Surculus)
 
 - **PR ouvertes en même temps, au plus :** 3
 - **Missions de code en parallèle, au plus :** 2
@@ -43,6 +43,6 @@ après la mission 002 et envoyé par Pascal ; **signalement au DSF** des quatre 
 - `relecteur` : à chaque PR.
 - Ni `archiviste`, ni `analyste` : aucune mission ne les demande en tranche 1.
 
-## Premier cycle proposé
+## Premier cycle
 
 001 (`acquereur`) et 002 (`dev`, tenue) en parallèle, puis 003 (`testeur`). Le reste attend en « planifié ».
