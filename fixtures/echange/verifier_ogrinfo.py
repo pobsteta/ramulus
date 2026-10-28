@@ -2,7 +2,8 @@
 
     python3 fixtures/echange/verifier_ogrinfo.py
 
-Pour chaque fichier de fixtures/echange/*/attendu.json (un .zip est lu par /vsizip/) :
+Pour chaque fichier de fixtures/echange/*/attendu.json, et l'union attendue d'un cas de fusion quand elle est écrite
+dans son dossier (un .zip est lu par /vsizip/) :
 1. ogrinfo l'ouvre en lecture seule, sans ERROR ;
 2. il liste exactement les tables de l'instantané : « Point » pour placettes et centres, « None » pour les tables
    sans géométrie (tournee, notations, contre_notations) ;
@@ -66,7 +67,8 @@ def main() -> int:
     nb, echecs = 0, 0
     for attendu in sorted(ICI.glob("*/attendu.json")):
         a = json.loads(attendu.read_text(encoding="utf-8"))
-        for f in a["fichiers"]:
+        union = (a.get("fusion") or {}).get("resultat")
+        for f in a["fichiers"] + ([union] if union and "/" not in union else []):  # union écrite dans le cas (S3)
             chemin = attendu.parent / f
             inst = json.loads((attendu.parent / (f.rsplit(".", 1)[0] + ".instantane.json")).read_text(encoding="utf-8"))
             nb += 1

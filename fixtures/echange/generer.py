@@ -296,6 +296,8 @@ def numeroter(lignes: list[dict], colonnes: dict) -> list[dict]:
 
 
 SOURCES_DSF: dict[str, str] = {}  # uuid -> identifiant de la photo DSF dont les notes sont reprises
+# uuid -> autres photos DSF dont une seconde version de la même ligne reprend les notes (cas S3 : conflit de fusion).
+AUTRES_SOURCES_DSF: dict[str, list[str]] = {}
 
 
 def rendu(plots: list[str], operateur: str) -> d.Paquet:
@@ -396,6 +398,7 @@ def _ajouter_colonne(t: dict, nom: str, typ: str, valeur=None) -> None:
 def cas() -> list[dict]:
     """Chaque cas : dossier, fichiers {nom: Paquet}, et ce qu'un lecteur conforme doit en conclure."""
     SOURCES_DSF.clear()
+    AUTRES_SOURCES_DSF.clear()
     a1 = d.Paquet(tournee_depart())
     a3 = rendu(["P001", "P002", "P003"], "operateur-A")
     a2 = d.Paquet(tournee_contre_notation(a3))
@@ -491,16 +494,28 @@ def cas() -> list[dict]:
         ligne = inst["tables"]["placettes"]["lignes"][0]
         ligne["regle_choix"] = unicodedata.normalize("NFD", ligne["regle_choix"])
 
-    def r13(inst, photos):
+    def s3(inst, photos):
         # Le même arbre (même uuid) arrive aussi dans le paquet de l'opérateur B, corrigé : MR 2 au lieu de 3
-        # (notes de la photo dsf2025-06_05, même classe D). Chaque paquet seul est conforme ; leur union ne l'est pas.
+        # (notes de la photo dsf2025-06_05, même classe D). Chaque paquet seul est conforme ; leur union écarte les
+        # deux versions et garde le reste (Surculus, sursync-v1.md l. 63 ; Pascal, 2026-10-28).
         copie = copy.deepcopy(_note(a3.inst, "P001", 1))
         p = DSF["dsf2025-06_05"]
         copie.update(mb=p["mb"], second=p["second"], classe=p["classe"])
+        AUTRES_SOURCES_DSF.setdefault(copie["uuid"], []).append("dsf2025-06_05")
         for ph in copie["photos"]:
             photos[ph["nom"]] = a3.photos[ph["nom"]]
         lignes = inst["tables"]["notations"]["lignes"] + [copie]
         inst["tables"]["notations"]["lignes"] = numeroter(lignes, COLONNES_NOTES)
+
+    def sans_p001_rang_1(inst, photos):
+        # Union attendue de S3, écrite sans passer par la fusion : A3 privé de la note de P001 rang 1 et de ses photos.
+        note = _note(inst, "P001", 1)
+        for ph in note["photos"]:
+            del photos[ph["nom"]]
+        lignes = [l for l in inst["tables"]["notations"]["lignes"] if l["uuid"] != note["uuid"]]
+        inst["tables"]["notations"]["lignes"] = numeroter(lignes, COLONNES_NOTES)
+
+    note_s3 = _note(a3.inst, "P001", 1)
 
     def r11(inst, _):
         t = inst["tables"]["placettes"]
@@ -529,7 +544,7 @@ def cas() -> list[dict]:
              titre="Deux paquets partiels (P001 ; P002 et P003) : leur union sur l'uuid redonne A3, "
                    "quel que soit l'ordre, et se rejoue sans doublon",
              fusion={"operateur": "operateur-A", "version_ramulus": VERSION_RAMULUS,
-                     "resultat": f"../A3-rendu/{zip_a3}", "chaque_fichier": "accepte"}),
+                     "resultat": f"../A3-rendu/{zip_a3}", "chaque_fichier": "accepte", "ecartes": []}),
         dict(cas="A6", dossier="A6-version-suivante", fichiers={"deperis.gpkg": v(a1, a6)}, lecteur="ramulus",
              attendu="accepte", motifs=[], source="ADR 0003 § 2 ; Q1",
              titre="Version 2 avec une colonne et une table inconnues : lue en les ignorant"),
@@ -539,6 +554,18 @@ def cas() -> list[dict]:
         dict(cas="S2", dossier="S2-centre-eloigne", fichiers={zip_a3: v(a3, s2)}, lecteur="nemeton",
              depart=depart_a1, attendu="signale", motifs=["centre_eloigne"], source="ADR 0004 (30 m, provisoire)",
              titre="Centre de P003 relevé à plus de 30 m du point prévu"),
+        dict(cas="S3", dossier="S3-fusion-conflit-uuid",
+             fichiers={f"{CODE}-1.zip": op1, f"{CODE}-2.zip": v(op2, s3)}, lecteur="nemeton", depart=depart_a1,
+             attendu="signale", motifs=["uuid_contenu_different"],
+             source="ADR 0003 § 5 ; Surculus, docs/formats/sursync-v1.md, l. 63 ; ADR 0005 ; Pascal, 2026-10-28",
+             titre="Deux paquets, chacun conforme, qui portent la note de P001 rang 1 (même uuid) avec deux "
+                   "contenus (MR 3, puis 2) : les deux versions et leurs photos sont écartées, le conflit est "
+                   "signalé, le reste de l'union est gardé",
+             resultat=(f"{CODE}.zip", v(a3, sans_p001_rang_1)),
+             fusion={"operateur": "operateur-A", "version_ramulus": VERSION_RAMULUS, "resultat": f"{CODE}.zip",
+                     "chaque_fichier": "accepte",
+                     "ecartes": [{"objet": "notations", "cle": note_s3["uuid"], "plot_id": "P001", "rang": 1}]
+                     + [{"objet": "photos", "cle": ph["nom"]} for ph in note_s3["photos"]]}),
         dict(cas="R1a", dossier="R1a-plan-valeur-modifiee", fichiers={zip_a3: v(a3, r1a)}, lecteur="nemeton",
              depart=depart_a1, attendu="refuse", motifs=["plan_modifie"], source="ADR 0003 § 6",
              titre="Colonne de plan changée : wgt de P001"),
@@ -602,14 +629,6 @@ def cas() -> list[dict]:
         dict(cas="R12", dossier="R12-texte-non-nfc", fichiers={"deperis.gpkg": v(a1, r12)}, lecteur="ramulus",
              attendu="refuse", motifs=["texte_non_nfc"], source="Pascal, 2026-10-28 (tous les textes en NFC)",
              titre="Règle de choix de P001 écrite en Unicode NFD (« à » décomposé) au lieu de NFC"),
-        dict(cas="R13", dossier="R13-fusion-conflit-uuid",
-             fichiers={f"{CODE}-1.zip": op1, f"{CODE}-2.zip": v(op2, r13)}, lecteur="nemeton", depart=depart_a1,
-             attendu="refuse", motifs=["uuid_contenu_different"],
-             source="ADR 0003 § 5 ; Surculus, docs/formats/sursync-v1.md ; Pascal, 2026-10-28",
-             titre="Deux paquets, chacun conforme, qui portent la note de P001 rang 1 (même uuid) avec deux "
-                   "contenus (MR 3, puis 2) : la fusion s'arrête, aucune version n'est choisie",
-             fusion={"operateur": "operateur-A", "version_ramulus": VERSION_RAMULUS, "resultat": None,
-                     "chaque_fichier": "accepte"}),
     ]
 
 
@@ -619,14 +638,15 @@ def cas() -> list[dict]:
 
 def _source_dsf(ligne: dict) -> str | None:
     """Photo DSF dont la ligne reprend les notes telles quelles ; None si un cas les a modifiées."""
-    ident = SOURCES_DSF.get(ligne["uuid"])
-    if ident is None:
-        return None
-    p = DSF[ident]
-    intacte = (ligne["essence"], ligne["mb"], ligne["second"], ligne["classe"]) == (
-        p["essence"], p["mb"], p["second"], p["classe"]) and ligne["type"] == TYPES.get(p["essence"]) \
-        and ligne["critere"] == CRITERE[ligne["type"]]
-    return ident if intacte else None
+    candidats = [SOURCES_DSF.get(ligne["uuid"])] + AUTRES_SOURCES_DSF.get(ligne["uuid"], [])
+    for ident in filter(None, candidats):
+        p = DSF[ident]
+        intacte = (ligne["essence"], ligne["mb"], ligne["second"], ligne["classe"]) == (
+            p["essence"], p["mb"], p["second"], p["classe"]) and ligne["type"] == TYPES.get(p["essence"]) \
+            and ligne["critere"] == CRITERE[ligne["type"]]
+        if intacte:
+            return ident
+    return None
 
 
 def notes_attendues(paquet: d.Paquet, fichier: str) -> list[dict]:
@@ -673,6 +693,10 @@ def generer(dossier: Path = ICI, schema: bool = True) -> list[dict]:
             relu = d.lire_paquet(cible / nom)
             ecrire_json(cible / instantane_nom(nom), relu.inst)
             notes += notes_attendues(paquet, nom)
+        if "resultat" in c:
+            nom, paquet = c["resultat"]
+            d.ecrire_paquet(cible / nom, paquet.inst, derniere_modif(paquet), paquet.photos)
+            ecrire_json(cible / instantane_nom(nom), d.lire_paquet(cible / nom).inst)
         attendu = {
             "cas": c["cas"],
             "titre": c["titre"],

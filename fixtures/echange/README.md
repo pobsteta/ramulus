@@ -16,10 +16,11 @@ Chaque dossier contient :
   tournée de départ à laquelle comparer un rendu), `attendu` (`accepte`, `signale` ou `refuse`), `motifs` (codes du
   catalogue), `source`, `fusion`, et `notes` : chaque note du fichier, avec la photo des fiches DSF 2025 dont elle
   reprend les notes (`photo_dsf`, `null` si le cas les a modifiées).
-- `fusion` est `null`, sauf pour les cas de plusieurs paquets (A5, R13). Alors chaque fichier, contrôlé seul, conclut
+- `fusion` est `null`, sauf pour les cas de plusieurs paquets (A5, S3). Alors chaque fichier, contrôlé seul, conclut
   comme `fusion.chaque_fichier` ; `attendu` et `motifs` sont ceux de leur **union** sur l'`uuid`, faite au nom de
-  `fusion.operateur` et `fusion.version_ramulus` ; `fusion.resultat` est le paquet que cette union doit redonner, ou
-  `null` si elle s'arrête sur un conflit.
+  `fusion.operateur` et `fusion.version_ramulus` ; `fusion.resultat` est le paquet que cette union doit redonner ;
+  `fusion.ecartes` liste ce que l'union écarte pour conflit (`objet` : table ou `photos` ; `cle` : `uuid` ou nom de
+  photo), vide s'il n'y en a pas. Les `notes` sont celles des fichiers, pas de l'union.
 
 ## Données
 
@@ -51,6 +52,7 @@ Chaque dossier contient :
 | A6 | `A6-version-suivante` | ramulus | accepté, colonnes et table nouvelles ignorées | — |
 | S1 | `S1-doublon-arbre` | nemeton | signalé | `doublon_arbre` |
 | S2 | `S2-centre-eloigne` | nemeton | signalé | `centre_eloigne` |
+| S3 | `S3-fusion-conflit-uuid` | nemeton | chaque paquet accepté seul ; leur union signalée, sans la note de P001 rang 1 ni ses photos, tout le reste gardé | `uuid_contenu_different` |
 | R1a | `R1a-plan-valeur-modifiee` | nemeton | refusé | `plan_modifie` |
 | R1b | `R1b-plan-colonne-renommee` | nemeton | refusé | `plan_modifie` |
 | R1c | `R1c-plan-colonne-supprimee` | nemeton | refusé | `plan_modifie` |
@@ -70,11 +72,12 @@ Chaque dossier contient :
 | R10c | `R10c-photo-non-citee` | nemeton | refusé | `photo_non_citee` |
 | R11 | `R11-repere-autre-que-2154` | ramulus | refusé | `hors_france`, `repere_hors_2154` |
 | R12 | `R12-texte-non-nfc` | ramulus | refusé | `texte_non_nfc` |
-| R13 | `R13-fusion-conflit-uuid` | nemeton | chaque paquet accepté seul ; leur union refusée | `uuid_contenu_different` |
 
 Le titre et la source de chaque cas sont dans son `attendu.json`. R4 (version N+1 refusée) a été retiré : Pascal suit
 l'ADR 0003, une version N+1 est lue (Q1, cas A6). R1d, R10c et R11, proposés par l'agent, sont validés par Pascal
-(2026-10-28), comme R12 et R13, ajoutés après ses décisions du même jour (textes en NFC ; conflit de fusion).
+(2026-10-28), comme R12 et S3, ajoutés après ses décisions du même jour (textes en NFC ; conflit de fusion). S3 était
+R13 (union refusée) jusqu'à la décision de Pascal du 2026-10-28 de traiter le conflit comme Surculus
+(`sursync-v1.md`, l. 63) : les deux versions écartées, le conflit signalé, le reste gardé.
 
 ## Régénérer et vérifier
 

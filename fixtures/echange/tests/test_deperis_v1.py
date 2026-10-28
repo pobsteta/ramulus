@@ -45,6 +45,12 @@ def paquet(cas: str, i: int = 0) -> d.Paquet:
     return d.lire_paquet(dossier / a["fichiers"][i])
 
 
+def resultat_local(a: dict) -> list[str]:
+    """L'union attendue d'un cas de fusion, quand elle est écrite dans le dossier du cas (S3)."""
+    r = (a["fusion"] or {}).get("resultat")
+    return [r] if r and "/" not in r else []
+
+
 def octets_gpkg(chemin: Path) -> bytes:
     if chemin.suffix == ".zip":
         with zipfile.ZipFile(chemin) as z:
@@ -224,9 +230,9 @@ class Cas(unittest.TestCase):
 
     def test_il_y_a_tous_les_cas_du_plan(self):
         ids = {a["cas"] for _, a in attendus()}
-        attendus_plan = {"A1", "A2", "A3", "A4", "A5", "A6", "S1", "S2", "R1a", "R1b", "R1c", "R1d", "R2", "R3a",
-                         "R3b", "R5a", "R5b", "R6", "R7", "R8a", "R8b", "R9", "R10a", "R10b", "R10c", "R11", "R12",
-                         "R13"}
+        attendus_plan = {"A1", "A2", "A3", "A4", "A5", "A6", "S1", "S2", "S3", "R1a", "R1b", "R1c", "R1d", "R2",
+                         "R3a", "R3b", "R5a", "R5b", "R6", "R7", "R8a", "R8b", "R9", "R10a", "R10b", "R10c", "R11",
+                         "R12"}
         self.assertEqual(attendus_plan, ids)
 
     def test_resultat_et_motifs(self):
@@ -243,8 +249,14 @@ class Cas(unittest.TestCase):
             if fusion:
                 with self.subTest(cas=a["cas"], fusion=True):
                     paquets = [d.lire_paquet(dossier / f) for f in a["fichiers"]]
-                    r, _ = d.controler_fusion(paquets, fusion["operateur"], fusion["version_ramulus"], depart, SCHEMA)
+                    r, union, conflits = d.controler_fusion(paquets, fusion["operateur"], fusion["version_ramulus"],
+                                                            depart, SCHEMA)
                     self.assertEqual((a["attendu"], a["motifs"]), (r.statut, r.motifs), "\n".join(r.messages))
+                    attendue = d.lire_paquet(dossier / fusion["resultat"])
+                    self.assertEqual(attendue.inst, union.inst)
+                    self.assertEqual(attendue.photos, union.photos)
+                    self.assertEqual([(e["objet"], e["cle"]) for e in fusion["ecartes"]],
+                                     [(c.objet, c.cle) for c in conflits])
 
     def test_acceptes_et_signales_valides_contre_le_schema(self):
         for dossier, a in attendus():
@@ -263,7 +275,7 @@ class Cas(unittest.TestCase):
 
     def test_instantane_depose_egal_au_fichier(self):
         for dossier, a in attendus():
-            for f in a["fichiers"]:
+            for f in a["fichiers"] + resultat_local(a):
                 with self.subTest(cas=a["cas"], fichier=f):
                     depose = json.loads((dossier / generer.instantane_nom(f)).read_text(encoding="utf-8"))
                     self.assertEqual(depose, d.lire_paquet(dossier / f).inst)
@@ -275,7 +287,7 @@ class Cas(unittest.TestCase):
             for a in nouveaux:
                 dossier = next(dd for dd, aa in attendus() if aa["cas"] == a["cas"])
                 self.assertEqual(json.loads((dossier / "attendu.json").read_text(encoding="utf-8")), a)
-                for f in a["fichiers"]:
+                for f in a["fichiers"] + resultat_local(a):
                     with self.subTest(cas=a["cas"], fichier=f):
                         self.assertEqual(d.lire_paquet(dossier / f).inst,
                                          d.lire_paquet(Path(tmp) / dossier.name / f).inst)
@@ -314,7 +326,7 @@ class GeoPackage(unittest.TestCase):
 
     def fichiers(self):
         for dossier, a in attendus():
-            for f in a["fichiers"]:
+            for f in a["fichiers"] + resultat_local(a):
                 yield a, dossier / f
 
     def test_en_tete_et_integrite(self):
@@ -582,20 +594,22 @@ class Fusion(unittest.TestCase):
         self.op, self.v = self.a["fusion"]["operateur"], self.a["fusion"]["version_ramulus"]
 
     def test_union_egale_a3(self):
-        f = d.fusionner([self.p1, self.p2], self.op, self.v)
+        f, conflits = d.fusionner([self.p1, self.p2], self.op, self.v)
+        self.assertEqual([], conflits)
         self.assertEqual(self.a3.inst, f.inst)
         self.assertEqual(self.a3.photos, f.photos)
 
     def test_ordre_indifferent(self):
-        self.assertEqual(d.fusionner([self.p2, self.p1], self.op, self.v).inst, self.a3.inst)
+        self.assertEqual(d.fusionner([self.p2, self.p1], self.op, self.v)[0].inst, self.a3.inst)
 
     def test_rejouable_sans_doublon(self):
-        f = d.fusionner([self.a3, self.p1, self.p2, self.p1], self.op, self.v)
+        f, conflits = d.fusionner([self.a3, self.p1, self.p2, self.p1], self.op, self.v)
+        self.assertEqual([], conflits)
         self.assertEqual(self.a3.inst, f.inst)
 
     def test_fusion_ecrite_et_relue(self):
         with tempfile.TemporaryDirectory() as tmp:
-            f = d.fusionner([self.p1, self.p2], self.op, self.v)
+            f, _ = d.fusionner([self.p1, self.p2], self.op, self.v)
             chemin = Path(tmp) / "f.zip"
             d.ecrire_paquet(chemin, f.inst, generer.RENDU_LE, f.photos)
             relu = d.lire_paquet(chemin)
@@ -603,36 +617,95 @@ class Fusion(unittest.TestCase):
             self.assertEqual("accepte", d.controler(relu, paquet("A1"), SCHEMA).statut)
 
     def test_chaque_ligne_garde_son_operateur(self):
-        f = d.fusionner([self.p1, self.p2], self.op, self.v)
+        f, _ = d.fusionner([self.p1, self.p2], self.op, self.v)
         ops = {l["plot_id"]: l["operateur"] for l in f.inst["tables"]["notations"]["lignes"]}
         self.assertEqual({"P001": "operateur-A", "P002": "operateur-B", "P003": "operateur-B"}, ops)
 
-    def test_conflit_jamais_tranche_en_silence(self):
-        autre = copy.deepcopy(self.p1)
-        autre.inst["tables"]["notations"]["lignes"][0]["classe"] = "E"
-        with self.assertRaises(d.ConflitUuid):
-            d.fusionner([self.p1, autre], self.op, self.v)
-        r, fusion = d.controler_fusion([self.p1, autre], self.op, self.v, paquet("A1"), SCHEMA)
-        self.assertEqual(("refuse", ["uuid_contenu_different"], None), (r.statut, r.motifs, fusion))
-        self.assertIn("classe", r.messages[0])
+    def note_p001(self, inst, rang):
+        return next(l for l in inst["tables"]["notations"]["lignes"] if l["plot_id"] == "P001" and l["rang"] == rang)
 
-    def test_conflit_de_photo(self):
+    def test_conflit_ecarte_les_deux_versions_et_garde_le_reste(self):
+        """Comme Surculus (sursync-v1.md, l. 63 ; Pascal, 2026-10-28) : les deux versions refusées, les autres
+        gardées, le conflit signalé."""
+        autre = copy.deepcopy(self.p1)
+        n = self.note_p001(autre.inst, 2)
+        n["classe"] = "E"
+        f, conflits = d.fusionner([self.p1, self.p2, autre], self.op, self.v)
+        self.assertEqual([("notations", n["uuid"])], [(c.objet, c.cle) for c in conflits if c.objet != "photos"])
+        noms = sorted(ph["nom"] for ph in n["photos"])
+        self.assertEqual(noms, sorted(c.cle for c in conflits if c.objet == "photos"))
+        self.assertIn("classe", conflits[0].message)
+        gardes = {l["uuid"] for l in f.inst["tables"]["notations"]["lignes"]}
+        tous = {l["uuid"] for l in self.a3.inst["tables"]["notations"]["lignes"]}
+        self.assertEqual(tous - {n["uuid"]}, gardes)
+        self.assertFalse(set(noms) & set(f.photos))
+        self.assertEqual(set(self.a3.photos) - set(noms), set(f.photos))
+        r, union, _ = d.controler_fusion([self.p1, self.p2, autre], self.op, self.v, paquet("A1"), SCHEMA)
+        self.assertEqual(("signale", ["uuid_contenu_different"]), (r.statut, r.motifs), "\n".join(r.messages))
+        self.assertEqual(f.inst, union.inst)
+        self.assertTrue(any(n["uuid"] in m for m in r.messages))
+
+    def test_conflit_de_centre(self):
+        autre = copy.deepcopy(self.p1)
+        c = autre.inst["tables"]["centres"]["lignes"][0]
+        c["precision_m"] = 9.9
+        f, conflits = d.fusionner([self.p1, autre], self.op, self.v)
+        self.assertEqual([("centres", c["uuid"])], [(k.objet, k.cle) for k in conflits])
+        self.assertEqual([], f.inst["tables"]["centres"]["lignes"])
+        self.assertEqual(self.p1.inst["tables"]["notations"], f.inst["tables"]["notations"])
+
+    def test_conflit_de_photo_ecarte_la_note_qui_la_cite(self):
         autre = copy.deepcopy(self.p1)
         nom = sorted(autre.photos)[0]
         autre.photos[nom] = autre.photos[nom] + b"\x00"
-        r, _ = d.controler_fusion([self.p1, autre], self.op, self.v, paquet("A1"), SCHEMA)
-        self.assertEqual(("refuse", ["uuid_contenu_different"]), (r.statut, r.motifs))
+        note = next(l for l in self.p1.inst["tables"]["notations"]["lignes"]
+                    if nom in {ph["nom"] for ph in l["photos"]})
+        f, conflits = d.fusionner([self.p1, autre], self.op, self.v)
+        objets = {(c.objet, c.cle) for c in conflits}
+        self.assertIn(("photos", nom), objets)
+        self.assertIn(("notations", note["uuid"]), objets)
+        self.assertNotIn(note["uuid"], {l["uuid"] for l in f.inst["tables"]["notations"]["lignes"]})
+        self.assertFalse({ph["nom"] for ph in note["photos"]} & set(f.photos))
+        r, _, _ = d.controler_fusion([self.p1, autre], self.op, self.v, paquet("A1"), SCHEMA)
+        self.assertEqual(("signale", ["uuid_contenu_different"]), (r.statut, r.motifs), "\n".join(r.messages))
 
-    def test_conflit_dans_le_cas_commun_r13_quel_que_soit_l_ordre(self):
-        dossier, a = attendu("R13")
+    def test_conflit_n_efface_pas_un_refus_de_l_union(self):
+        """Le signalement s'ajoute aux motifs de l'union : un refus reste un refus."""
+        autre = copy.deepcopy(self.p1)
+        self.note_p001(autre.inst, 2)["classe"] = "E"
+        mauvais = copy.deepcopy(self.p2)
+        mauvais.inst["tables"]["notations"]["lignes"][0]["mb"] = 6
+        r, _, _ = d.controler_fusion([self.p1, autre, mauvais], self.op, self.v, paquet("A1"), SCHEMA)
+        self.assertEqual("refuse", r.statut)
+        self.assertIn("uuid_contenu_different", r.motifs)
+        self.assertIn("note_hors_bornes", r.motifs)
+
+    def test_conflit_dans_le_cas_commun_s3_quel_que_soit_l_ordre(self):
+        dossier, a = attendu("S3")
         p1, p2 = (d.lire_paquet(dossier / f) for f in a["fichiers"])
-        for ordre in ([p1, p2], [p2, p1]):
-            r, fusion = d.controler_fusion(ordre, self.op, self.v, paquet("A1"), SCHEMA)
-            self.assertEqual(("refuse", ["uuid_contenu_different"], None), (r.statut, r.motifs, fusion))
+        attendue = d.lire_paquet(dossier / a["fusion"]["resultat"])
+        for ordre in ([p1, p2], [p2, p1], [p2, p1, p2]):
+            r, union, conflits = d.controler_fusion(ordre, self.op, self.v, paquet("A1"), SCHEMA)
+            self.assertEqual(("signale", ["uuid_contenu_different"]), (r.statut, r.motifs))
+            self.assertEqual(attendue.inst, union.inst)
+            self.assertEqual(attendue.photos, union.photos)
+            self.assertEqual([(e["objet"], e["cle"]) for e in a["fusion"]["ecartes"]],
+                             [(c.objet, c.cle) for c in conflits])
+
+    def test_union_s3_sans_p001_rang_1_et_avec_tout_le_reste(self):
+        dossier, a = attendu("S3")
+        union = d.lire_paquet(dossier / a["fusion"]["resultat"])
+        cles = {(l["plot_id"], l["rang"]) for l in union.inst["tables"]["notations"]["lignes"]}
+        tous = {(l["plot_id"], l["rang"]) for l in self.a3.inst["tables"]["notations"]["lignes"]}
+        self.assertEqual(tous - {("P001", 1)}, cles)
+        self.assertEqual(self.a3.inst["tables"]["centres"], union.inst["tables"]["centres"])
+        self.assertEqual(self.a3.inst["tables"]["placettes"], union.inst["tables"]["placettes"])
+        self.assertEqual(len(self.a3.photos) - 2, len(union.photos))
+        self.assertEqual("accepte", d.controler(union, paquet("A1"), SCHEMA).statut)
 
     def test_fusion_sans_conflit_rend_le_paquet_controle(self):
-        r, fusion = d.controler_fusion([self.p1, self.p2], self.op, self.v, paquet("A1"), SCHEMA)
-        self.assertEqual(("accepte", []), (r.statut, r.motifs))
+        r, fusion, conflits = d.controler_fusion([self.p1, self.p2], self.op, self.v, paquet("A1"), SCHEMA)
+        self.assertEqual(("accepte", [], []), (r.statut, r.motifs, conflits))
         self.assertEqual(self.a3.inst, fusion.inst)
 
 

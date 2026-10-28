@@ -577,13 +577,7 @@ def controler(paquet: Paquet, depart: Paquet | None = None, schema: dict | None 
     inconnus = motifs - set(catalogue)
     if inconnus:
         raise AssertionError(f"motifs hors du catalogue du schéma : {sorted(inconnus)}")
-    if any(catalogue[m]["statut"] == "refuse" for m in motifs):
-        statut = "refuse"
-    elif motifs:
-        statut = "signale"
-    else:
-        statut = "accepte"
-    return Resultat(statut, sorted(motifs), messages)
+    return Resultat(_statut(motifs, catalogue), sorted(motifs), messages)
 
 
 def _non_nfc(texte: str) -> bool:
@@ -592,7 +586,10 @@ def _non_nfc(texte: str) -> bool:
 
 def textes_non_nfc(inst: dict) -> list[str]:
     """Chaque texte de l'instantané qui n'est pas en forme NFC : nom de table, nom de colonne, valeur (y compris dans
-    le texte JSON de `photos`). Rend un message par texte fautif, avec la table, la ligne et la colonne."""
+    le texte JSON de `photos`). Rend un message par texte fautif, avec la table, la ligne et la colonne.
+
+    Les tables système `gpkg_*` (et les `rtree_*`) ne sont pas contrôlées : l'instantané ne les porte pas, seules
+    les tables de `gpkg_contents` y sont."""
     sortie = []
 
     def parcourir(v, ou: str) -> None:
@@ -685,66 +682,121 @@ def _controler_plan(inst: dict, depart: dict, ajouter) -> None:
 # Fusion de paquets rendus : union sur l'uuid (ADR 0003 § 5), rejouable
 # --------------------------------------------------------------------------------------------------------------
 
-class ConflitUuid(ValueError):
-    """Le même uuid porte deux contenus différents : rien n'est choisi en silence (motif `uuid_contenu_different`,
-    comme Surculus `docs/formats/sursync-v1.md` ; Pascal, 2026-10-28)."""
-
-    motif = "uuid_contenu_different"
+MOTIF_CONFLIT = "uuid_contenu_different"
 
 
-def fusionner(paquets: list[Paquet], operateur: str, version_ramulus: str) -> Paquet:
+@dataclass(frozen=True)
+class Conflit:
+    """Une version écartée de l'union : `objet` est une table (`centres`, `notations`, `contre_notations`) ou
+    `photos` ; `cle` est l'uuid de la ligne ou le nom de la photo ; `message` dit pourquoi."""
+    objet: str
+    cle: str
+    message: str
+
+
+def fusionner(paquets: list[Paquet], operateur: str, version_ramulus: str) -> tuple[Paquet, list[Conflit]]:
     """Union sur l'`uuid` des centres et des notes, `etat` « notee » dès qu'un paquet l'a, photos réunies.
 
     `operateur` et `version_ramulus` sont ceux de qui rend (Q4) ; chaque ligne garde son propre `operateur`.
     Le résultat ne dépend pas de l'ordre des paquets, et fusionner un résultat avec l'un de ses paquets le redonne.
+
+    Conflit, traité comme Surculus (`docs/formats/sursync-v1.md`, l. 63 : « les deux versions refusées, les autres
+    restaurées » ; Pascal, 2026-10-28) : un même `uuid` avec deux contenus différents n'entre pas dans l'union, ni
+    aucune de ses versions ; le reste de l'union est gardé, et chaque version écartée est rendue dans la liste des
+    conflits (jamais en silence). Une photo appartient à la note qui la cite (`photos/<uuid>_<n>.jpg`, Q2) : les
+    photos d'une note écartée sont écartées avec elle, et deux photos de même nom au contenu différent sont un
+    conflit sur la note qui les cite, écartée avec toutes ses photos.
     """
-    base = copy.deepcopy(paquets[0].inst)
-    for table in ("centres",) + TABLES_NOTES:
-        if table not in base["tables"]:
-            continue
-        par_uuid: dict[str, dict] = {}
+    tables = [t for t in ("centres",) + TABLES_NOTES if t in paquets[0].inst["tables"]]
+    versions: dict[str, dict[str, list[dict]]] = {t: {} for t in tables}
+    for table in tables:
         for p in paquets:
             for ligne in _lignes(p.inst, table):
                 contenu = {k: v for k, v in ligne.items() if k != "fid"}
-                deja = par_uuid.get(contenu["uuid"])
-                if deja is not None and deja != contenu:
-                    ecarts = sorted(k for k in set(deja) | set(contenu) if deja.get(k) != contenu.get(k))
-                    raise ConflitUuid(f"{table} : uuid {contenu['uuid']} porte deux contenus différents "
-                                      f"(colonnes {ecarts})")
-                par_uuid[contenu["uuid"]] = contenu
-        lignes = []
-        for fid, u in enumerate(sorted(par_uuid), start=1):
-            lignes.append({"fid": fid, **par_uuid[u]})
+                vus = versions[table].setdefault(contenu["uuid"], [])
+                if contenu not in vus:
+                    vus.append(contenu)
+    photos_versions: dict[str, list[bytes]] = {}
+    for p in paquets:
+        for nom, octets in (p.photos or {}).items():
+            vus = photos_versions.setdefault(nom, [])
+            if octets not in vus:
+                vus.append(octets)
+
+    conflits: list[Conflit] = []
+    ecartes: dict[str, set[str]] = {t: set() for t in tables}
+    for table in tables:
+        for u, vus in versions[table].items():
+            if len(vus) > 1:
+                ecarts = sorted({k for a in vus for b in vus for k in set(a) | set(b) if a.get(k) != b.get(k)})
+                conflits.append(Conflit(table, u, f"{table} : uuid {u} porte {len(vus)} contenus différents "
+                                                  f"(colonnes {ecarts}) ; aucune version gardée"))
+                ecartes[table].add(u)
+    photos_en_conflit = {nom for nom, vus in photos_versions.items() if len(vus) > 1}
+    for nom in sorted(photos_en_conflit):
+        conflits.append(Conflit("photos", nom, f"photo {nom} : {len(photos_versions[nom])} contenus différents ; "
+                                               f"aucune version gardée, ni la note qui la cite"))
+
+    def citees(contenu: dict) -> set[str]:
+        liste = contenu.get("photos")
+        return {ph.get("nom") for ph in liste if isinstance(ph, dict)} if isinstance(liste, list) else set()
+
+    for table in TABLES_NOTES:
+        for u, vus in versions.get(table, {}).items():
+            noms = set().union(*(citees(c) for c in vus))
+            if u not in ecartes[table] and noms & photos_en_conflit:
+                ecartes[table].add(u)
+                conflits.append(Conflit(table, u, f"{table} : uuid {u} écartée avec sa photo en conflit "
+                                                  f"({sorted(noms & photos_en_conflit)})"))
+    photos_ecartees = set(photos_en_conflit)
+    for table in TABLES_NOTES:
+        for u in ecartes.get(table, ()):
+            for c in versions[table][u]:
+                photos_ecartees |= citees(c)
+    for nom in sorted(photos_ecartees - photos_en_conflit):
+        if nom in photos_versions:
+            conflits.append(Conflit("photos", nom, f"photo {nom} écartée avec la note qui la cite"))
+
+    base = copy.deepcopy(paquets[0].inst)
+    for table in tables:
+        gardes = {u: vus[0] for u, vus in versions[table].items() if u not in ecartes[table]}
         cols = list(base["tables"][table]["colonnes"])
-        base["tables"][table]["lignes"] = [{c: l.get(c) for c in cols} for l in lignes]
+        base["tables"][table]["lignes"] = [{c: ({"fid": fid} | gardes[u]).get(c) for c in cols}
+                                           for fid, u in enumerate(sorted(gardes), start=1)]
     notees = {l["plot_id"] for p in paquets for l in _lignes(p.inst, "placettes") if l.get("etat") == "notee"}
     for ligne in base["tables"]["placettes"]["lignes"]:
         ligne["etat"] = "notee" if ligne["plot_id"] in notees else None
     t = base["tables"]["tournee"]["lignes"][0]
     t["operateur"], t["version_ramulus"] = operateur, version_ramulus
-    photos: dict[str, bytes] = {}
-    for p in paquets:
-        for nom, octets in (p.photos or {}).items():
-            if nom in photos and photos[nom] != octets:
-                raise ConflitUuid(f"photo {nom} : deux contenus différents")
-            photos[nom] = octets
+    photos = {nom: vus[0] for nom, vus in sorted(photos_versions.items()) if nom not in photos_ecartees}
     base.pop("photos_du_paquet", None)
     base["photos_du_paquet"] = [{"nom": n, "sha256": sha256(o)} for n, o in sorted(photos.items())]
-    return Paquet(base, photos)
+    conflits.sort(key=lambda c: (c.objet, c.cle))
+    return Paquet(base, photos), conflits
+
+
+def _statut(motifs: set[str] | list[str], catalogue: dict[str, dict]) -> str:
+    if any(catalogue[m]["statut"] == "refuse" for m in motifs):
+        return "refuse"
+    return "signale" if motifs else "accepte"
 
 
 def controler_fusion(paquets: list[Paquet], operateur: str, version_ramulus: str, depart: Paquet | None = None,
-                     schema: dict | None = None) -> tuple[Resultat, Paquet | None]:
-    """Fusionne des paquets rendus puis contrôle le résultat, comme Nemeton à l'import de plusieurs paquets.
+                     schema: dict | None = None) -> tuple[Resultat, Paquet, list[Conflit]]:
+    """Fusionne des paquets rendus puis contrôle l'union, comme Nemeton à l'import de plusieurs paquets.
 
-    Un conflit (même uuid, ou même photo, avec deux contenus) arrête la fusion : le résultat est refusé avec le motif
-    `uuid_contenu_different`, aucune des deux versions n'est gardée, et aucun paquet fusionné n'est rendu.
+    Un conflit (même uuid, ou même photo, avec deux contenus) écarte les versions en conflit et garde le reste de
+    l'union ; il est **signalé** (`uuid_contenu_different`), avec un message par version écartée. Le statut de
+    l'union est celui de ses propres motifs, plus ce signalement.
     """
-    try:
-        fusion = fusionner(paquets, operateur, version_ramulus)
-    except ConflitUuid as e:
-        return Resultat("refuse", [ConflitUuid.motif], [f"{ConflitUuid.motif} : {e}"]), None
-    return controler(fusion, depart, schema), fusion
+    schema = schema or charger_schema()
+    fusion, conflits = fusionner(paquets, operateur, version_ramulus)
+    r = controler(fusion, depart, schema)
+    if conflits:
+        motifs = set(r.motifs) | {MOTIF_CONFLIT}
+        messages = r.messages + [f"{MOTIF_CONFLIT} : {c.message}" for c in conflits]
+        r = Resultat(_statut(motifs, motifs_du_catalogue(schema)), sorted(motifs), messages)
+    return r, fusion, conflits
 
 
 # --------------------------------------------------------------------------------------------------------------

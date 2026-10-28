@@ -154,8 +154,8 @@
       "description": "Texte (nom de table, nom de colonne ou valeur) qui n'est pas en Unicode NFC : « Mélèze » écrit en lettres et accents séparés ne se compare plus au référentiel (Pascal, 2026-10-28)."
     },
     "uuid_contenu_different": {
-      "statut": "refuse",
-      "description": "À la fusion de paquets rendus, même uuid (ou même photo) avec deux contenus différents : les deux versions sont refusées, aucune n'est choisie (Surculus, docs/formats/sursync-v1.md ; ADR 0005 de Surculus, « Ordre total » ; Pascal, 2026-10-28)."
+      "statut": "signale",
+      "description": "À la fusion de paquets rendus, même uuid (ou même photo) avec deux contenus différents : les deux versions sont écartées de l'union (avec les photos de la note), aucune n'est choisie, le conflit est signalé et le reste de l'union est gardé, comme Surculus (docs/formats/sursync-v1.md, l. 63 : « les deux versions refusées, les autres restaurées ») ; ADR 0005, l. 33 (« signalées comme conflit ») ; Pascal, 2026-10-28."
     },
     "doublon_arbre": {
       "statut": "signale",

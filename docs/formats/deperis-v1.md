@@ -17,6 +17,9 @@ la mission 002 (Q1 à Q13, cités ci-dessous) et décisions de Pascal du 2026-10
 3. Le « même arbre » du signalement `doublon_arbre` : même `plot_id` et même `rang`, **ou** même `plot_id` et même
    `repere`.
 4. **Tous les textes en Unicode NFC**, vérifiés par le contrôle de référence (`texte_non_nfc`, cas R12).
+5. **Conflit de fusion traité comme Surculus** (`sursync-v1.md`, l. 63) : les deux versions sont écartées, le conflit
+   est signalé (`uuid_contenu_different`), le reste de l'union est gardé (voir « Paquet rendu », cas S3). Cette
+   décision remplace la précédente, qui refusait toute l'union.
 
 - **Schéma** (source unique, copiée dans Nemeton, ADR 0003 § 7) : [`deperis-v1.schema.json`](deperis-v1.schema.json).
 - **Cas communs**, à rejouer en Kotlin et en R : [`fixtures/echange/`](../../fixtures/echange/README.md).
@@ -167,12 +170,22 @@ Un `.zip` nommé d'après `code_tournee` (`EXEMPLE-2027-01.zip`), qui contient `
 `empreinte_photo_differente`, `photo_non_citee`).
 
 Plusieurs opérateurs : union sur l'`uuid` des centres et des notes avant de rendre ; `tournee.operateur` est
-l'opérateur qui rend (Q4). Deux lignes de même `uuid` et de contenu différent (ou deux photos de même nom et de contenu
-différent) forment un **conflit** : la fusion s'arrête, **aucune des deux versions n'est choisie**, et le résultat est
-refusé (`uuid_contenu_different`, cas R13), comme dans `.sursync` (Surculus `docs/formats/sursync-v1.md`, « même `uuid`
-deux fois, contenu différent » ; Surculus ADR 0005, « Ordre total » ; Pascal, 2026-10-28). Chaque paquet, seul, reste
-conforme : c'est à l'opérateur de dire quelle note fait foi, et de rendre de nouveau. Deux lignes de même `uuid` et de
-contenu identique ne sont gardées qu'une fois.
+l'opérateur qui rend (Q4). Deux lignes de même `uuid` et de contenu différent forment un **conflit**, traité comme dans
+`.sursync` (Surculus `docs/formats/sursync-v1.md`, l. 63 : « même `uuid` deux fois, contenu différent |
+`uuid_contenu_different` | les deux versions refusées, les autres restaurées » ; notre ADR 0005, l. 33 : « deux
+corrections concurrentes signalées comme conflit » ; Pascal, 2026-10-28) :
+
+- **les deux versions sont écartées** de l'union, aucune n'est choisie ;
+- **le conflit est signalé** (`uuid_contenu_different`, statut « signalé »), avec l'`uuid` de chaque ligne écartée ;
+- **le reste de l'union est gardé**, et contrôlé comme tout paquet : son statut est le sien, plus ce signalement
+  (cas S3).
+
+Une photo appartient à la note qui la cite (`photos/<uuid>_<n>.jpg`, Q2) : les photos d'une note écartée sont écartées
+avec elle (sinon l'union porterait des photos citées par aucune note). Deux photos de même nom et de contenu différent
+sont un conflit sur la note qui les cite : les deux versions de la photo, la note et ses autres photos sont écartées,
+avec le même motif. Chaque paquet, seul, reste conforme et garde ses deux versions : c'est à l'opérateur de dire
+quelle note fait foi, et de rendre de nouveau. Deux lignes de même `uuid` et de contenu identique ne sont gardées
+qu'une fois.
 
 ## Import par Nemeton
 
@@ -250,13 +263,15 @@ Le même catalogue est dans le schéma (`x-motifs`) ; un test vérifie qu'ils di
 | `empreinte_photo_differente` | refusé | SHA-256 différent de celui cité (R10b) |
 | `photo_non_citee` | refusé | fichier de `photos/` cité par aucune note (R10c) |
 | `texte_non_nfc` | refusé | nom de table, de colonne ou valeur texte qui n'est pas en Unicode NFC (R12) |
-| `uuid_contenu_different` | refusé | à la fusion, même `uuid` (ou même photo) avec deux contenus différents (R13) |
 | `doublon_arbre` | signalé | deux notations du même arbre hors contre-notation (S1) |
 | `centre_eloigne` | signalé | centre à plus de 30 m du point prévu, seuil provisoire (S2) |
+| `uuid_contenu_different` | signalé | à la fusion, même `uuid` (ou même photo) avec deux contenus différents : les deux versions écartées, le reste de l'union gardé (S3 ; Surculus `sursync-v1.md`, l. 63 ; Pascal, 2026-10-28) |
 
 `texte_non_nfc` et `uuid_contenu_different` ne sont pas dans le schéma lui-même : JSON Schema ne sait dire ni la forme
 NFC d'un texte, ni ce qui se passe entre deux fichiers. Le lecteur les contrôle (`deperis_v1.textes_non_nfc`,
-`deperis_v1.controler_fusion`) ; ils sont au catalogue `x-motifs` comme les autres.
+`deperis_v1.controler_fusion`) ; ils sont au catalogue `x-motifs` comme les autres. `texte_non_nfc` porte sur les
+tables de l'instantané, c'est-à-dire celles de `gpkg_contents` : les tables système `gpkg_*` (et `rtree_*`) ne sont
+pas contrôlées, l'instantané ne les porte pas.
 
 Un paquet est **refusé** s'il porte au moins un motif de refus, **signalé** s'il ne porte que des signalements,
 **accepté** sinon.

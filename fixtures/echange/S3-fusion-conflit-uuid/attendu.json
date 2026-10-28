@@ -1,22 +1,38 @@
 {
- "cas": "R13",
- "titre": "Deux paquets, chacun conforme, qui portent la note de P001 rang 1 (même uuid) avec deux contenus (MR 3, puis 2) : la fusion s'arrête, aucune version n'est choisie",
- "source": "ADR 0003 § 5 ; Surculus, docs/formats/sursync-v1.md ; Pascal, 2026-10-28",
+ "cas": "S3",
+ "titre": "Deux paquets, chacun conforme, qui portent la note de P001 rang 1 (même uuid) avec deux contenus (MR 3, puis 2) : les deux versions et leurs photos sont écartées, le conflit est signalé, le reste de l'union est gardé",
+ "source": "ADR 0003 § 5 ; Surculus, docs/formats/sursync-v1.md, l. 63 ; ADR 0005 ; Pascal, 2026-10-28",
  "lecteur": "nemeton",
  "fichiers": [
   "EXEMPLE-2027-01-1.zip",
   "EXEMPLE-2027-01-2.zip"
  ],
  "depart": "../A1-tournee-depart/deperis.gpkg",
- "attendu": "refuse",
+ "attendu": "signale",
  "motifs": [
   "uuid_contenu_different"
  ],
  "fusion": {
   "operateur": "operateur-A",
   "version_ramulus": "exemple",
-  "resultat": null,
-  "chaque_fichier": "accepte"
+  "resultat": "EXEMPLE-2027-01.zip",
+  "chaque_fichier": "accepte",
+  "ecartes": [
+   {
+    "objet": "notations",
+    "cle": "01a68e2b-47c0-7d87-9db2-164808fe8603",
+    "plot_id": "P001",
+    "rang": 1
+   },
+   {
+    "objet": "photos",
+    "cle": "photos/01a68e2b-47c0-7d87-9db2-164808fe8603_1.jpg"
+   },
+   {
+    "objet": "photos",
+    "cle": "photos/01a68e2b-47c0-7d87-9db2-164808fe8603_2.jpg"
+   }
+  ]
  },
  "notes": [
   {
@@ -92,7 +108,7 @@
    "second": 2,
    "critere": "MR",
    "classe": "D",
-   "photo_dsf": null
+   "photo_dsf": "dsf2025-06_05"
   },
   {
    "fichier": "EXEMPLE-2027-01-2.zip",
