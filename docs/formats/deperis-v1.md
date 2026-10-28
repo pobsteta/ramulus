@@ -207,7 +207,7 @@ qu'une fois.
 ## Enregistrement d'une note par Ramulus
 
 Ramulus **calcule** la classe par l'abaque à partir de `mb` et de `second` : elle ne se saisit pas. Une note qui lui
-arrive avec une classe déjà remplie (ni absente, ni vide : une `classe` vide, `""`, compte comme absente et est calculée sans refus), **juste ou fausse**, est refusée à l'enregistrement avec le
+arrive avec une classe déjà remplie (ni absente, ni vide : une `classe` JSON `null`, `""` ou faite seulement de blancs, `"  "`, compte comme absente et est calculée sans refus), **juste ou fausse**, est refusée à l'enregistrement avec le
 motif `classe_saisie`, et le fichier reste intact (cas T2, deux saisies). Ce motif n'existe qu'à l'enregistrement : le
 contrôle d'un paquet rendu ne le produit jamais, une classe fausse y reste `classe_differente_abaque` (R2) et une
 classe juste y est acceptée. Les autres refus d'une note à l'enregistrement sont ceux du catalogue.

@@ -848,7 +848,7 @@ class Enregistrement(unittest.TestCase):
 
     def test_sans_classe_la_saisie_passe(self):
         for s in self.a["enregistrement"]["saisies"]:
-            for vide in (None, "absente", ""):
+            for vide in (None, "absente", "", " ", "  ", "\t\n"):
                 ligne = {k: v for k, v in s["ligne"].items() if k != "classe"}
                 if vide != "absente":
                     ligne["classe"] = vide
