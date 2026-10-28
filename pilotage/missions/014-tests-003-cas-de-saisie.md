@@ -83,3 +83,14 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
 ## Comment saura-t-on que ça marche ?
 
 Rebasée sur 010 et sur 014, la CI de 004 est verte avec `RAMULUS_ECHANGE_EXIGER=1`.
+
+## Décisions de Pascal — aller-retour 1/3 (2026-10-28, commit 4cc4ae4)
+
+Pascal a tranché la question 1 du rendu :
+- une `classe` JSON `null` compte comme **absente** ;
+- une `classe` faite seulement de blancs (`"  "`) compte comme **vide**.
+
+Dans les deux cas, la classe est calculée par l'abaque, sans refus. Ajouter ces deux cas aux tests « classe absente
+ou vide ». La question 2 est déjà tranchée par T4 : le message de l'exception porte le code du motif. Rebaser la
+branche sur `origin/mission/010-amendement-deperis-v1` quand le `dev` aura poussé son aller-retour 2/3. Lancer la
+`.claude/test-command` **complète**.

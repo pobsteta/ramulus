@@ -110,3 +110,13 @@ Relecteur : **à reprendre**. Le fond est juste et les décomptes confirmés (25
    mission à part (014). Ordre de fusion : 010 → 014 → 004.
 5. **Successeur (mineur).** Dans `fixtures/echange/tests/test_deperis_v1.py`, déplacer le bloc
    `if __name__ == "__main__"` en fin de fichier : la classe `Enregistrement` est définie après lui.
+
+## Décisions de Pascal — aller-retour 2/3 (2026-10-28, commit b81ddca)
+
+L'aller-retour 1/3 est vérifié par l'orchestrateur : tests Python 91 sur 91, `ogrinfo` 43 sur 43, bloc `__main__` en fin
+de fichier. Pascal a précisé « classe vide » :
+- une `classe` **JSON `null`** compte comme **absente** ;
+- une `classe` **faite seulement de blancs** (`"  "`) compte comme **vide**, donc absente.
+
+Dans les deux cas, la classe est calculée par l'abaque, sans refus. Aligner `controler_enregistrement` (aujourd'hui,
+seul `""` exact est vide), le texte du format (rubrique « Enregistrement d'une note par Ramulus ») et les tests Python.
