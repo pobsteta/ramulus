@@ -26,7 +26,8 @@
 #     forests with different mix of tree species composition and development stage », Journal of Forest Science
 #     64(11):478-485, 2018, DOI 10.17221/92/2018-JFS ; résumé (p. 478) et introduction (p. 479) lus le 2026-10-28 :
 #     https://jfs.agriculturejournals.cz/pdfs/jfs/2018/11/03.pdf
-#  S. Surculus, ADR 0003 « GNSS et repères » (dépôt local /home/pascal/dev/surculus/docs/adr/0003-gnss-et-reperes.md,
+#  S. Surculus, ADR 0003 « GNSS et repères » (dépôt https://github.com/pobsteta/surculus, fichier
+#     docs/adr/0003-gnss-et-reperes.md, commit 3c01f4b03c16d1bfc56b5efa73c97d3c75fa2b3e du 2026-10-27 ;
 #     lu le 2026-10-28), qui cite Purfürst 2022 tableau 4 : « 6,1 m d'erreur horizontale moyenne, CEP95 13,4 m,
 #     jusqu'à 42 m pour un modèle ». Ramulus l'a repris dans l'ADR 0004.
 #
