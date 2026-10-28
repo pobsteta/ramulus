@@ -36,6 +36,13 @@ jobs:
       - name: Commande de tests du projet (.claude/test-command)
         run: sh -c "$(cat .claude/test-command) --no-daemon"
 
+      # Mission 004 : les tests d'acceptation de l'échange (003) ne doivent jamais rester sautés sans bruit (condition du
+      # relecteur de 003). Avec RAMULUS_ECHANGE_EXIGER=1, un module absent ou renommé fait échouer ces tests au lieu de les désactiver.
+      - name: Tests d'acceptation de l'échange, exigés (RAMULUS_ECHANGE_EXIGER=1)
+        env:
+          RAMULUS_ECHANGE_EXIGER: '1'
+        run: ./gradlew :core:test --no-daemon
+
       - name: Publier l'APK de debug
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:

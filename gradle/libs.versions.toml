@@ -3,6 +3,9 @@
 # Mission 005 (journal et sauvegarde) : plugin android-library, KSP, Room, room-testing, Robolectric,
 # androidx.test:core et JUnit 4, repris de Surculus gradle/libs.versions.toml au commit 3c01f4b (l. 7-9, 10, 17,
 # 22, 24, 40-42, 46, 49, 64-66, 80-83), qui en donne les sources.
+# Mission 004 (échange deperis-v1) : sqlite-jdbc 3.53.4.0 repris de Surculus gradle/libs.versions.toml au commit 3c01f4b
+# (l. 27 et 69), qui le sourçait de Groma android/groma-core/build.gradle.kts (l. 34). ADR Surculus 0011 : le même
+# SQLite sur la JVM et sur l'appareil, jamais celui d'Android.
 
 [versions]
 agp = "9.4.1"
@@ -19,6 +22,7 @@ room = "2.8.1"
 robolectric = "4.17"
 androidxTestCore = "1.7.0"
 junit4 = "4.13.2"
+sqliteJdbc = "3.53.4.0"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -49,3 +53,4 @@ room-testing = { group = "androidx.room", name = "room-testing", version.ref = "
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidxTestCore" }
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
+sqlite-jdbc = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqliteJdbc" }
