@@ -1,0 +1,19 @@
+regle;valeur_ou_etat;source_exacte;statut;mission_qui_l_utilise;a_trancher_par_pascal
+Classes de Kraft 1 à 5 et 9 (définition);1 dominant 2 codominant 3 sous-dominant 4 dominé 5 dépérissant 9 autres;ICP Forests Manual Part IV v2020-4 § 5.2.2 p. 10 et figure 2 p. 11 (kraft.yaml);sourcée;006 (rôle à confirmer : la fiche 001 cite 006 sans le détailler);non
+Règle de choix par défaut Kraft 1 à 3;1 à 3;ICP § 4.1 p. 6 « preferably, all trees of Kraft classes 1-3 » ; DSF page ministère « dominant ou codominant » (kraft.yaml E1);sourcée par ICP, écart avec le DSF dit;006 (rôle à confirmer);oui (K1)
+Saison : MB et MR/MA observables en toute saison;toute saison;DSF note 2018-433 p. 4 ; page ministère « La méthode DEPERIS » (saison-deperis.yaml S-1);sourcée;006 (rôle à confirmer);non
+Même période d'une année à l'autre;conseillé;DSF note 2018-433 p. 4 (saison-deperis.yaml S-2);sourcée comme conseil;006 (rôle à confirmer);non
+Fenêtre mi- à fin d'été;mi- à fin d'été;ICP § 5.1.1 p. 7 (saison-deperis.yaml S-5) : défoliation, pas DEPERIS;sourcée pour ICP, repère seulement;006 (rôle à confirmer);non
+Dates (mois) de « été » et « hiver »;aucune;aucune source trouvée (saison-deperis.yaml, non_trouve);NON SOURCÉE : ne pas en inventer;006 (rôle à confirmer);non
+Conduite saison de campagne ≠ date du jour;avertir sans bloquer, enregistrer saison et date (proposition);saison-deperis.yaml SA1;PROPOSITION de l'acquéreur, non tranchée;006 (rôle à confirmer);oui (SA1)
+Conduite essence sans fiche pour la saison (charme, chêne liège en hiver);noter quand même, lien vers la fiche existante (proposition);essences.csv (2 essences à fiche d'été seule) ; saison-deperis.yaml SA2;PROPOSITION de l'acquéreur, non tranchée;006 (rôle à confirmer);oui (SA2)
+Erreur GNSS d'un téléphone sous couvert;moyenne 6,50 m (téléphones seuls) ; CEP95 13,38 à 13,64 m selon le groupe ; maximum par modèle 41,99 m;Purfürst 2022 Sensors 22(3):1289 tableau 4 (gnss-telephone.yaml) ; Murgaš 2018 RMSE 8,45 m;sourcée, deux sources concordantes en ordre de grandeur, écart avec la citation de l'ADR 0003 dit (gnss-telephone.yaml E1);007;non
+Seuil d'écart au point prévu;30 m;ADR 0004 (proposition) ; rapports calculés dans gnss-telephone.yaml;VALEUR PROVISOIRE, mesure sur le terrain à faire;007 (gel avant 007);oui (G1)
+Une photo par arbre cadrée sur le houppier;proposée;Kälin 2018 bioRxiv 441733 § 4.1 (suggérée, non énoncée);suggérée;008;oui (PV2)
+Observer à une hauteur d'arbre;une hauteur d'arbre;ICP § 6.1.4 p. 44 ; DSF note 2018-433 p. 5;sourcée (deux sources) pour l'observation;008;non
+Prendre en plein jour;plein jour;ICP § 6.1.4 p. 44;sourcée pour l'observation;008;non
+Éviter le contre-jour;éviter;Kälin § 4.4 (trois exemples de résineux, estimation du modèle) ; ICP § 5.2.1 p. 10 classe de visibilité 3;plausible, non démontrée;008;oui (PV2)
+Photos 2 à 4 à 90° les unes des autres;proposée;aucune;NON SOURCÉE;008;oui (PV1)
+Même direction d'une année à l'autre;proposée;aucune comme règle (le formulaire PHOT d'ICP p. 43 note « Direction to tree (°) »);NON SOURCÉE;008;oui (PV1)
+Données gardées avec la photo (date, position, distance, direction, identité, essence, classe sociale);liste du formulaire PHOT;ICP formulaire PHOT p. 43;sourcée;008;non
+Contrôles à la prise (flou, houppier coupé);signalés sans bloquer;décision de Pascal, ADR 0006 ; aucune source pour le flou;décision de Pascal, non sourcée;008;non

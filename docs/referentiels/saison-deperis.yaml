@@ -1,0 +1,68 @@
+# Saison de notation DEPERIS — référentiel Ramulus
+# Propriétaire : Pascal. Acquis par : acquereur (mission 001, cycle 2). Consulté le 2026-10-28.
+# Décision éclairée : la conduite à tenir quand la saison de la campagne ne correspond pas à la date du jour, et
+# quand une essence n'a pas de fiche pour la saison (spec § 4, dernier point, « à trancher par Pascal »).
+#
+# Sources (observation : deux sources, qui ne se trompent pas pour la même raison : un guide de méthode français
+# fait pour des forestiers, un manuel européen de réseau de surveillance) :
+#  S1. DSF / DGAL/SDQSPV, « Quantifier l'état de santé de la forêt, méthode simplifiée d'évaluation » (juillet 2018),
+#      note de service DGAL/SDQSPV/2018-433, PDF de 6 pages lu page par page le 2026-10-28 :
+#      https://agriculture.gouv.fr/telecharger/90879
+#  S2. Ministère de l'Agriculture, page « La méthode DEPERIS », consultée le 2026-10-28 :
+#      https://agriculture.gouv.fr/la-methode-deperis-comment-quantifier-et-mesurer-letat-de-sante-dune-foret-et-son-evolution
+#  S3. ICP Forests, Manual Part IV, version 2020-4 (last update 04/2026), § 5.1.1 « Frequency of assessment », p. 7 :
+#      https://www.icp-forests.net/fileadmin/icp_forests/Dateien/Manual_Versions/2025-2026/ICPF_Manual_part04_2020-4_Crown.pdf
+#  S4. Fiche DEPERIS Chêne sessile été, 2025 (https://agriculture.gouv.fr/telecharger/126316, 5 pages, p. 1-2 lues) :
+#      un pictogramme « Été » en haut à droite ; aucune date ni aucun mois n'est écrit sur ces deux pages.
+#      Les autres fiches (essences.csv) n'ont pas été relues pour cette mission : ce qui est dit d'elles ici
+#      vient de la liste des liens de `deperis/essences.csv` et non de leur contenu.
+#
+# Écarts relevés entre sources :
+#   E1. Le DSF (S1, S2) dit que MB et MR/MA s'observent en toute saison ; ICP Forests (S3) fixe une fenêtre
+#       (fin de la première poussée à début de la sénescence d'automne, de préférence mi- à fin d'été). Ce n'est pas
+#       une contradiction (ICP mesure la défoliation, indicateur différent ; le DSF mesure MB et MR/MA), mais les
+#       deux ne donnent pas la même conduite : l'ICP s'applique à la défoliation, pas à DEPERIS.
+#   E2. Aucune source consultée ne donne de dates (jour, mois) pour une « saison » DEPERIS. La saison d'une
+#       campagne est donc une étiquette (été / hiver / toute saison) ; une règle « la date doit tomber entre telle
+#       et telle date » serait inventée.
+#   E3. La spec § 4 cite le charme comme cas sans fiche d'hiver ; `essences.csv` montre aussi le chêne liège avec
+#       une fiche d'été seule (2 essences sur 19 : charme, chêne liège). Le cas du chêne liège n'est pas dans la spec.
+
+regles_sourcees:
+  - id: S-1
+    regle: "MB et MR/MA peuvent s'observer quelle que soit la saison"
+    citation: "« Ces deux critères peuvent s'observer quelque soit la saison. » (S1, p. 4, fin de la colonne de droite, avant « La note à attribuer ») ; « Ces deux critères MB et MR/MA peuvent s'observer, quelle que soit la saison » (S2)"
+  - id: S-2
+    regle: "Dans un suivi, garder la même période d'une année à l'autre"
+    citation: "« Il est toutefois conseillé dans un dispositif de suivi d'un dépérissement de garder la même période afin d'assurer une comparabilité optimale des notations. » (S1, p. 4)"
+    portee: "Conseil (« conseillé »), pas une obligation. Il dit « la même période », sans la définir."
+  - id: S-3
+    regle: "Méthode applicable « tout au long de l'année »"
+    citation: "« être aussi universelle que possible et applicable à l'ensemble des essences et des contextes tout au long de l'année » (S1, p. 2, « Quand utiliser la méthode ? »)"
+  - id: S-4
+    regle: "Il existe des fiches d'été et d'hiver pour les feuillus, une fiche toutes saisons pour les autres cas"
+    citation: "Liste des liens de `docs/referentiels/deperis/essences.csv` (19 essences, relues en entier le 2026-10-28) : 6 essences avec fiche d'été et fiche d'hiver (châtaignier, chêne pédonculé, chêne pubescent, chêne sessile, frêne, hêtre) ; 2 avec fiche d'été seule (charme, chêne liège) ; 11 avec fiche toutes saisons (cèdre, chêne vert, douglas, épicéa commun, mélèze, pin à crochets, pin d'Alep, pin laricio de Corse, pin maritime, pin sylvestre, sapin). 6 + 2 + 11 = 19."
+  - id: S-5
+    regle: "Fenêtre d'observation ICP (défoliation)"
+    citation: "« The time of the assessment should be between the end of the first flush of foliage (when the leaves and needles are fully developed) and the beginning of autumnal senescence. For most species, the most suitable time for the assessment is mid- to late summer. The assessments should be done during the same period each year and within this time frame, if possible, under similar conditions. In regions with regular damage caused by summer drought, monitoring may be shifted to early summer. » (S3, § 5.1.1, p. 7)"
+    portee: "Défoliation d'ICP Forests, pas MB ni MR/MA ; sert de repère de comparaison seulement."
+  - id: S-6
+    regle: "Comparaison, dates d'observation de la recherche (contexte de photos)"
+    citation: "Kälin et al. : « all images were taken between beginning of July and end of August » (section 4) — pour des photos de défoliation en Suisse ; non une règle DEPERIS. Voir prise-de-vue-houppier.yaml."
+
+non_trouve:
+  - "Aucune règle écrite du DSF sur ce que faire quand la date du jour ne correspond pas à la saison de la campagne."
+  - "Aucune date ni aucun mois pour « été » ou « hiver » dans S1, S2 ni les pages 1-2 de la fiche S4."
+  - "Aucune consigne du DSF sur la notation d'une essence feuillue à fiche d'été seule en hiver."
+
+a_trancher:
+  - id: SA1
+    question: "Que fait Ramulus quand la saison de la campagne ne correspond pas à la date du jour ?"
+    options:
+      - "A. Ne rien dire, la saison est une étiquette de campagne (le DSF dit « quelle que soit la saison », S-1)."
+      - "B. Avertir sans bloquer, enregistrer la saison de campagne ET la date réelle (la date est déjà gardée par la spec § 2)."
+      - "C. Bloquer (non sourcé : aucune source ne dit que la saison est une condition de validité)."
+    proposition_acquereur: "B. C'est la seule qui respecte S-1 (on peut noter), S-2 (on garde la même période d'une année à l'autre : la date réelle permet de le vérifier) et l'ADR 0001 (rien ne remplace la note de l'opérateur) ; coût pour l'opérateur : un message à lire, jamais un blocage. À trancher par Pascal."
+  - id: SA2
+    question: "Que fait Ramulus d'une essence sans fiche pour la saison de la campagne (charme et chêne liège en hiver) ?"
+    proposition_acquereur: "Noter quand même (S-1) ; le lien de la fiche s'ouvre sur la fiche qui existe (été) avec la mention « pas de fiche d'hiver » ; Pascal tranche."

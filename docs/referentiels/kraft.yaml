@@ -1,0 +1,71 @@
+# Classes sociales de Kraft — référentiel Ramulus
+# Propriétaire : Pascal. Acquis par : acquereur (mission 001, cycle 2). Consulté le 2026-10-28.
+# Décision éclairée : la règle de choix des arbres par défaut (« Kraft 1 à 3 », spec § 1 et § 2, ADR 0004)
+# et la fixture de l'ordre « tour d'horizon » ; aucune valeur n'est inventée, tout est repris des sources ci-dessous.
+#
+# Source unique de la définition (référence) :
+#   Manuel ICP Forests, partie IV « Visual Assessment of Crown Condition and Damaging Agents »,
+#   version 2020-4 (dernière mise à jour 04/2026, page de titre), Thünen Institute, 48 p. + annexe.
+#   URL consultée (PDF, lu page par page le 2026-10-28) :
+#   https://www.icp-forests.net/fileadmin/icp_forests/Dateien/Manual_Versions/2025-2026/ICPF_Manual_part04_2020-4_Crown.pdf
+#   La page de titre dit « Version 2020-4 (Last update 04/2026) » ; la citation bibliographique du document dit
+#   « Version 2020-4 », Eberswalde, 2020. Les ADR 0004 et 0006 citent « partie IV (2020) » : même version 2020-4,
+#   mais le texte lu ici est celui mis à jour en 04/2026. Les numéros de page ci-dessous sont les numéros imprimés
+#   (identiques aux numéros de page du PDF).
+# Deuxième source (pour l'observation, pas pour la définition) : Ministère de l'Agriculture, page « La méthode DEPERIS »,
+#   https://agriculture.gouv.fr/la-methode-deperis-comment-quantifier-et-mesurer-letat-de-sante-dune-foret-et-son-evolution
+#   (consultée le 2026-10-28) : les deux critères s'évaluent « sur les arbres de l'étage dominant ou codominant ».
+#
+# Écarts relevés entre sources :
+#   E1. Le DSF vise l'étage « dominant ou codominant » (≈ Kraft 1 et 2) ; ICP Forests prévoit « de préférence » les
+#       Kraft 1 à 3 (§ 4.1, p. 6) ; la règle par défaut de Ramulus est Kraft 1 à 3 (spec). Les trois ne sont pas
+#       identiques : Kraft 3 (sous-dominant) est dans la règle ICP et Ramulus, pas dans la formule du DSF. À trancher
+#       par Pascal (voir « a_trancher »). Le mot « Kraft » n'apparaît pas sur la page du ministère (relue le 2026-10-28).
+#   E2. ICP § 4.1 parle des placettes de niveau I et dit que les arbres de Kraft 1 à 3 de la placette sont évalués
+#       « de préférence » ; ce n'est pas une règle de choix de 20 arbres. Ramulus n'a pas de règle ICP à reprendre
+#       pour l'ordre des arbres (le tour d'horizon depuis le nord est décidé par l'ADR 0004, non sourcé ici).
+#   E3. Le tour d'horizon « dans le sens des aiguilles d'une montre » d'ICP (§ 5.2.3, p. 11) concerne la distance
+#       relative entre houppiers, en partant de l'arbre le plus proche ; il ne fonde pas l'ordre « depuis le nord ».
+
+source_definition:
+  document: "ICP Forests, Manual Part IV, version 2020-4 (last update 04/2026)"
+  section: "5.2.2 Social class"
+  page: 10
+  figure: "Figure 2, p. 11 : Illustration of social status classes (crown canopy classes) after Kraft (1 = dominant, 2 = codominant, 3 = subdominant, 4 = suppressed, 5 = dying)"
+
+classes:
+  # Libellés anglais recopiés de la page 10 ; la traduction française est de l'acquéreur, non officielle.
+  - code: 1
+    libelle_icp: "Dominant (including free-standing): trees with upper crown standing above the general level of the canopy"
+    francais: "Dominant (y compris isolé) : cime au-dessus du niveau général du couvert"
+  - code: 2
+    libelle_icp: "Codominant: trees with crowns forming the general level of the canopy"
+    francais: "Codominant : cimes formant le niveau général du couvert"
+  - code: 3
+    libelle_icp: "Subdominant: trees extending into the canopy and receiving some light from above, but shorter than 1 or 2"
+    francais: "Sous-dominant : s'étend dans le couvert et reçoit un peu de lumière par le haut, mais plus bas que 1 ou 2"
+  - code: 4
+    libelle_icp: "Suppressed: trees with crowns below the general level of the canopy, receiving no direct light from above"
+    francais: "Dominé : cime sous le niveau général du couvert, sans lumière directe par le haut"
+  - code: 5
+    libelle_icp: "Dying"
+    francais: "Dépérissant (mourant)"
+  - code: 9
+    libelle_icp: "Other cases (trees growing in gaps etc.)"
+    francais: "Autres cas (arbres en trouée, etc.)"
+
+notes_icp:
+  - "p. 10 : « Suppressed trees should not be equated with dying trees as, in a mixed-age stand, they represent future generations of trees. Classification on steep slopes presents a problem as even relatively short trees may receive direct light from above. In such cases, classification should be based on the relative height of the trees. » (p. 10-11)"
+  - "§ 4.1, p. 6 : « The sample trees have a minimum height of 60 cm. On Level I plots, preferably, all trees of Kraft classes 1-3 in the plot area should be assessed. »"
+  - "§ 4.1, p. 6-7 : « The foliage of suppressed trees in high forests is mainly influenced by the overstorey. The inclusion of these trees in assessments is therefore optional »"
+  - "§ 5.2.12, p. 21 : les arbres morts sur pied sont les « classes 31-39 » de Kraft 1 à 3 (« Standing dead trees (classes 31-39) of Kraft classes 1-3 have to be reported with defoliation=100 % ») ; code de remplacement des arbres coupés ou tombés dans les placettes non fondées sur une surface : « replaced by a new sample tree »."
+
+limites:
+  - "Seule la version anglaise a été lue ; aucune version française officielle de la partie IV n'a été consultée."
+  - "Le critère d'appartenance à une classe est visuel (hauteur relative, lumière reçue) : le manuel ne donne aucun seuil chiffré de hauteur."
+  - "Le § 5.2.12 p. 21 est lu en entier ; la suite (p. 22, codes 21-29, 31-49) n'a pas été relue pour cette mission."
+
+a_trancher:
+  - id: K1
+    question: "La règle par défaut « Kraft 1 à 3 » est-elle conservée (ICP § 4.1) ou ramenée à « dominant ou codominant » (page du ministère) ?"
+    proposition_acquereur: "Garder 1 à 3 comme valeur par défaut de campagne (elle suit le manuel ICP, seule source qui nomme Kraft), l'écart avec le DSF étant dit dans le paramètre de campagne ; Pascal tranche."
