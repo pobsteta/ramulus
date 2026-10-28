@@ -6,6 +6,7 @@ import com.google.gson.JsonParser
 import io.github.pobsteta.ramulus.core.deperis.Abaque
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DynamicTest
@@ -221,15 +222,24 @@ class EchangeEcritureTest {
             }
         }
 
-    // Pascal, 2026-10-28 (Q4 de la mission 010) : une classe vide ("") compte comme absente : calculée par l'abaque, sans refus.
+    // Pascal, 2026-10-28 (Q4 de la mission 010 ; aller-retour 1/3 de 014) : une classe absente, JSON null, vide ("")
+    // ou faite de blancs ("  ") compte comme absente : calculée par l'abaque, sans refus (et sans classe_saisie).
+    private class ClasseNonSaisie(val nom: String, val note: JsonObject.() -> JsonObject, val cle: Boolean)
+
     @TestFactory
-    fun `une classe vide est acceptee et calculee par l abaque, comme une classe absente`(@TempDir tmp: File): List<DynamicTest> =
-        listOf("vide" to true, "absente" to false).map { (nom, avecCleVide) ->
-            dynamicTest("classe $nom : acceptée, classe calculée = $classeJuste") {
-                val travail = copie(depart1, tmp, "classe-$nom.gpkg")
-                val note = if (avecCleVide) premiereNote.avec("classe", "") else premiereNote
-                assertEquals(avecCleVide, note.has("classe"), "le test suppose la clé ${if (avecCleVide) "présente et vide" else "absente"}")
-                val ligne = PasserelleEchange.enregistrerNotation(travail, note)
+    fun `une classe absente, null, vide ou de blancs est acceptee et calculee par l abaque`(@TempDir tmp: File): List<DynamicTest> =
+        listOf(
+            ClasseNonSaisie("absente", { this }, false),
+            ClasseNonSaisie("null", { avec("classe", null) }, true),
+            ClasseNonSaisie("vide", { avec("classe", "") }, true),
+            ClasseNonSaisie("de blancs", { avec("classe", "  ") }, true),
+        ).map { c ->
+            dynamicTest("classe ${c.nom} : acceptée, classe calculée = $classeJuste") {
+                val travail = copie(depart1, tmp, "classe-${c.nom.replace(' ', '-')}.gpkg")
+                val note = c.note(premiereNote)
+                assertEquals(c.cle, note.has("classe"), "le test suppose la clé ${if (c.cle) "présente" else "absente"}")
+                val ligne = runCatching { PasserelleEchange.enregistrerNotation(travail, note) }
+                    .getOrElse { fail("classe ${c.nom} refusée (elle compte comme absente) : ${it.message}") }
                 assertEquals(classeJuste, ligne["classe"].asString, "classe rendue par l'enregistrement")
                 val relue = lignes(PasserelleEchange.instantane(travail), "notations").single()
                 assertEquals(classeJuste, relue["classe"].asString, "classe relue dans le fichier")

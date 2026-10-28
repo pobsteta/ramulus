@@ -37,8 +37,8 @@ import java.util.zip.ZipFile
  *     ajoute une ligne à `centres` (JSON = les colonnes sauf `fid`, geom = {"x","y"} en EPSG:2154).
  * enregistrerNotation(gpkg: File, notation: String): String
  *     ajoute une ligne à `notations` (tournée de première notation) ou à `contre_notations` (contre-notation),
- *     selon `tournee.nature` : jamais l'une pour l'autre. JSON = les colonnes sauf `fid` ; `classe` absente ou
- *     vide (`""`) : elle est calculée par l'abaque (la classe ne se saisit pas). `classe` remplie, juste ou
+ *     selon `tournee.nature` : jamais l'une pour l'autre. JSON = les colonnes sauf `fid` ; `classe` absente, JSON
+ *     `null`, vide (`""`) ou faite de blancs (`"  "`) : elle est calculée par l'abaque (la classe ne se saisit pas). `classe` remplie, juste ou
  *     fausse : refus, message citant `classe_saisie` (décision de Pascal, 2026-10-28, T2 bis). Rend la ligne
  *     telle qu'enregistrée, classe comprise.
  * cloturerPlacette(gpkg: File, plotId: String)
