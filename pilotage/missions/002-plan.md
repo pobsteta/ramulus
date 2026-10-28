@@ -176,7 +176,9 @@ l'emprise) ; site à proposer par Pascal. Notes reprises telles quelles de photo
 - **Q12** : dans la contre-notation, le centre relevé par le premier opérateur est fourni en lecture, sans nouveau
   relevé.
 
-Restent avant d'écrire : **M1** (GDAL) et **M2** (Groma, Surculus).
+- **M1** : option b : GeoPackages écrits avec `sqlite3` de Python selon OGC 12-128, validés par `ogrinfo` en CI.
+
+Reste avant d'écrire : **M2** (Groma, Surculus).
 
 ## Hors périmètre, repéré
 

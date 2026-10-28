@@ -14,7 +14,7 @@ fichier.
 |---|---|---|
 | Peut-il redire la mission en une phrase, avec son but ? | oui | |
 | Sait-il comment faire ? | oui | modèles : schéma de Groma, format `.sursync` et ADR 0007 de Surculus |
-| A-t-il les moyens ? | oui | Python et GDAL pour écrire les GeoPackages d'exemple ; tests `:core` |
+| A-t-il les moyens ? | oui | Python (module `sqlite3`) pour écrire les GeoPackages d'exemple selon OGC 12-128, `ogrinfo` en CI pour les valider (M1, option b, Pascal le 2026-10-28) ; tests `:core` |
 
 **Temps de la main :** **tenir** — le format engage Ramulus et Nemeton pour longtemps ; l'agent rend d'abord un
 plan (couches, colonnes, types, domaines, cas), relu par l'orchestrateur et Pascal avant d'écrire.
@@ -32,6 +32,8 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
 
 ## Harnais
 
+- **Peut aussi :** ajouter à `.github/workflows/ci.yml` l'installation de GDAL et une étape qui passe chaque
+  GeoPackage d'exemple à `ogrinfo` (M1, option b).
 - **Peut :** écrire `docs/formats/deperis-v1.md`, `docs/formats/deperis-v1.schema.json`, `fixtures/echange/`
   (tournée de départ, tournée de contre-notation, paquet rendu, cas refusés) et le script qui génère les
   GeoPackages d'exemple.
