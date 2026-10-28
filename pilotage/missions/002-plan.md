@@ -163,6 +163,21 @@ l'emprise) ; site à proposer par Pascal. Notes reprises telles quelles de photo
 - **Q12** — Contre-notation : le second opérateur relève-t-il le centre, ou reçoit-il celui du premier ?
 - **Q13** — Nemeton crée les tables vides (proposé), ou Ramulus les crée ?
 
+### Réponses de Pascal (2026-10-28)
+
+- **Q1** : on suit l'ADR 0003, N+1 est lu (R4 retiré).
+- **Q2, Q5, Q6, Q7, Q8, Q9, Q11, Q13** : propositions du plan retenues telles quelles (valeurs `etat`, `source`,
+  `nature`, forme de `photos` ; `code_tournee` et `nature` dans `tournee` ; `delai_contre_notation_jours` en jours,
+  provisoire ; `regle_choix` en texte libre ; états NULL et `notee` ; `uuid` dans `centres` ; essence par son nom
+  exact ; Nemeton crée les tables vides).
+- **Q3** : DOM hors de la v1 ; contrôle par l'emprise EPSG:2154.
+- **Q4** : `tournee.operateur` = l'opérateur qui rend ; chaque ligne garde son `operateur`.
+- **Q10** : `repere` en TEXT.
+- **Q12** : dans la contre-notation, le centre relevé par le premier opérateur est fourni en lecture, sans nouveau
+  relevé.
+
+Restent avant d'écrire : **M1** (GDAL) et **M2** (Groma, Surculus).
+
 ## Hors périmètre, repéré
 
 `Notation.kt` (`:core`) n'a ni `plot_id`, ni `rang`, ni `repere`, ni `saison` : à étendre en mission 004.
