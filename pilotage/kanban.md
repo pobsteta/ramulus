@@ -3,7 +3,7 @@
 > Cinq colonnes (fiche n° 8). Chaque carte porte l'Homme (qui), la Mission (quoi, quand) et les Moyens (comment,
 > avec quoi), et renvoie à sa fiche dans `pilotage/missions/`. Tenu à jour par l'orchestrateur à chaque fin de cycle.
 >
-> **Dernier cycle : 2** (2026-10-28). Chaque carte qui change de colonne porte « depuis le cycle N ».
+> **Dernier cycle : 3** (2026-10-28). Chaque carte qui change de colonne porte « depuis le cycle N ».
 
 ## Bac à sable
 
@@ -15,13 +15,11 @@
 
 ## Planifié
 
-- **004, 006 à 009** : fiches à écrire au cycle 3 (voir `equipe.md`).
-- **010** (à ficher) · amender `deperis-v1` : placette « notee » au centre en conflit gardée et signalée (F1, Pascal
-  2026-10-28) · depuis le cycle 2.
-  Avec le motif `classe_saisie` (classe fournie refusée), puis test de 003 resserré par le `testeur`.
+- **006 à 009** : fiches à écrire (voir `equipe.md`).
 - **011** (à ficher) · voies de sauvegarde hors appareil, signal du matin, test instrumenté MediaStore et
   `synchronous` sur Android 8 à 10 (Q12, S2) · depuis le cycle 2.
-- **Orchestrateur** : fiche 004 (interface `EchangeDeperis`, CI avec `RAMULUS_ECHANGE_EXIGER=1`) ; brief vers Nemeton.
+- **Orchestrateur** : brief vers Nemeton.
+- **`testeur`** : resserrer le test « classe fournie » de 003 sur `classe_saisie`, après 010.
 - **012** (à ficher) · `dataExtractionRules` (Q14) · depuis le cycle 2.
 - **Pascal** : ouvrir l'issue vers Surculus (citation de Purfürst, brief
   `briefs/vers-surculus/2026-10-28-ramulus-citation-purfurst.md`, note déposée dans `~/dev/briefs/vers-surculus/`) ; et le brief sur le trou `INSERT OR REPLACE`.
@@ -30,15 +28,19 @@
 
 ## En cours
 
-_Rien._
+- **010** `dev` (sonnet) · amender `deperis-v1` (`classe_saisie`, centre en conflit) ·
+  [fiche](missions/010-amendement-deperis-v1.md) · depuis le cycle 3.
+- **004** `dev` (sonnet) · lire et écrire la tournée dans le GeoPackage · [fiche](missions/004-geopackage-tournee.md) ·
+  fusion après 010 · depuis le cycle 3.
 
 ## En revue
 
-- **005** `dev` (opus, tenue) · journal en ajout seul et sauvegarde `.ramsync` ·
-  [fiche](missions/005-journal-et-sauvegarde.md) · PR n° 11, prête (aller-retour 1/3) · depuis le cycle 2.
+_Rien._
 
 ## Fait
 
+- **005** `dev` · journal en ajout seul et sauvegarde `.ramsync` · PR n° 11 fusionnée par Pascal le 2026-10-28 ·
+  depuis le cycle 3.
 - **003** `testeur` · tests d'acceptation de l'échange · PR n° 10 fusionnée par Pascal le 2026-10-28 ·
   depuis le cycle 2.
 - **Pilotage du cycle 2** · PR n° 9 fusionnée par Pascal le 2026-10-28 · depuis le cycle 2.
