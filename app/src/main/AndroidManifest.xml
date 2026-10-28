@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Tranche 0 : aucune permission. Caméra, position et stockage arrivent avec leurs missions. -->
+    <!-- Position : relevé du centre au GNSS du téléphone (ADR 0004, mission 007). Précise demandée (Android 12 exige aussi l'approximative), jamais en
+         arrière-plan, jamais envoyée. Caméra et stockage arrivent avec leurs missions. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
     <application
         android:allowBackup="false"
