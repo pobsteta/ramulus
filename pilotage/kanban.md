@@ -14,8 +14,12 @@
 
 ## Planifié
 
-- **Pascal + `contradicteur`** : critique du brief et de l'ADR 0001 (`/imperatrice:brief`), porte n° 1.
-- **Orchestrateur** : découpage en missions et `pilotage/equipe.md` après la porte n° 1 (porte n° 2).
+- **Pascal** : porte n° 2 — valider `pilotage/equipe.md` (9 missions de la tranche 1).
+- **001** `acquereur` · référentiels de la tranche 1 · [fiche](missions/001-referentiels-tranche-1.md)
+- **002** `dev` (opus, tenue) · format d'échange `deperis-v1` · [fiche](missions/002-format-echange-deperis-v1.md)
+- **003** `testeur` · tests d'acceptation de l'échange, après 002 · [fiche](missions/003-tests-acceptation-echange.md)
+- **004 à 009** : fiches à écrire au cycle suivant (voir `equipe.md`).
+- **Orchestrateur** : brief vers Nemeton après 002.
 
 ## En cours
 
@@ -28,4 +32,4 @@ _Rien._
 
 ## Fait
 
-_Rien encore._
+- **Porte n° 1** (2026-10-28) : brief et spec validés, ADR 0001 à 0006 acceptées.
