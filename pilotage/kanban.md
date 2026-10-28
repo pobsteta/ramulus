@@ -16,19 +16,26 @@
 ## Planifié
 
 - **004, 006 à 009** : fiches à écrire au cycle 3 (voir `equipe.md`).
-- **Orchestrateur** : brief vers Nemeton après 002.
+- **010** (à ficher) · amender `deperis-v1` : placette « notee » au centre en conflit gardée et signalée (F1, Pascal
+  2026-10-28) · depuis le cycle 2.
+- **011** (à ficher) · voies de sauvegarde hors appareil, signal du matin, test MediaStore (Q12) · depuis le cycle 2.
+- **012** (à ficher) · `dataExtractionRules` (Q14) · depuis le cycle 2.
+- **Pascal** : ouvrir l'issue vers Surculus (citation de Purfürst, brief
+  `briefs/vers-surculus/2026-10-28-ramulus-citation-purfurst.md`, note déposée dans `~/dev/briefs/vers-surculus/`).
+- **Orchestrateur** : brief vers Nemeton (002 fusionnée : à écrire au cycle 3).
 - **Pascal** : signaler au DSF les quatre incohérences des fiches (pin d'Alep, pin laricio, deux pins sylvestres) ;
   relevé : `docs/essais/2026-10-28-essai-ia-a-l-aveugle.md`.
 
 ## En cours
 
 - **005** `dev` (opus, tenue) · journal en ajout seul et sauvegarde `.ramsync` ·
-  [fiche](missions/005-journal-et-sauvegarde.md) · **plan** à relire par Pascal : [`missions/005-plan.md`](missions/005-plan.md) (Q1 à Q14) · depuis le cycle 2.
+  [fiche](missions/005-journal-et-sauvegarde.md) · plan validé par Pascal (Q1 à Q14), code en cours · depuis le cycle 2.
 
 ## En revue
 
 - **003** `testeur` · tests d'acceptation de l'échange · [fiche](missions/003-tests-acceptation-echange.md) · PR n° 10,
-  prête ; à trancher : refus ou normalisation NFC à la saisie, place de X1-X7b, interface de 004 · depuis le cycle 2.
+  aller-retour 1/3 en cours (T1 normaliser en NFC, T2 refuser toute classe fournie, T3 cas X dans fixtures/echange/)
+  · depuis le cycle 2.
 - **Pilotage du cycle 2** · PR n° 9 (journal, kanban, fiche et plan 005, livraison) · depuis le cycle 2.
 
 ## Fait
