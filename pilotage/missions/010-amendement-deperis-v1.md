@@ -92,3 +92,21 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
 
 004 implémente la fusion et le refus d'une classe fournie en suivant le format, sans question nouvelle. Le `testeur`
 resserre ensuite le test « classe fournie » sur `classe_saisie`.
+
+## Remarques du relecteur et décisions de Pascal — aller-retour 1/3 (2026-10-28, commit fff7d57)
+
+Relecteur : **à reprendre**. Le fond est juste et les décomptes confirmés (25 motifs, 38 cas, 90 tests Python, ogrinfo
+43/43). Pascal a tranché les questions du rendu :
+
+1. **Q4, classe vide.** Une `classe` vide (`""`) compte comme **absente** : elle est calculée par l'abaque, sans refus.
+   Aligner `controler_enregistrement` sur le texte du format (l. 208, « ni absente, ni vide »), et ajouter un test.
+2. **Q2, F1 quel que soit l'état.** Validé : toute placette dont le centre est écarté est signalée, quel que soit son
+   `etat`. Écrire « quel que soit l'état » dans le format. Validé aussi : une note ou une photo écartée ne signale pas
+   de placette.
+3. **Q3, signal dans QField.** Validé sans colonne nouvelle : le centre absent suffit dans QField, et le signalement
+   se lit dans le rapport du contrôle (Ramulus, import Nemeton). L'échantillon terrain devient : « P001 notee, sans
+   centre ; signalement dans le rapport ».
+4. **Q1, T2 cas de saisie.** Ta représentation est gardée. Le `testeur` adapte le test générique de 003 dans une
+   mission à part (014). Ordre de fusion : 010 → 014 → 004.
+5. **Successeur (mineur).** Dans `fixtures/echange/tests/test_deperis_v1.py`, déplacer le bloc
+   `if __name__ == "__main__"` en fin de fichier : la classe `Enregistrement` est définie après lui.
