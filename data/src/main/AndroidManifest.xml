@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Sauvegarde .ramsync sous Android 8 et 9, qui n'ont pas de MediaStore pour les documents : dossier public
+         Documents/Ramulus/ (Surculus ADR 0005, l. 50). La demande à l'exécution est une dette de la mission qui
+         branchera la sauvegarde sur les saisies. -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+</manifest>

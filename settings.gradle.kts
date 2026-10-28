@@ -23,6 +23,8 @@ dependencyResolutionManagement {
 rootProject.name = "Ramulus"
 
 // Modules, sur le découpage de Marculus et Surculus : domaine pur (Kotlin JVM), application Compose.
-// :data (journal Room), :gpkg (GeoPackage) et :ia (modèle embarqué) viendront avec leurs missions.
+// :data : journal Room et sauvegarde .ramsync (mission 005) ; :gpkg (GeoPackage) et :ia (modèle embarqué) viendront
+// avec leurs missions.
 include(":core")
+include(":data")
 include(":app")

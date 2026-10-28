@@ -105,3 +105,28 @@ Plan : [`005-plan.md`](005-plan.md), validé avec les propositions de Q1 à Q14 
 - **Q14** : `dataExtractionRules` fait l'objet d'une mission à part.
 
 **Harnais, deuxième passage :** réaliser le plan ainsi tranché.
+
+## Remarques du relecteur et décisions de Pascal — aller-retour 1/3 (2026-10-28, commit 18c0e3e)
+
+Relecteur : **à reprendre** pour un seul point. Tout le reste est prêt : tests verts, reprise de Surculus exacte, ajout
+seul garanti, aucun nom d'opérateur dans un nom de fichier.
+
+1. **À corriger (S1, Pascal : corriger maintenant).** Avant l'API 30, `synchronous=FULL` est posé par
+   `db.query("PRAGMA …")` dans `Garde.onOpen` (`RamulusDatabase.kt`). En WAL, ce PRAGMA peut partir sur une connexion
+   de lecture, et ce chemin n'est jamais testé, puisque Robolectric tourne en SDK 36. Correction proposée par le
+   relecteur : poser le PRAGMA dans la transaction d'écriture (`beginTransaction`/`endTransaction`), puis rejouer le
+   test 25 avec `@Config(sdk = [28])`.
+2. **À écrire dans `docs/formats/ramsync-v1.md`** (rubrique des décisions), comme décisions de Pascal du 2026-10-28,
+   sans rien changer au code : les choix suivants du `dev` sont validés.
+   - **C1** : une annulation retire la ligne visée sans faire revenir la version remplacée ; l'annulation d'une
+     annulation ne fait rien revenir non plus.
+   - **C2** : deux lignes du même objet, sans remplacement entre elles, forment un conflit.
+   - **C3** : un `remplace_uuid` qui vise une autre tournée est sans effet.
+   - **C4** : la ligne `saut_horloge` a une `valeur` nulle ; son objet est la ligne elle-même ; elle porte l'opérateur
+     et la tournée de la saisie qui a révélé le saut.
+   - **C5** : avant la première sauvegarde, le repère des 5 minutes est la première saisie ; après un redémarrage, la
+     sauvegarde est due tout de suite.
+   - **C6** : la table `sauvegardes` a une colonne `voie` ; la table `appareil` n'a pas de colonne « dernier
+     démarrage ».
+   - **C7** : `version_ramulus` est obligatoire, `version_nemeton` peut être nulle ; restent aussi les gardes contre un
+     `uuid` ou un `objet_uuid` vide et contre une annulation sans `remplace_uuid`.
