@@ -41,3 +41,5 @@
 2026-10-28 · Pascal · 002 · cap · fiche 002 : « version N+1 » cas refusé → version N+1 lue en ignorant les champs nouveaux · pourquoi : l'ADR 0003 § 2 fait foi (Q1 du plan) · fait : fiche 002 corrigée, cas R4 retiré du plan, A6 gardé.
 2026-10-28 · Pascal · 002 · Plan du format : propositions Q2 à Q13 retenues ; Q3 emprise EPSG:2154, DOM hors v1 ; Q4 tournee.operateur = celui qui rend ; Q10 repere en TEXT ; Q12 centre du premier opérateur fourni en lecture dans la contre-notation. Restent M1 (GDAL) et M2 (accès Groma, Surculus).
 2026-10-28 · Pascal · 002 · M1 : option b : GeoPackages d'exemple écrits avec sqlite3 de Python (OGC 12-128), validés par ogrinfo en CI ; fiche 002 complétée (moyens, et droit d'ajouter l'étape GDAL/ogrinfo à la CI). Reste M2 (accès Groma, Surculus).
+2026-10-28 · Pascal · 002 · M2 : Groma et Surculus ajoutés à la session en lecture (clones publics, /home/user/pobsteta/). Moyens de 002 réunis ; écriture du format lancée (dev, opus).
+2026-10-28 · Pascal · cycle 1 · Livraison du cycle 1 : la mauvaise nouvelle, retenue telle que proposée (rien d'utilisable par un bénéficiaire ; leçon : vérifier les moyens dans la session à /mission).
