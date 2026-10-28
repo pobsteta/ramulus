@@ -15,7 +15,6 @@
 
 ## Planifié
 
-- **003** `testeur` · tests d'acceptation de l'échange, après 002 · [fiche](missions/003-tests-acceptation-echange.md)
 - **004 à 009** : fiches à écrire (repoussé du cycle 2 au cycle 3, plafond atteint ; voir `equipe.md`).
 - **Orchestrateur** : brief vers Nemeton après 002.
 - **Pascal** : signaler au DSF les quatre incohérences des fiches (pin d'Alep, pin laricio, deux pins sylvestres) ;
@@ -23,19 +22,20 @@
 
 ## En cours
 
-_Rien._
+- **003** `testeur` · tests d'acceptation de l'échange · [fiche](missions/003-tests-acceptation-echange.md) ·
+  lancée après la fusion de 002 · depuis le cycle 2.
 
 ## En revue
 
-- **002** `dev` (opus, tenue) · format d'échange `deperis-v1` · [fiche](missions/002-format-echange-deperis-v1.md) ·
-  PR n° 5, prête (3e relecture, b7e9313) ; reste ouvert : placette « notee » dont le centre est en conflit · depuis
-  le cycle 1.
-- **Journal de 002** (orchestrateur) · PR n° 6, porte des décisions de Pascal · depuis le cycle 1.
-- **001** `acquereur` · référentiels de la tranche 1 · [fiche](missions/001-referentiels-tranche-1.md) · PR n° 7,
-  prête (aller-retour 1/3) ; sept valeurs à trancher (K1, SA1, SA2, G1, G2, PV1, PV2) · depuis le cycle 2.
+_Rien._
 
 ## Fait
 
+- **001** `acquereur` · référentiels de la tranche 1 · PR n° 7 fusionnée par Pascal le 2026-10-28 · **sept valeurs
+  encore à trancher** (K1, SA1, SA2, G1, G2, PV1, PV2) avant les fiches 006 à 008 · depuis le cycle 2.
+- **002** `dev` · format d'échange `deperis-v1` · PR n° 5 fusionnée par Pascal le 2026-10-28 · **reste ouvert** :
+  placette « notee » dont le centre est en conflit à la fusion · depuis le cycle 2.
+- **Journal de 002** · PR n° 6 fusionnée par Pascal le 2026-10-28 · depuis le cycle 2.
 - **Socle** (orchestrateur) : PR n° 1 fusionnée par Pascal le 2026-10-28 (porte n° 3) · depuis le cycle 1.
 - **Porte n° 2** (2026-10-28) : équipe validée telle que proposée (`pilotage/equipe.md`).
 - **Porte n° 1** (2026-10-28) : brief et spec validés, ADR 0001 à 0006 acceptées.
@@ -48,3 +48,8 @@ _Rien._
   à `/mission`, la question « a-t-il les moyens ? » a reçu « oui » pour 001 et 002 sans vérifier l'environnement
   (réseau fermé aux sources, Groma et Surculus absents, GDAL absent). Règle proposée : vérifier les moyens dans la
   session avant de répondre « oui ».
+- **cycle 2** (2026-10-28) · pour un **correspondant-observateur DSF** : les règles de terrain sourcées
+  (`docs/referentiels/` : Kraft, saison, distance et lumière de prise de vue, précision GNSS sous couvert) et le paquet
+  d'exemple `fixtures/echange/A3-rendu/EXEMPLE-2027-01.zip`, qu'il ouvre dans QField. De plus que le cycle 1 : un
+  premier objet à confronter au terrain, là où le cycle 1 ne livrait rien d'utilisable. Proposée par l'orchestrateur,
+  inscrite après le « continue » de Pascal (à corriger s'il ne la retient pas).
