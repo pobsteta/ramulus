@@ -27,7 +27,12 @@ test séparé par placette et par campagne, un seuil fixé par Pascal avant l'en
    autre dans le test) et **par campagne** (la dernière campagne mise à part, pour mesurer la tenue d'une année à
    l'autre).
 2. **Référence** : la note retenue par l'opérateur ; sur les placettes de contre-notation, l'accord entre les deux
-   opérateurs donne le plafond atteignable.
+   opérateurs donne le plafond atteignable. **Les placettes de contre-notation sont toujours dans le test**, jamais
+   dans l'entraînement.
+   Conséquence de la mise à part de la dernière campagne : **aucun modèle ne peut être livré avant la fin d'une
+   deuxième campagne**.
+   Saison : à trancher par Pascal — collecte de photos limitée à la saison feuillée, ou test découpé par saison
+   (ICP Forests recommande le milieu ou la fin de l'été ; Kälin et al. ont photographié en juillet-août).
 3. **Mesures** : classe exacte ; classe à un près ; erreur sur MB ; rappel des arbres D-E-F et des arbres F.
 4. **Seuil de livraison** : à fixer par Pascal avant l'entraînement — proposition : « le modèle s'accorde avec
    l'opérateur au moins autant que deux opérateurs entre eux », mesuré sur les placettes de contre-notation.
@@ -52,6 +57,7 @@ test séparé par placette et par campagne, un seuil fixé par Pascal avant l'en
 - **L'assurance que la collecte serve** : elle peut ne jamais atteindre le seuil ; on l'accepte, la note du
   gestionnaire reste servie de toute façon.
 - **« Les photos ne quittent pas l'appareil »** : l'entraînement les en fait sortir, selon l'ADR 0006.
+- **Le délai** : pas de modèle avant deux campagnes.
 
 ## Options écartées
 
