@@ -40,7 +40,7 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
   écrire un nom d'opérateur dans un nom de fichier ; toucher à `main`.
 - **Sources autorisées :** notre `docs/adr/0005-*.md` et `0006-*.md` (photos) ; `docs/spec.md` ; Surculus
   `docs/adr/0005-stockage-et-sauvegarde.md`, `docs/formats/sursync-v1.md` et son schéma, `gradle/libs.versions.toml`,
-  `app/build.gradle.kts`, au commit 3c01f4b ; `docs/formats/deperis-v1.md` (uuid, motif `uuid_contenu_different`).
+  `app/build.gradle.kts`, `data/build.gradle.kts` et `FormatSursync.kt` (Q10), au commit 3c01f4b ; `docs/formats/deperis-v1.md` (uuid, motif `uuid_contenu_different`).
 
 ## Valeur provisoire (chiffre, réglage)
 
@@ -69,7 +69,7 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
 
 ## Terrain
 
-- **Échantillon que Pascal vérifiera :** saisir quelques notes, copier le `.ramsync` de `Documents/Ramulus/` sur une
+- **Échantillon que Pascal vérifiera (après 006, Q13 ; d'ici là le test 30 fait foi) :** saisir quelques notes, copier le `.ramsync` de `Documents/Ramulus/` sur une
   clé ou un second téléphone, effacer les données de l'application, restaurer : les notes reviennent.
 
 ## Qui veille, qui tranche
@@ -82,3 +82,26 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
 ## Comment saura-t-on que ça marche ?
 
 La restauration de l'échantillon terrain redonne toutes les notes, et 009 lit le journal sans le modifier.
+
+## Plan validé par Pascal (2026-10-28)
+
+Plan : [`005-plan.md`](005-plan.md), validé avec les propositions de Q1 à Q14 :
+
+- **Q1** : la colonne `valeur` est reprise ; l'orchestrateur complète notre ADR 0005 par un ajout.
+- **Q2** : sont repris `heure_gnss_ms`, `demarrage`, `age_fix_ms`, `code_tournee` et la règle « Temps » (saut
+  d'horloge de plus de 60 s noté par `saut_horloge`, jour civil Europe/Paris).
+- **Q3** : `type` ∈ {`notation`, `contre_notation`, `photo`, `centre`, `placette_notee`, `annulation`, `saut_horloge`}.
+- **Q4** : une annulation et une correction concurrentes de la même ligne forment un conflit, signalé, jamais résolu.
+- **Q5** : la table `refus_journal` est reprise (colonnes du journal, plus `motif` et `recu_le_utc_ms`), en ajout seul.
+- **Q6** : une table `sauvegardes` à part, en ajout seul.
+- **Q7** : la projection est dans 005, dans `:core`.
+- **Q8** : l'en-tête du `.ramsync` porte `version_nemeton` et `version_ramulus`.
+- **Q9** : `valeur` reste opaque pour 005 ; une notation n'y portera pas de classe (contenu fixé par 006).
+- **Q10** : lecture permise de `surculus/data/build.gradle.kts` et `FormatSursync.kt`.
+- **Q11** : l'orchestrateur ajoute `:data:testDebugUnitTest` à `.claude/test-command` sur la branche de 005.
+- **Q12** : hors de 005, chacun dans une mission à venir : les trois voies hors de l'appareil, le signal à
+  l'ouverture de la journée et le test MediaStore instrumenté.
+- **Q13** : pas d'écran ; l'échantillon terrain attend 006.
+- **Q14** : `dataExtractionRules` fait l'objet d'une mission à part.
+
+**Harnais, deuxième passage :** réaliser le plan ainsi tranché.
