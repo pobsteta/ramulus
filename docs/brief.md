@@ -1,8 +1,8 @@
 # Ramulus — brief
 
-> **Brouillon du 28 octobre 2026**, rédigé par l'orchestrateur à partir de la session du jour (essai à l'aveugle sur
-> les fiches DSF, choix du nom). **À critiquer par le `contradicteur`, puis à amender et valider par Pascal
-> (porte n° 1).** Les propositions à trancher sont marquées **[à trancher]**.
+> **Brouillon du 28 octobre 2026, amendé le même jour** d'après la réponse d'abord et les arbitrages de Pascal
+> (journal). **À relire par Pascal, puis à critiquer par le `contradicteur` (porte n° 1).** Ce que Pascal n'a pas
+> tranché s'écrit « à trancher par Pascal ».
 
 ## Ma réponse d'abord
 
@@ -17,19 +17,20 @@ Question de départ de la session, même jour :
 > pourrait-on envisager avec l'IA embarquée de noter à partir de plusieurs photos, selon la méthode ARCHI ou
 > DEPERIS, à toi de me dire, un arbre pris en photo en forêt ?
 
-Choix fait le même jour : **DEPERIS d'abord**. **[à trancher : ARCHI en tranche ultérieure, ou hors périmètre]**
+Choix fait le même jour : **DEPERIS d'abord**. ARCHI est **hors de la première version**, à réexaminer après le modèle
+embarqué (Pascal, 2026-10-28).
 
 ## Le problème, et pour qui (Abstraction)
 
-- **Problème** : la notation DEPERIS demande un œil formé, et deux notateurs s'écartent couramment d'une classe. La
-  note ne laisse aucune trace visuelle : on ne peut ni la revoir au bureau, ni comparer d'une année à l'autre sur la
-  même image. **[à étayer : variabilité entre notateurs mesurée par le DSF, à chercher par l'`acquereur`]**
-- **Bénéficiaires** **[à trancher, ordre proposé]** :
+- **Problème** (réponse d'abord) : noter des arbres in situ, sur des arbres repérés à l'avance par un plan
+  d'échantillonnage de Nemeton, et rendre ces notes à Nemeton et à sommieR. Aujourd'hui la note ne laisse aucune
+  trace visuelle, ne se revoit pas au bureau et ne revient à aucun des deux outils. **[à étayer : variabilité entre
+  notateurs mesurée par le DSF, à chercher par l'`acquereur`]**
+- **Bénéficiaires** (ordre retenu par Pascal, 2026-10-28) :
   1. le **gestionnaire forestier** qui décide d'une coupe sanitaire, d'un report de coupe ou d'un renouvellement ;
   2. le **correspondant-observateur** du DSF, pour qui Ramulus serait un outil de saisie et d'harmonisation ;
   3. le **propriétaire**, en sortie dérivée (bilan de peuplement).
-- **Coût complet aujourd'hui** : **[à compléter par Pascal : temps par arbre et par placette, nombre de placettes
-  par an, coût d'une erreur de classement]**.
+- **Coût complet aujourd'hui** : inconnu.
 
 ## Ce que fait Ramulus
 
@@ -39,12 +40,13 @@ Choix fait le même jour : **DEPERIS d'abord**. **[à trancher : ARCHI en tranch
   l'arbre, guidé (distance, contre-jour) ; il voit la fiche de référence de l'essence ; il pose MB et MR ou MA, ou
   valide ce que l'IA propose ; la classe s'affiche ; il passe à l'arbre suivant. Le bilan du peuplement se tient à
   jour.
-- **D'où viennent les arbres à noter** (Pascal, réponse d'abord) : d'un **plan d'échantillonnage fait sur Nemeton** ;
-  Nemeton et/ou sommieR préparent le repérage. **[à trancher : forme du plan (arbres pré-repérés ou placettes avec
-  règle de choix), et qui écrit la tournée : nemeton ou sommieR]**
-- **Ce qu'elle produit** : les arbres notés (position, essence, notes, classe, photos, proposition de l'IA plus tard),
-  **renvoyés vers sommieR et Nemeton** (Pascal, réponse d'abord). **[à trancher : lequel fait foi, et sous quelle
-  forme chacun reçoit]**
+- **D'où viennent les arbres à noter** : d'un **plan d'échantillonnage fait sur Nemeton** (réponse d'abord). Forme
+  retenue (Pascal, 2026-10-28) : **des placettes tirées par Nemeton, et une règle de choix des arbres** sur chaque
+  placette (les N arbres dominants ou codominants les plus proches du centre ; N et la règle sont à sourcer dans les
+  protocoles du DSF). Qui écrit la tournée que reçoit Ramulus, nemeton ou sommieR : à trancher par Pascal.
+- **Ce qu'elle produit** : les arbres notés (position, essence, notes, classe, photos), **renvoyés vers sommieR et
+  Nemeton** (réponse d'abord). **Nemeton fait foi** (Pascal, 2026-10-28) : il importe le paquet arbre par arbre,
+  puisqu'il a fait le plan ; **sommieR reçoit de Nemeton** le bilan par unité de gestion pour le sommier.
 
 ## Ce que Ramulus ne fait pas
 
@@ -61,12 +63,13 @@ sur 26 ; il sous-estime la mortalité de branches. Rapport :
 
 ## Ce qui reste ouvert
 
-1. **Où tourne l'IA** — **tranché par Pascal le 2026-10-28** : notation manuelle d'abord (tranche 1 sans IA), avec
+1. **Où tourne l'IA** — tranché par Pascal le 2026-10-28 : notation manuelle d'abord (tranche 1 sans IA), avec
    collecte des photos notées ; un modèle embarqué, entraîné sur ces données, ensuite. ADR 0002 à écrire.
 2. **Données d'entraînement** : les 250 photos des fiches suffisent pour tester, pas pour entraîner. Il faut des
-   milliers d'arbres notés par des observateurs formés. **[à trancher : partenariat DSF / ONF / CNPF ?]**
+   milliers d'arbres notés par des observateurs formés. Partenariat (DSF, ONF, CNPF) : à trancher par Pascal.
 3. **Droits sur les photos des fiches** : on n'en garde que les notes (fixtures) ; les images ne sont pas versées
    au dépôt.
 4. **Quatre incohérences** relevées dans les fiches (pin d'Alep, pin laricio, deux pins sylvestres) : à signaler au
-   DSF. **[à trancher : qui écrit]**
-5. **Position de l'arbre** : RTK comme Marculus et Surculus, ou GNSS du téléphone suffit-il ? **[à trancher]**
+   DSF ; qui écrit : à trancher par Pascal.
+5. **Position** : centre de placette au RTK comme Marculus et Surculus, ou GNSS du téléphone ; arbres repérés par
+   distance et azimut depuis le centre ? À trancher par Pascal.
