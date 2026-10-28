@@ -131,6 +131,22 @@ concurrentes d'une même ligne) reste un conflit. Un fichier refusé en entier n
 Non chiffré, pour que le successeur le lise. Il porte l'`operateur` de chaque saisie et les horodatages
 (traçabilité des saisies, non contrôle de l'agent : ADR 0005 ; Surculus ADR 0005, l. 59).
 
+## Décisions
+
+Décisions de Pascal du 2026-10-28, à la relecture de la mission 005 (aller-retour 1/3,
+[fiche 005](../../pilotage/missions/005-journal-et-sauvegarde.md)) : ces choix du `dev`, que ni Surculus ADR 0005 ni
+notre ADR 0005 ne tranchaient, sont validés tels que le code les applique. Ils sont cités « C… ».
+
+| # | Décision |
+|---|---|
+| C1 | Une annulation retire la ligne visée sans faire revenir la version remplacée ; l'annulation d'une annulation ne fait rien revenir non plus. |
+| C2 | Deux lignes du même objet, sans remplacement entre elles, forment un **conflit** (signalé, jamais résolu, comme ci-dessus). |
+| C3 | Un `remplace_uuid` qui vise une ligne d'une autre tournée est sans effet. |
+| C4 | La ligne `saut_horloge` a une `valeur` nulle ; son `objet_uuid` est la ligne elle-même ; elle porte l'`operateur` et la tournée de la saisie qui a révélé le saut. |
+| C5 | Avant la première sauvegarde d'une tournée, le repère des 5 minutes est la première saisie ; après un redémarrage du téléphone, la sauvegarde est due tout de suite. |
+| C6 | La table `sauvegardes` a une colonne `voie` ; la table `appareil` n'a pas de colonne « dernier démarrage ». |
+| C7 | Dans l'en-tête, `version_ramulus` est obligatoire et `version_nemeton` peut être nulle ; restent aussi les gardes contre un `uuid` ou un `objet_uuid` vide et contre une annulation sans `remplace_uuid`. |
+
 ## Écarts à `sursync-v1`
 
 | # | `sursync-v1` | `ramsync-v1` | Source |

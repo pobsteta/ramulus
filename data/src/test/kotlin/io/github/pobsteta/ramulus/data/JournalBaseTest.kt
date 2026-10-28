@@ -7,6 +7,7 @@ import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
+import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.core.app.ApplicationProvider
 import io.github.pobsteta.ramulus.core.journal.TypeLigne
 import io.github.pobsteta.ramulus.core.journal.UuidV7
@@ -151,24 +152,7 @@ class JournalBaseTest {
     fun `le journal est en synchronous FULL et en WAL`() {
         val base = db.openHelper.writableDatabase
         repo().saisir("T1", "OBJ", TypeLigne.NOTATION, "{}", "op1")
-        // Dans une transaction : la connexion qui écrit. Hors transaction : une connexion de lecture, s'il y en a.
-        base.beginTransaction()
-        try {
-            base.query("PRAGMA synchronous").use { c ->
-                assertTrue(c.moveToFirst())
-                assertEquals("synchronous = FULL (2) sur la connexion qui écrit", 2, c.getInt(0))
-            }
-        } finally {
-            base.endTransaction()
-        }
-        base.query("PRAGMA synchronous").use { c ->
-            assertTrue(c.moveToFirst())
-            assertEquals("synchronous = FULL (2) sur les autres connexions", 2, c.getInt(0))
-        }
-        base.query("PRAGMA journal_mode").use { c ->
-            assertTrue(c.moveToFirst())
-            assertEquals("wal", c.getString(0).lowercase())
-        }
+        verifierSynchronousFullEtWal(base)
     }
 
     // 26
@@ -247,5 +231,32 @@ class JournalBaseTest {
         brute.rawQuery("SELECT COUNT(*) FROM journal", null).use { c -> c.moveToFirst(); assertEquals(1, c.getInt(0)) }
         brute.close()
         db = RamulusDatabase.ouvrir(context, "autre-$nom") { allowMainThreadQueries() }
+    }
+}
+
+/**
+ * Test 25 : `synchronous=FULL` (2) sur la connexion qui écrit et, si [autresConnexions], sur les autres ; le journal
+ * en WAL. Avant l'API 30, les connexions de lecture gardent le réglage WAL d'Android : elles ne sont pas vérifiées.
+ */
+internal fun verifierSynchronousFullEtWal(base: SupportSQLiteDatabase, autresConnexions: Boolean = true) {
+    // Dans une transaction : la connexion qui écrit. Hors transaction : une connexion de lecture, s'il y en a.
+    base.beginTransaction()
+    try {
+        base.query("PRAGMA synchronous").use { c ->
+            assertTrue(c.moveToFirst())
+            assertEquals("synchronous = FULL (2) sur la connexion qui écrit", 2, c.getInt(0))
+        }
+    } finally {
+        base.endTransaction()
+    }
+    if (autresConnexions) {
+        base.query("PRAGMA synchronous").use { c ->
+            assertTrue(c.moveToFirst())
+            assertEquals("synchronous = FULL (2) sur les autres connexions", 2, c.getInt(0))
+        }
+    }
+    base.query("PRAGMA journal_mode").use { c ->
+        assertTrue(c.moveToFirst())
+        assertEquals("wal", c.getString(0).lowercase())
     }
 }

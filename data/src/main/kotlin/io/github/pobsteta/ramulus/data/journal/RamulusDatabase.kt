@@ -45,14 +45,16 @@ abstract class RamulusDatabase : RoomDatabase() {
         /** Déclencheurs d'ajout seul (mise à jour, suppression, remplacement) et `synchronous=FULL`, à chaque ouverture. */
         internal object Garde : Callback() {
             override fun onOpen(db: SupportSQLiteDatabase) {
-                // En WAL, Android tient plusieurs connexions : une instruction en lecture seule, comme ce PRAGMA, peut
-                // partir sur une connexion de lecture. À partir de l'API 30, execPerConnectionSQL le pose sur toutes,
-                // présentes et à venir ; avant, il est posé au mieux, Android appliquant par ailleurs son réglage WAL
-                // (db_wal_sync_mode) à chaque connexion : à vérifier sur appareil (test instrumenté, plan 005, Q12).
+                // En WAL, Android tient plusieurs connexions. À partir de l'API 30, execPerConnectionSQL pose le PRAGMA
+                // sur toutes, présentes et à venir. Avant, il est posé par execSQL, qui passe par la connexion qui écrit
+                // (connexion primaire) : c'est elle qui valide chaque saisie et qui fait les points de contrôle du WAL.
+                // Il ne peut pas l'être dans une transaction : SQLite le refuse (« Safety level may not be changed
+                // inside a transaction »). Les connexions de lecture ouvertes ensuite gardent le réglage WAL d'Android
+                // (db_wal_sync_mode) ; elles n'écrivent pas (relecture 005, aller-retour 1/3, S1 ; test 25 en SDK 28).
                 if (db.isExecPerConnectionSQLSupported) {
                     db.execPerConnectionSQL("PRAGMA synchronous = FULL", null)
                 } else {
-                    db.query("PRAGMA synchronous = FULL").use { it.moveToFirst() }
+                    db.execSQL("PRAGMA synchronous = FULL")
                 }
                 for ((t, cle) in TABLES_AJOUT_SEUL) {
                     db.execSQL(
