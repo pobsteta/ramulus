@@ -25,7 +25,7 @@
 - **003** `testeur` · tests d'acceptation de l'échange · [fiche](missions/003-tests-acceptation-echange.md) ·
   lancée après la fusion de 002 · depuis le cycle 2.
 - **005** `dev` (opus, tenue) · journal en ajout seul et sauvegarde `.ramsync` ·
-  [fiche](missions/005-journal-et-sauvegarde.md) · plan demandé, à soumettre à Pascal · depuis le cycle 2.
+  [fiche](missions/005-journal-et-sauvegarde.md) · **plan** à relire par Pascal : [`missions/005-plan.md`](missions/005-plan.md) (Q1 à Q14) · depuis le cycle 2.
 
 ## En revue
 
