@@ -65,3 +65,19 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
 ## Comment saura-t-on que ça marche ?
 
 La mission 004 passe de rouge à vert sur ces tests sans qu'on les retouche.
+
+## Décisions de Pascal et remarques — aller-retour 1/3 (2026-10-28, commit 32938c8)
+
+Relecteur : prêt. Pascal a tranché les questions du rendu ; trois d'entre elles changent les tests :
+
+1. **T1** : un texte tapé en Unicode décomposé (opérateur, repère…) est **normalisé en NFC** à l'enregistrement par
+   Ramulus, sans refus. Le test qui attend un refus `texte_non_nfc` à l'écriture devient un test qui attend la
+   valeur relue en NFC. Le refus `texte_non_nfc` **à la lecture** d'un fichier rendu (cas R12) ne change pas.
+2. **T2** : toute classe fournie par l'appelant est **refusée**, qu'elle soit juste ou fausse (la classe ne se
+   saisit pas). Ajouter le cas « classe juste fournie ».
+3. **T3** : les cas X1 à X7b vont dans **`fixtures/echange/`** (et non `fixtures/echange-complements/`), avec leur
+   générateur, sans réécrire les cas de 002 ; le garde-fou et le README des cas suivent.
+4. Rendu à corriger : 21 tests ou fabriques sont sautés jusqu'à 004, pas 24.
+
+Décidés sans changement des tests : **T4** interface `EchangeDeperis` reprise telle quelle par la fiche 004 ;
+**T5** Ramulus garde une copie de la tournée de départ, un rendu signalé écrit le `.zip`.
