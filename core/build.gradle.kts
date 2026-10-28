@@ -28,9 +28,11 @@ sourceSets {
 }
 
 dependencies {
+    // Lecture et écriture du .ramsync (JSON Lines, arbre JSON sans réflexion), comme Surculus (FormatSursync.kt).
+    implementation(libs.gson)
+
     testImplementation(kotlin("test"))
     testImplementation(libs.junit.jupiter)
-    testImplementation(libs.gson)
     testRuntimeOnly(libs.junit.platform.launcher)
 }
 
@@ -39,6 +41,7 @@ tasks.test {
     finalizedBy("jacocoTestReport")
     inputs.dir(rootProject.file("fixtures")).withPropertyName("fixtures")
     inputs.dir(rootProject.file("docs/referentiels")).withPropertyName("referentiels")
+    inputs.dir(rootProject.file("docs/formats")).withPropertyName("formats")
 }
 
 tasks.named<JacocoReport>("jacocoTestReport") {

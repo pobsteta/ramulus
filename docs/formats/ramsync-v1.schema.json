@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/pobsteta/ramulus/docs/formats/ramsync-v1.schema.json",
+  "title": "Ligne d'un fichier .ramsync, version 1",
+  "description": "Chaque ligne du contenu décompressé d'un .ramsync est un objet JSON valide pour l'un des trois schémas ci-dessous : première ligne = en-tête, lignes du milieu = saisies, dernière ligne = pied. Voir docs/formats/ramsync-v1.md. Repris de sursync-v1 de Surculus (commit 3c01f4b).",
+  "oneOf": [
+    { "$ref": "#/$defs/entete" },
+    { "$ref": "#/$defs/saisie" },
+    { "$ref": "#/$defs/pied" }
+  ],
+  "$defs": {
+    "entete": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "version", "code_tournee", "version_nemeton", "version_ramulus", "appareil", "cree_le_utc_ms", "nb_lignes"],
+      "properties": {
+        "format": { "const": "ramsync" },
+        "version": { "type": "integer", "minimum": 1 },
+        "code_tournee": { "type": "string", "minLength": 1 },
+        "version_nemeton": { "type": ["string", "null"], "description": "version de Nemeton qui a préparé la tournée (tournee.version_nemeton de deperis-v1), ou null si elle n'est pas connue" },
+        "version_ramulus": { "type": "string", "minLength": 1, "description": "version de Ramulus qui a écrit le fichier" },
+        "appareil": { "type": "string", "pattern": "^[A-Za-z0-9]+$", "description": "identifiant opaque de l'appareil qui a écrit le fichier" },
+        "cree_le_utc_ms": { "type": "integer", "description": "millisecondes depuis l'époque Unix, UTC" },
+        "nb_lignes": { "type": "integer", "minimum": 0, "description": "nombre de lignes de saisie qui suivent" }
+      }
+    },
+    "saisie": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uuid", "objet_uuid", "type", "valeur", "remplace_uuid", "operateur", "appareil", "sequence", "saisi_le_utc_ms", "heure_gnss_ms", "monotone_ms", "demarrage", "age_fix_ms"],
+      "properties": {
+        "uuid": { "type": "string", "minLength": 1, "description": "UUID v7 en minuscules (RFC 9562) quand Ramulus l'écrit" },
+        "objet_uuid": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["notation", "contre_notation", "photo", "centre", "placette_notee", "annulation", "saut_horloge"] },
+        "valeur": { "type": ["string", "null"], "description": "texte JSON de la valeur, recopié au caractère près ; contenu fixé par type hors de ce format" },
+        "remplace_uuid": { "type": ["string", "null"] },
+        "operateur": { "type": "string", "description": "traçabilité des saisies, non contrôle de l'agent (ADR 0005)" },
+        "appareil": { "type": "string", "description": "appareil d'origine de la saisie, jamais réécrit" },
+        "sequence": { "type": "integer" },
+        "saisi_le_utc_ms": { "type": "integer", "description": "ms Unix, UTC" },
+        "heure_gnss_ms": { "type": ["integer", "null"], "description": "ms Unix, UTC" },
+        "monotone_ms": { "type": "integer", "description": "SystemClock.elapsedRealtime, valable dans un même démarrage" },
+        "demarrage": { "type": "integer" },
+        "age_fix_ms": { "type": ["integer", "null"] },
+        "code_tournee": { "type": "string", "minLength": 1, "description": "facultatif, jamais écrit par l'application ; s'il est présent, il doit être celui de l'en-tête, sinon la ligne est refusée (ligne_autre_tournee)" }
+      }
+    },
+    "pied": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256"],
+      "properties": {
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    }
+  }
+}

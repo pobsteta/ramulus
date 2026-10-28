@@ -1,0 +1,13 @@
+{
+  "lecteur_version": 1,
+  "fichiers": {
+    "exemple-v1.ramsync": { "motif": null, "signalements": [], "lignes_lues": 8, "lignes_refusees": 0, "lignes_ignorees": 0 },
+    "exemple-v1-tronque.ramsync": { "motif": null, "signalements": ["fichier_tronque"], "lignes_lues": 7, "lignes_refusees": 0, "lignes_ignorees": 0 },
+    "exemple-v1-empreinte-fausse.ramsync": { "motif": null, "signalements": ["empreinte_differente"], "lignes_lues": 8, "lignes_refusees": 0, "lignes_ignorees": 0 },
+    "exemple-v1-ligne-illisible.ramsync": { "motif": null, "signalements": ["ligne_illisible"], "lignes_lues": 6, "lignes_refusees": 2, "lignes_ignorees": 0 },
+    "exemple-v1-autre-tournee.ramsync": { "motif": null, "signalements": ["ligne_autre_tournee"], "lignes_lues": 7, "lignes_refusees": 1, "lignes_ignorees": 0 },
+    "exemple-v1-uuid-double.ramsync": { "motif": null, "signalements": ["uuid_contenu_different"], "lignes_lues": 7, "lignes_refusees": 2, "lignes_ignorees": 1 },
+    "exemple-v2.ramsync": { "motif": "version_future", "signalements": [], "lignes_lues": 0, "lignes_refusees": 0, "lignes_ignorees": 0 },
+    "exemple-vide.ramsync": { "motif": "version_illisible", "signalements": [], "lignes_lues": 0, "lignes_refusees": 0, "lignes_ignorees": 0 }
+  }
+}
