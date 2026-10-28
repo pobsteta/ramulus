@@ -1,0 +1,2261 @@
+{
+ "source": "Fiches essences DEPERIS du DSF, versions 2025 (liens : docs/referentiels/deperis/essences.csv). Notes relevées dans les PDF le 2026-10-28 ; mb ou second à null quand la fiche ne les imprime pas sous la photo.",
+ "incoherences_connues": [
+  "dsf2025-16_08",
+  "dsf2025-17_08",
+  "dsf2025-19_07",
+  "dsf2025-19_08"
+ ],
+ "photos": [
+  {
+   "id": "dsf2025-00_01",
+   "essence": "Cèdre",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-00_02",
+   "essence": "Cèdre",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 0,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-00_03",
+   "essence": "Cèdre",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-00_04",
+   "essence": "Cèdre",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-00_05",
+   "essence": "Cèdre",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-00_06",
+   "essence": "Cèdre",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-00_07",
+   "essence": "Cèdre",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-00_08",
+   "essence": "Cèdre",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-00_09",
+   "essence": "Cèdre",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-00_10",
+   "essence": "Cèdre",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 2,
+   "second": 2,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-00_11",
+   "essence": "Cèdre",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 2,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-00_12",
+   "essence": "Cèdre",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 2,
+   "second": 4,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-00_13",
+   "essence": "Cèdre",
+   "saison": "TOUTES",
+   "page": 6,
+   "mb": 5,
+   "second": 1,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-00_14",
+   "essence": "Cèdre",
+   "saison": "TOUTES",
+   "page": 6,
+   "mb": 5,
+   "second": 2,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-01_01",
+   "essence": "Chêne liège",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-01_02",
+   "essence": "Chêne liège",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-01_03",
+   "essence": "Chêne liège",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-01_04",
+   "essence": "Chêne liège",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 1,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-01_05",
+   "essence": "Chêne liège",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-01_06",
+   "essence": "Chêne liège",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-01_07",
+   "essence": "Chêne liège",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-01_08",
+   "essence": "Chêne liège",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 2,
+   "second": 2,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-01_09",
+   "essence": "Chêne liège",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 3,
+   "second": 3,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-01_10",
+   "essence": "Chêne liège",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 4,
+   "second": 4,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-02_01",
+   "essence": "Chêne pédonculé",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 1,
+   "second": 0,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-02_02",
+   "essence": "Chêne pédonculé",
+   "saison": "ETE",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-02_03",
+   "essence": "Chêne pédonculé",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-02_04",
+   "essence": "Chêne pédonculé",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-02_05",
+   "essence": "Chêne pédonculé",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-02_06",
+   "essence": "Chêne pédonculé",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 0,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-02_07",
+   "essence": "Chêne pédonculé",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-02_08",
+   "essence": "Chêne pédonculé",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-02_09",
+   "essence": "Chêne pédonculé",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 3,
+   "second": 3,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-02_10",
+   "essence": "Chêne pédonculé",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 5,
+   "second": 0,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-03_01",
+   "essence": "Chêne pédonculé",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-03_02",
+   "essence": "Chêne pédonculé",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-03_03",
+   "essence": "Chêne pédonculé",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-03_04",
+   "essence": "Chêne pédonculé",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-03_05",
+   "essence": "Chêne pédonculé",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-03_06",
+   "essence": "Chêne pédonculé",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 4,
+   "second": 3,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-03_07",
+   "essence": "Chêne pédonculé",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 5,
+   "second": 5,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-04_01",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-04_02",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-04_03",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 1,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-04_04",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 1,
+   "second": 0,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-04_05",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 1,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-04_06",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 2,
+   "second": 1,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-04_07",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-04_08",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-04_09",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-04_10",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-04_11",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-04_12",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-04_13",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 6,
+   "mb": 2,
+   "second": 2,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-04_14",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 6,
+   "mb": 2,
+   "second": 2,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-04_15",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 6,
+   "mb": 2,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-04_16",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 6,
+   "mb": 0,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-04_17",
+   "essence": "Chêne pubescent",
+   "saison": "ETE",
+   "page": 7,
+   "mb": 4,
+   "second": 3,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-05_01",
+   "essence": "Chêne pubescent",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-05_02",
+   "essence": "Chêne pubescent",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-05_03",
+   "essence": "Chêne pubescent",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-05_04",
+   "essence": "Chêne pubescent",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 2,
+   "second": 2,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-05_05",
+   "essence": "Chêne pubescent",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 2,
+   "second": 1,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-05_06",
+   "essence": "Chêne pubescent",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 4,
+   "second": 3,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-05_07",
+   "essence": "Chêne pubescent",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 2,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-06_01",
+   "essence": "Chêne sessile",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-06_02",
+   "essence": "Chêne sessile",
+   "saison": "ETE",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-06_03",
+   "essence": "Chêne sessile",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-06_04",
+   "essence": "Chêne sessile",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-06_05",
+   "essence": "Chêne sessile",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 2,
+   "second": 2,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-06_06",
+   "essence": "Chêne sessile",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 2,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-06_07",
+   "essence": "Chêne sessile",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 2,
+   "second": 4,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-06_08",
+   "essence": "Chêne sessile",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 5,
+   "second": 0,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-07_01",
+   "essence": "Chêne sessile",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-07_02",
+   "essence": "Chêne sessile",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-07_03",
+   "essence": "Chêne sessile",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": 0,
+   "second": 0,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-07_04",
+   "essence": "Chêne sessile",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-07_05",
+   "essence": "Chêne sessile",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-07_06",
+   "essence": "Chêne sessile",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-07_07",
+   "essence": "Chêne sessile",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 1,
+   "second": 4,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-07_08",
+   "essence": "Chêne sessile",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 4,
+   "second": 4,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-08_01",
+   "essence": "Charme",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-08_02",
+   "essence": "Charme",
+   "saison": "ETE",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-08_03",
+   "essence": "Charme",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-08_04",
+   "essence": "Charme",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-08_05",
+   "essence": "Charme",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-08_06",
+   "essence": "Charme",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 5,
+   "second": 5,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-08_07",
+   "essence": "Charme",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-09_01",
+   "essence": "Douglas",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-09_02",
+   "essence": "Douglas",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-09_03",
+   "essence": "Douglas",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-09_04",
+   "essence": "Douglas",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-09_05",
+   "essence": "Douglas",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-09_06",
+   "essence": "Douglas",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-09_07",
+   "essence": "Douglas",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-09_08",
+   "essence": "Douglas",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-09_09",
+   "essence": "Douglas",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 3,
+   "second": 3,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-09_10",
+   "essence": "Douglas",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 5,
+   "second": 0,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-10_01",
+   "essence": "Épicéa commun",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-10_02",
+   "essence": "Épicéa commun",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-10_03",
+   "essence": "Épicéa commun",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-10_04",
+   "essence": "Épicéa commun",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-10_05",
+   "essence": "Épicéa commun",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-10_06",
+   "essence": "Épicéa commun",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-10_07",
+   "essence": "Épicéa commun",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 3,
+   "second": 1,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-10_08",
+   "essence": "Épicéa commun",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-10_09",
+   "essence": "Épicéa commun",
+   "saison": "TOUTES",
+   "page": 6,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-10_10",
+   "essence": "Épicéa commun",
+   "saison": "TOUTES",
+   "page": 6,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-10_11",
+   "essence": "Épicéa commun",
+   "saison": "TOUTES",
+   "page": 6,
+   "mb": 5,
+   "second": 0,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-10_12",
+   "essence": "Épicéa commun",
+   "saison": "TOUTES",
+   "page": 6,
+   "mb": 0,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-11_01",
+   "essence": "Frêne",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-11_02",
+   "essence": "Frêne",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-11_03",
+   "essence": "Frêne",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-11_04",
+   "essence": "Frêne",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 1,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-11_05",
+   "essence": "Frêne",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-11_06",
+   "essence": "Frêne",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-11_07",
+   "essence": "Frêne",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 0,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-11_08",
+   "essence": "Frêne",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 0,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-11_09",
+   "essence": "Frêne",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-11_10",
+   "essence": "Frêne",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 2,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-11_11",
+   "essence": "Frêne",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 3,
+   "second": 3,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-11_12",
+   "essence": "Frêne",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 3,
+   "second": 2,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-11_13",
+   "essence": "Frêne",
+   "saison": "ETE",
+   "page": 6,
+   "mb": 4,
+   "second": 2,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-11_14",
+   "essence": "Frêne",
+   "saison": "ETE",
+   "page": 6,
+   "mb": 5,
+   "second": 0,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-12_01",
+   "essence": "Frêne",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-12_02",
+   "essence": "Frêne",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-12_03",
+   "essence": "Frêne",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-12_04",
+   "essence": "Frêne",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": 2,
+   "second": 2,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-12_05",
+   "essence": "Frêne",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-12_06",
+   "essence": "Frêne",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 4,
+   "second": 4,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-12_07",
+   "essence": "Frêne",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 5,
+   "second": 0,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-12_08",
+   "essence": "Frêne",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 2,
+   "second": 4,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-13_01",
+   "essence": "Hêtre",
+   "saison": "ETE",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-13_02",
+   "essence": "Hêtre",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-13_03",
+   "essence": "Hêtre",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 1,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-13_04",
+   "essence": "Hêtre",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-13_05",
+   "essence": "Hêtre",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-13_06",
+   "essence": "Hêtre",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-13_07",
+   "essence": "Hêtre",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-13_08",
+   "essence": "Hêtre",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-13_09",
+   "essence": "Hêtre",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 0,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-13_10",
+   "essence": "Hêtre",
+   "saison": "ETE",
+   "page": 5,
+   "mb": 0,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-13_11",
+   "essence": "Hêtre",
+   "saison": "ETE",
+   "page": 6,
+   "mb": 0,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-13_12",
+   "essence": "Hêtre",
+   "saison": "ETE",
+   "page": 6,
+   "mb": 5,
+   "second": 0,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-13_13",
+   "essence": "Hêtre",
+   "saison": "ETE",
+   "page": 6,
+   "mb": 4,
+   "second": 2,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-14_01",
+   "essence": "Mélèze",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-14_02",
+   "essence": "Mélèze",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-14_03",
+   "essence": "Mélèze",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-14_04",
+   "essence": "Mélèze",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-14_05",
+   "essence": "Mélèze",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-14_06",
+   "essence": "Mélèze",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-14_07",
+   "essence": "Mélèze",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-14_08",
+   "essence": "Mélèze",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 1,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-14_09",
+   "essence": "Mélèze",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-14_10",
+   "essence": "Mélèze",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-14_11",
+   "essence": "Mélèze",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-14_12",
+   "essence": "Mélèze",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 2,
+   "second": 4,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-15_01",
+   "essence": "Pin à crochets",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-15_02",
+   "essence": "Pin à crochets",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-15_03",
+   "essence": "Pin à crochets",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 1,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-15_04",
+   "essence": "Pin à crochets",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-15_05",
+   "essence": "Pin à crochets",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 1,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-15_06",
+   "essence": "Pin à crochets",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-15_07",
+   "essence": "Pin à crochets",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-15_08",
+   "essence": "Pin à crochets",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-15_09",
+   "essence": "Pin à crochets",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 2,
+   "second": 2,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-15_10",
+   "essence": "Pin à crochets",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 3,
+   "second": 2,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-15_11",
+   "essence": "Pin à crochets",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 1,
+   "second": 4,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-15_12",
+   "essence": "Pin à crochets",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-16_01",
+   "essence": "Pin d'Alep",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-16_02",
+   "essence": "Pin d'Alep",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-16_03",
+   "essence": "Pin d'Alep",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-16_04",
+   "essence": "Pin d'Alep",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 1,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-16_05",
+   "essence": "Pin d'Alep",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-16_06",
+   "essence": "Pin d'Alep",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-16_07",
+   "essence": "Pin d'Alep",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-16_08",
+   "essence": "Pin d'Alep",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 1,
+   "second": 3,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-16_09",
+   "essence": "Pin d'Alep",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-16_10",
+   "essence": "Pin d'Alep",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 2,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-16_11",
+   "essence": "Pin d'Alep",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 3,
+   "second": 4,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-16_12",
+   "essence": "Pin d'Alep",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 3,
+   "second": 4,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-17_01",
+   "essence": "Pin laricio de Corse",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-17_02",
+   "essence": "Pin laricio de Corse",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-17_03",
+   "essence": "Pin laricio de Corse",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-17_04",
+   "essence": "Pin laricio de Corse",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-17_05",
+   "essence": "Pin laricio de Corse",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-17_06",
+   "essence": "Pin laricio de Corse",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 4,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-17_07",
+   "essence": "Pin laricio de Corse",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 5,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-17_08",
+   "essence": "Pin laricio de Corse",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 3,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-18_01",
+   "essence": "Pin maritime",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 0,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-18_02",
+   "essence": "Pin maritime",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-18_03",
+   "essence": "Pin maritime",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-18_04",
+   "essence": "Pin maritime",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-18_05",
+   "essence": "Pin maritime",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-18_06",
+   "essence": "Pin maritime",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 4,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-18_07",
+   "essence": "Pin maritime",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 5,
+   "second": 0,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-18_08",
+   "essence": "Pin maritime",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-19_01",
+   "essence": "Pin sylvestre",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-19_02",
+   "essence": "Pin sylvestre",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-19_03",
+   "essence": "Pin sylvestre",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-19_04",
+   "essence": "Pin sylvestre",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-19_05",
+   "essence": "Pin sylvestre",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-19_06",
+   "essence": "Pin sylvestre",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-19_07",
+   "essence": "Pin sylvestre",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 2,
+   "second": 3,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-19_08",
+   "essence": "Pin sylvestre",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 4,
+   "second": 1,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-20_01",
+   "essence": "Sapin",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-20_02",
+   "essence": "Sapin",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-20_03",
+   "essence": "Sapin",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-20_04",
+   "essence": "Sapin",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-20_05",
+   "essence": "Sapin",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-20_06",
+   "essence": "Sapin",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-20_07",
+   "essence": "Sapin",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-20_08",
+   "essence": "Sapin",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 0,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-20_09",
+   "essence": "Sapin",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-20_10",
+   "essence": "Sapin",
+   "saison": "TOUTES",
+   "page": 5,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-20_11",
+   "essence": "Sapin",
+   "saison": "TOUTES",
+   "page": 6,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-20_12",
+   "essence": "Sapin",
+   "saison": "TOUTES",
+   "page": 6,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-20_13",
+   "essence": "Sapin",
+   "saison": "TOUTES",
+   "page": 6,
+   "mb": 1,
+   "second": 4,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-20_14",
+   "essence": "Sapin",
+   "saison": "TOUTES",
+   "page": 6,
+   "mb": 5,
+   "second": 0,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-21_01",
+   "essence": "Châtaignier",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-21_02",
+   "essence": "Châtaignier",
+   "saison": "ETE",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-21_03",
+   "essence": "Châtaignier",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 0,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-21_04",
+   "essence": "Châtaignier",
+   "saison": "ETE",
+   "page": 3,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-21_05",
+   "essence": "Châtaignier",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-21_06",
+   "essence": "Châtaignier",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 3,
+   "second": 4,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-21_07",
+   "essence": "Châtaignier",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 5,
+   "second": 0,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-21_08",
+   "essence": "Châtaignier",
+   "saison": "ETE",
+   "page": 4,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-22_01",
+   "essence": "Châtaignier",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-22_02",
+   "essence": "Châtaignier",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-22_03",
+   "essence": "Châtaignier",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-22_04",
+   "essence": "Châtaignier",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": 1,
+   "second": 2,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-22_05",
+   "essence": "Châtaignier",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 1,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-22_06",
+   "essence": "Châtaignier",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 1,
+   "second": 4,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-22_07",
+   "essence": "Châtaignier",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 5,
+   "second": 0,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-22_08",
+   "essence": "Châtaignier",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": 2,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-23_01",
+   "essence": "Chêne vert",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 0,
+   "second": 1,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-23_02",
+   "essence": "Chêne vert",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "A"
+  },
+  {
+   "id": "dsf2025-23_03",
+   "essence": "Chêne vert",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 2,
+   "second": 1,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-23_04",
+   "essence": "Chêne vert",
+   "saison": "TOUTES",
+   "page": 3,
+   "mb": 2,
+   "second": 3,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-23_05",
+   "essence": "Chêne vert",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 2,
+   "second": 2,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-23_06",
+   "essence": "Chêne vert",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 2,
+   "second": 2,
+   "classe": "D"
+  },
+  {
+   "id": "dsf2025-23_07",
+   "essence": "Chêne vert",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 2,
+   "second": 4,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-23_08",
+   "essence": "Chêne vert",
+   "saison": "TOUTES",
+   "page": 4,
+   "mb": 4,
+   "second": 3,
+   "classe": "F"
+  },
+  {
+   "id": "dsf2025-24_01",
+   "essence": "Hêtre",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-24_02",
+   "essence": "Hêtre",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-24_03",
+   "essence": "Hêtre",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-24_04",
+   "essence": "Hêtre",
+   "saison": "HIVER",
+   "page": 3,
+   "mb": null,
+   "second": null,
+   "classe": "C"
+  },
+  {
+   "id": "dsf2025-24_05",
+   "essence": "Hêtre",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": null,
+   "second": null,
+   "classe": "B"
+  },
+  {
+   "id": "dsf2025-24_06",
+   "essence": "Hêtre",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": null,
+   "second": null,
+   "classe": "E"
+  },
+  {
+   "id": "dsf2025-24_07",
+   "essence": "Hêtre",
+   "saison": "HIVER",
+   "page": 4,
+   "mb": null,
+   "second": null,
+   "classe": "D"
+  }
+ ]
+}
