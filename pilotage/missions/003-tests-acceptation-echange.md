@@ -14,7 +14,7 @@ ne s'évalue pas lui-même.
 |---|---|---|
 | Peut-il redire la mission en une phrase, avec son but ? | oui | |
 | Sait-il comment faire ? | oui | spec § 5, ADR 0003-0004, format 002 |
-| A-t-il les moyens ? | **non** tant que 002 n'est pas fusionnée | attend 002 (« planifié ») |
+| A-t-il les moyens ? | oui depuis le 2026-10-28 (002 fusionnée, PR n° 5) | lancée au cycle 2 |
 
 **Temps de la main :** appuyer.
 

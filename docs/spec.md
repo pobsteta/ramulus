@@ -62,9 +62,10 @@ dégradé au-delà de 20 % de E-F (comparaison stricte). Source : fiches DSF 202
 - Fiches DSF embarquées pour un usage hors ligne : non retenu ; la fiche s'ouvre en lien.
 - **Une essence hors des 19 fiches n'est pas notée** (proposition d'accepter ces arbres non retenue par Pascal,
   2026-10-28).
-- Saison de la campagne qui ne correspond pas à la date du jour, essence sans fiche pour la saison (charme en
-  hiver) : conduite à tenir **à trancher par Pascal**. La page du ministère dit que MB et MR/MA s'observent en
-  toute saison.
+- Saison de la campagne qui ne correspond pas à la date du jour : **avertir sans bloquer**, en enregistrant la
+  saison et la date (Pascal, 2026-10-28, SA1). La page du ministère dit que MB et MR/MA s'observent en toute saison.
+- Essence sans fiche pour la saison (le **charme** et le **chêne liège** n'ont qu'une fiche d'été) : la note est
+  prise avec la fiche d'été et un avertissement (Pascal, 2026-10-28, SA2 ; `docs/referentiels/saison-deperis.yaml`).
 
 ## 5. Critères d'acceptation
 

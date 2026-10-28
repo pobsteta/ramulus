@@ -63,6 +63,19 @@ arbres l'année suivante et à la contre-notation.
   remplacé par la règle sort de la série (état « non noté » non retenu, spec § 4).
 - **Le rapprochement avec Groma** (inventaire arbre par arbre) : impossible sans position.
 
+## Ajout du 2026-10-28 (Pascal, après la mission 001)
+
+- **Correction de citation (G2).** Les chiffres « 6,1 m en moyenne, 13,4 m au CEP95 » cités plus haut sont la ligne
+  « All » du tableau 4 de Purfürst 2022. Cette ligne inclut le récepteur géodésique de référence Geo 7X. Pour les
+  téléphones seuls, la moyenne est de 6,50 m et le CEP95 va de 13,38 m (multifréquence) à 13,64 m (monofréquence).
+  Le pire téléphone, le Xcover 4, a un CEP95 de 41,99 m. Source : `docs/referentiels/gnss-telephone.yaml`. La phrase
+  d'origine est gardée, et cet ajout la corrige. Surculus, qui porte la même citation (ADR 0003), est prévenu par un
+  brief.
+- **Seuil de 30 m (G1).** Il est gardé comme **signal sans blocage**. Il reste **provisoire** jusqu'à la mesure de
+  Pascal : 5 relevés du même piquet sous couvert, avec le téléphone de l'opérateur.
+- **Règle de choix (K1).** Kraft 1 à 3 par défaut, d'après ICP partie IV, § 4.1 p. 6. Le DSF dit « dominant ou
+  codominant » ; cet écart est écrit dans `docs/referentiels/kraft.yaml`.
+
 ## Sources
 
 - Note DGAL/SDQSPV/2018-433 du DSF, « Quantifier l'état de santé de la forêt, méthode simplifiée » :

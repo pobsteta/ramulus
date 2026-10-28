@@ -81,6 +81,18 @@ protocole de prise de vue : l'`acquereur` lira le formulaire PHOT d'ICP avant la
 - **La vie privée de l'opérateur** : réduite par la règle de confidentialité, pas supprimée.
 - **Le temps de nettoyer le jeu** (floutage, EXIF) avant de l'ouvrir.
 
+## Ajout du 2026-10-28 (Pascal, après la mission 001)
+
+La colonne « Source » de la convention ci-dessus est corrigée d'après `docs/referentiels/prise-de-vue-houppier.yaml`.
+La table d'origine est gardée, et cet ajout la corrige (PV2) :
+
+| Règle | Source, corrigée |
+|---|---|
+| Une photo par arbre | **suggérée** : Kälin et al. parlent de « photos of individual trees », sans en fixer le nombre |
+| Une hauteur d'arbre de distance, plein jour | **sourcée pour l'observation** : ICP partie IV, § 6.1.4 p. 44 ; note DSF 2018-433, p. 5 |
+| Éviter le contre-jour | **plausible** : trois exemples de résineux chez Kälin, où c'est le réseau de neurones qui surestime, pas l'opérateur |
+| 2 à 4 photos à 90° ; même direction d'une année à l'autre | **non sourcées** : gardées comme **valeurs provisoires** nommées (PV1), à mesurer sur le terrain avant le gel de la mission 008 |
+
 ## Sources
 
 - Manuel ICP Forests, partie IV (2020), § 4.1, 6.1.3, 6.1.4 ; Kälin et al., bioRxiv 441733 ; CPI L111-1 ;

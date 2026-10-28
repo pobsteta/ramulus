@@ -3,7 +3,7 @@
 > Cinq colonnes (fiche n° 8). Chaque carte porte l'Homme (qui), la Mission (quoi, quand) et les Moyens (comment,
 > avec quoi), et renvoie à sa fiche dans `pilotage/missions/`. Tenu à jour par l'orchestrateur à chaque fin de cycle.
 >
-> **Dernier cycle : 1** (2026-10-28). Chaque carte qui change de colonne porte « depuis le cycle N ».
+> **Dernier cycle : 2** (2026-10-28). Chaque carte qui change de colonne porte « depuis le cycle N ».
 
 ## Bac à sable
 
@@ -15,27 +15,36 @@
 
 ## Planifié
 
-- **001** `acquereur` · référentiels de la tranche 1 · [fiche](missions/001-referentiels-tranche-1.md) · **bloquée**
-  depuis le cycle 1 : sources injoignables (réseau de l'environnement), à relancer quand Pascal aura ouvert les hôtes
-  ou déposé les PDF.
-- **003** `testeur` · tests d'acceptation de l'échange, après 002 · [fiche](missions/003-tests-acceptation-echange.md)
-- **004 à 009** : fiches à écrire au cycle suivant (voir `equipe.md`).
-- **Orchestrateur** : brief vers Nemeton après 002.
+- **004, 006 à 009** : fiches à écrire au cycle 3 (voir `equipe.md`).
+- **010** (à ficher) · amender `deperis-v1` : placette « notee » au centre en conflit gardée et signalée (F1, Pascal
+  2026-10-28) · depuis le cycle 2.
+  Avec le motif `classe_saisie` (classe fournie refusée), puis test de 003 resserré par le `testeur`.
+- **011** (à ficher) · voies de sauvegarde hors appareil, signal du matin, test MediaStore (Q12) · depuis le cycle 2.
+- **012** (à ficher) · `dataExtractionRules` (Q14) · depuis le cycle 2.
+- **Pascal** : ouvrir l'issue vers Surculus (citation de Purfürst, brief
+  `briefs/vers-surculus/2026-10-28-ramulus-citation-purfurst.md`, note déposée dans `~/dev/briefs/vers-surculus/`).
+- **Orchestrateur** : brief vers Nemeton (002 fusionnée : à écrire au cycle 3).
 - **Pascal** : signaler au DSF les quatre incohérences des fiches (pin d'Alep, pin laricio, deux pins sylvestres) ;
   relevé : `docs/essais/2026-10-28-essai-ia-a-l-aveugle.md`.
 
 ## En cours
 
-_Rien._
+- **005** `dev` (opus, tenue) · journal en ajout seul et sauvegarde `.ramsync` ·
+  [fiche](missions/005-journal-et-sauvegarde.md) · plan validé par Pascal (Q1 à Q14), code en cours · depuis le cycle 2.
 
 ## En revue
 
-- **002** `dev` (opus, tenue) · format d'échange `deperis-v1` · [fiche](missions/002-format-echange-deperis-v1.md) ·
-  **plan** à relire par Pascal : [`missions/002-plan.md`](missions/002-plan.md) (Q1 à Q13, moyens M1 et M2) · depuis
-  le cycle 1.
+- **003** `testeur` · tests d'acceptation de l'échange · [fiche](missions/003-tests-acceptation-echange.md) · PR n° 10,
+  prête après l'aller-retour 1/3 (c035ccb), à fusionner par Pascal · depuis le cycle 2.
+- **Pilotage du cycle 2** · PR n° 9 (journal, kanban, fiche et plan 005, livraison) · depuis le cycle 2.
 
 ## Fait
 
+- **001** `acquereur` · référentiels de la tranche 1 · PR n° 7 fusionnée par Pascal le 2026-10-28 · **sept valeurs
+  encore à trancher** (K1, SA1, SA2, G1, G2, PV1, PV2) avant les fiches 006 à 008 · depuis le cycle 2.
+- **002** `dev` · format d'échange `deperis-v1` · PR n° 5 fusionnée par Pascal le 2026-10-28 · **reste ouvert** :
+  placette « notee » dont le centre est en conflit à la fusion · depuis le cycle 2.
+- **Journal de 002** · PR n° 6 fusionnée par Pascal le 2026-10-28 · depuis le cycle 2.
 - **Socle** (orchestrateur) : PR n° 1 fusionnée par Pascal le 2026-10-28 (porte n° 3) · depuis le cycle 1.
 - **Porte n° 2** (2026-10-28) : équipe validée telle que proposée (`pilotage/equipe.md`).
 - **Porte n° 1** (2026-10-28) : brief et spec validés, ADR 0001 à 0006 acceptées.
@@ -48,3 +57,8 @@ _Rien._
   à `/mission`, la question « a-t-il les moyens ? » a reçu « oui » pour 001 et 002 sans vérifier l'environnement
   (réseau fermé aux sources, Groma et Surculus absents, GDAL absent). Règle proposée : vérifier les moyens dans la
   session avant de répondre « oui ».
+- **cycle 2** (2026-10-28) · pour un **correspondant-observateur DSF** : les règles de terrain sourcées
+  (`docs/referentiels/` : Kraft, saison, distance et lumière de prise de vue, précision GNSS sous couvert) et le paquet
+  d'exemple `fixtures/echange/A3-rendu/EXEMPLE-2027-01.zip`, qu'il ouvre dans QField. De plus que le cycle 1 : un
+  premier objet à confronter au terrain, là où le cycle 1 ne livrait rien d'utilisable. Proposée par l'orchestrateur,
+  retenue par Pascal le 2026-10-28.
