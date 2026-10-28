@@ -38,6 +38,16 @@ bibliothèque `terrain`, seul le style est repris, les autres briques attendant 
 | Thème : couleurs de Marculus v0.65.0, choix Système / Clair / Sombre | Surculus ADR 0008, amendements des 24 et 27 octobre | déjà fait sans le choix (PR n° 1) |
 | **Non repris pour l'instant** : `terrain-gnss`, `terrain-journal`, `terrain-gpkg` | — | en attente de l'ADR 0012 de Surculus |
 
+## Ajout du 2026-10-28 (Pascal, plan de la mission 005)
+
+- **Q1.** La colonne `valeur` du journal, oubliée dans la table ci-dessus, est reprise de Surculus ADR 0005, l. 46.
+- **Q2.** Sont aussi repris `heure_gnss_ms`, `demarrage`, `age_fix_ms` et `code_tournee` (Surculus ADR 0005,
+  l. 46), ainsi que la règle « Temps » : un saut d'horloge de plus de 60 s est noté par une ligne `saut_horloge`, et
+  le jour civil est celui d'Europe/Paris (l. 49).
+- **Q14.** `dataExtractionRules` (Surculus ADR 0005, l. 58 : ni nuage Google, ni transfert d'un téléphone à l'autre)
+  sera repris par une mission à part.
+- Le reste des décisions sur le journal est inscrit dans `pilotage/missions/005-journal-et-sauvegarde.md`.
+
 ## Le crible FRANCE
 
 | Lettre | Réponse | Ce que ça coûte | Prêts à payer ? |
