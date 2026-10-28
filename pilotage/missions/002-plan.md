@@ -110,7 +110,7 @@ l'emprise) ; site à proposer par Pascal. Notes reprises telles quelles de photo
 | R1 | colonne de plan changée, renommée ou supprimée (ADR 0003 § 6) | refusé |
 | R2 | classe ≠ abaque (mb=3, second=1, classe C au lieu de D) | refusé |
 | R3 | centre hors de France (Mogadiscio) ; X↔Y inversés (spec § 5.3) | refusé |
-| R4 | version N+1 — **contredit l'ADR 0003, voir Q1** | ? |
+| ~~R4~~ | ~~version N+1~~ — retiré : Pascal suit l'ADR 0003, N+1 est lu (voir A6 et Q1) | — |
 | R5 | index spatial sur `placettes` ou `centres` (ADR 0003 § 1) | refusé |
 | R6 | contre-notation contenant `notations` (ADR 0003 § 4) | refusé |
 | R7 | essence hors des 19 (spec § 4) | refusé |
@@ -147,6 +147,7 @@ l'emprise) ; site à proposer par Pascal. Notes reprises telles quelles de photo
 - **Q1** — Contradiction fiche / ADR 0003 : la fiche veut « version N+1 » refusée, l'ADR 0003 § 2 dit qu'un lecteur
   N lit N+1 en ignorant les champs nouveaux (l'inverse du `.ramsync`, ADR 0005). Le plan suit l'ADR (A6). Pour un
   refus, amender l'ADR (par exemple : majeure refusée, mineure lue).
+  → **Tranché par Pascal le 2026-10-28 : on suit l'ADR, N+1 est lu.** Fiche 002 corrigée, R4 retiré.
 - **Q2** — Valeurs sans référentiel (`etat`, `source`, `nature`, forme de `photos`), tirées des mots de la spec et des
   ADR : les garder ?
 - **Q3** — « En France » : EPSG:2154 ne couvre que la métropole et la Corse. DOM hors v1 ? Contrôle par l'emprise

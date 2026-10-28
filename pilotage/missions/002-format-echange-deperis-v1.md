@@ -60,7 +60,8 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
 - **Comment saura-t-on que c'est juste :** les GeoPackages d'exemple valident contre le schéma ; `SPATIAL_INDEX=NO`
   sur toute couche modifiée par Ramulus ; `notations` et `contre_notations` en tables `attributes` ; la tournée de
   contre-notation ne contient aucune première note ; chaque cas refusé dit pourquoi (colonnes de plan changées,
-  classe différente de l'abaque, version N+1, coordonnée hors de France).
+  classe différente de l'abaque, coordonnée hors de France) ; une version N+1 est **lue** en ignorant les
+  champs nouveaux (ADR 0003 § 2, Pascal le 2026-10-28, Q1 du plan).
 
 ## Terrain
 
