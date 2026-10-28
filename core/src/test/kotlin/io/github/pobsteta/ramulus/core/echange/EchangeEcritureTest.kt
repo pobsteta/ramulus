@@ -172,7 +172,7 @@ class EchangeEcritureTest {
     // Les refus à l'écriture : le code du motif dans le message, et le fichier intact
     // ---------------------------------------------------------------------------------------------------------
 
-    /** `motif` null : le format ne nomme pas de code pour ce refus (question posée à Pascal) ; on exige alors le refus seul. */
+    /** `motif` : le code du catalogue que le message d'erreur doit citer (`null` : on exige le refus seul ; plus aucun refus sans code depuis T2 bis). */
     private class Refus(val nom: String, val motif: String?, val nouvelle: JsonObject.() -> JsonObject)
 
     private val premiereNote: JsonObject by lazy { saisie(lignes(Cas.instantaneAttendu(rendu3), "notations").first()) }
@@ -197,10 +197,9 @@ class EchangeEcritureTest {
         Refus("essence sans ses accents (Cedre)", "essence_hors_referentiel") { avec("essence", "Cedre").avec("type", "RESINEUX").avec("critere", "MA") },
         Refus("feuillu déclaré résineux", "type_incoherent") { avec("type", "RESINEUX").avec("critere", "MA") },
         Refus("MA pour un feuillu", "critere_incoherent") { avec("critere", "MA") },
-        // Pascal, 2026-10-28 (T2) : la classe ne se saisit pas, qu'elle soit juste ou fausse. Aucun motif du catalogue
-        // ne dit « classe fournie » : le refus seul est exigé, pas son code (voir le rendu).
-        Refus("classe fournie, fausse (la classe ne se saisit pas)", null) { avec("classe", if (classeJuste == "A") "B" else "A") },
-        Refus("classe fournie, juste (la classe ne se saisit pas)", null) { avec("classe", classeJuste) },
+        // Pascal, 2026-10-28 (T2 bis) : la classe ne se saisit pas, qu'elle soit juste ou fausse : classe_saisie.
+        Refus("classe fournie, fausse (la classe ne se saisit pas)", "classe_saisie") { avec("classe", if (classeJuste == "A") "B" else "A") },
+        Refus("classe fournie, juste (la classe ne se saisit pas)", "classe_saisie") { avec("classe", classeJuste) },
         Refus("colonnes de l'IA à moitié remplies", "ia_incomplete") { avec("ia_mb", 2) },
         Refus("placette inconnue de la tournée", "rattachement_invalide") { avec("plot_id", "P999") },
         Refus("rang au-delà de nb_arbres (4)", "rattachement_invalide") { avec("rang", 5) },
@@ -215,9 +214,44 @@ class EchangeEcritureTest {
                 val e = runCatching { PasserelleEchange.enregistrerNotation(travail, r.nouvelle(premiereNote)) }.exceptionOrNull()
                 assertTrue(e != null, "aucune exception : la note a été acceptée")
                 r.motif?.let { assertTrue(it in (e?.message ?: ""), "le message doit citer $it : ${e?.message}") }
+                if (r.motif == "classe_saisie") {
+                    assertFalse("classe_differente_abaque" in (e?.message ?: ""), "classe_differente_abaque est le motif de la lecture d'un paquet (R2), pas de l'enregistrement : ${e?.message}")
+                }
                 assertNull(premiereDifference(avant, PasserelleEchange.instantane(travail)), "fichier modifié malgré le refus")
             }
         }
+
+    // Pascal, 2026-10-28 (Q4 de la mission 010) : une classe vide ("") compte comme absente : calculée par l'abaque, sans refus.
+    @TestFactory
+    fun `une classe vide est acceptee et calculee par l abaque, comme une classe absente`(@TempDir tmp: File): List<DynamicTest> =
+        listOf("vide" to true, "absente" to false).map { (nom, avecCleVide) ->
+            dynamicTest("classe $nom : acceptée, classe calculée = $classeJuste") {
+                val travail = copie(depart1, tmp, "classe-$nom.gpkg")
+                val note = if (avecCleVide) premiereNote.avec("classe", "") else premiereNote
+                assertEquals(avecCleVide, note.has("classe"), "le test suppose la clé ${if (avecCleVide) "présente et vide" else "absente"}")
+                val ligne = PasserelleEchange.enregistrerNotation(travail, note)
+                assertEquals(classeJuste, ligne["classe"].asString, "classe rendue par l'enregistrement")
+                val relue = lignes(PasserelleEchange.instantane(travail), "notations").single()
+                assertEquals(classeJuste, relue["classe"].asString, "classe relue dans le fichier")
+            }
+        }
+
+    @TestFactory
+    fun `une classe vide est calculee pour les 36 couples de notes, feuillus et resineux`(@TempDir tmp: File): List<DynamicTest> {
+        val travail = copie(depart1, tmp)
+        var i = 100
+        return listOf(Triple("Chêne sessile", "FEUILLU", "MR"), Triple("Sapin", "RESINEUX", "MA")).flatMap { (essence, type, critere) ->
+            (0..5).flatMap { mb ->
+                (0..5).map { second ->
+                    val n = ++i
+                    dynamicTest("$essence MB $mb, $critere $second, classe vide") {
+                        val ligne = PasserelleEchange.enregistrerNotation(travail, noteVierge(essence, type, critere, mb, second, n).avec("classe", ""))
+                        assertEquals(Abaque.classe(mb, second).name, ligne["classe"].asString)
+                    }
+                }
+            }
+        }
+    }
 
     // Pascal, 2026-10-28 (T1) : un texte saisi en Unicode décomposé est normalisé en NFC à l'enregistrement, sans refus.
     // (Le refus texte_non_nfc reste celui de la LECTURE d'un fichier rendu : cas R12, EchangeCasCommunsTest.)
