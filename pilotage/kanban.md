@@ -3,7 +3,7 @@
 > Cinq colonnes (fiche n° 8). Chaque carte porte l'Homme (qui), la Mission (quoi, quand) et les Moyens (comment,
 > avec quoi), et renvoie à sa fiche dans `pilotage/missions/`. Tenu à jour par l'orchestrateur à chaque fin de cycle.
 >
-> **Dernier cycle : 1** (2026-10-28). Chaque carte qui change de colonne porte « depuis le cycle N ».
+> **Dernier cycle : 2** (2026-10-28). Chaque carte qui change de colonne porte « depuis le cycle N ».
 
 ## Bac à sable
 
@@ -15,11 +15,8 @@
 
 ## Planifié
 
-- **001** `acquereur` · référentiels de la tranche 1 · [fiche](missions/001-referentiels-tranche-1.md) · **bloquée**
-  depuis le cycle 1 : sources injoignables (réseau de l'environnement), à relancer quand Pascal aura ouvert les hôtes
-  ou déposé les PDF.
 - **003** `testeur` · tests d'acceptation de l'échange, après 002 · [fiche](missions/003-tests-acceptation-echange.md)
-- **004 à 009** : fiches à écrire au cycle suivant (voir `equipe.md`).
+- **004 à 009** : fiches à écrire (repoussé du cycle 2 au cycle 3, plafond atteint ; voir `equipe.md`).
 - **Orchestrateur** : brief vers Nemeton après 002.
 - **Pascal** : signaler au DSF les quatre incohérences des fiches (pin d'Alep, pin laricio, deux pins sylvestres) ;
   relevé : `docs/essais/2026-10-28-essai-ia-a-l-aveugle.md`.
@@ -31,8 +28,11 @@ _Rien._
 ## En revue
 
 - **002** `dev` (opus, tenue) · format d'échange `deperis-v1` · [fiche](missions/002-format-echange-deperis-v1.md) ·
-  **plan** à relire par Pascal : [`missions/002-plan.md`](missions/002-plan.md) (Q1 à Q13, moyens M1 et M2) · depuis
+  PR n° 5, prête (3e relecture, b7e9313) ; reste ouvert : placette « notee » dont le centre est en conflit · depuis
   le cycle 1.
+- **Journal de 002** (orchestrateur) · PR n° 6, porte des décisions de Pascal · depuis le cycle 1.
+- **001** `acquereur` · référentiels de la tranche 1 · [fiche](missions/001-referentiels-tranche-1.md) · PR n° 7,
+  prête (aller-retour 1/3) ; sept valeurs à trancher (K1, SA1, SA2, G1, G2, PV1, PV2) · depuis le cycle 2.
 
 ## Fait
 
