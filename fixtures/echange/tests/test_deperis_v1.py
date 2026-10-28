@@ -32,8 +32,14 @@ DOC = d.RACINE / "docs" / "formats" / "deperis-v1.md"
 FICHES = json.loads((d.RACINE / "fixtures" / "fiches-dsf-2025.json").read_text(encoding="utf-8"))
 
 
-def attendus() -> list[tuple[Path, dict]]:
+def tous_les_attendus() -> list[tuple[Path, dict]]:
     return [(p.parent, json.loads(p.read_text(encoding="utf-8"))) for p in sorted(ICI.glob("*/attendu.json"))]
+
+
+def attendus() -> list[tuple[Path, dict]]:
+    """Les cas de la mission 002 (A, S, R). Les cas X1 à X7b (mission 003) sont refusés pour des raisons que ces tests
+    de structure ne supposent pas (X1 n'est pas un GeoPackage) : `ComplementsTest` les prend en charge."""
+    return [(dossier, a) for dossier, a in tous_les_attendus() if not a["cas"].startswith("X")]
 
 
 def attendu(cas: str) -> tuple[Path, dict]:
@@ -223,6 +229,29 @@ class Identifiants(unittest.TestCase):
         self.assertLess(a, b, "un UUID v7 suit l'ordre du temps")
         self.assertEqual(a, d.uuid7_deterministe(1_783_000_000_000, "a"))
         self.assertEqual(f"{1_783_000_000_000:012x}", a.replace("-", "")[:12])
+
+
+class ComplementsTest(unittest.TestCase):
+    """Cas complémentaires X1 à X7b (mission 003, `generer_complements.py`) : chacun est refusé, pour son seul motif."""
+
+    def test_les_huit_cas_sont_la_et_concluent_comme_attendu(self):
+        cas = [(dossier, a) for dossier, a in tous_les_attendus() if a["cas"].startswith("X")]
+        self.assertEqual(["X1", "X2", "X3", "X4", "X5", "X6", "X7a", "X7b"], [a["cas"] for _, a in cas])
+        for dossier, a in cas:
+            with self.subTest(cas=a["cas"]):
+                depart = d.lire_paquet(dossier / a["depart"]) if a["depart"] else None
+                r = d.controler(d.lire_paquet(dossier / a["fichiers"][0]), depart, SCHEMA)
+                self.assertEqual(("refuse", a["motifs"]), (r.statut, r.motifs), "\n".join(r.messages))
+
+    def test_attendu_decrit_les_notes_du_fichier(self):
+        for dossier, a in tous_les_attendus():
+            if not a["cas"].startswith("X"):
+                continue
+            inst = d.lire_paquet(dossier / a["fichiers"][0]).inst
+            lignes = sorted((l["uuid"], l["essence"], l["mb"], l["second"], l["classe"], l["type"])
+                            for l in inst["tables"]["notations"]["lignes"])
+            notes = sorted((n["uuid"], n["essence"], n["mb"], n["second"], n["classe"], n["type"]) for n in a["notes"])
+            self.assertEqual(lignes, notes, a["cas"])
 
 
 class Cas(unittest.TestCase):

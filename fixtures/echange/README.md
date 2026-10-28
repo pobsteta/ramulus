@@ -72,6 +72,19 @@ Chaque dossier contient :
 | R10c | `R10c-photo-non-citee` | nemeton | refusé | `photo_non_citee` |
 | R11 | `R11-repere-autre-que-2154` | ramulus | refusé | `hors_france`, `repere_hors_2154` |
 | R12 | `R12-texte-non-nfc` | ramulus | refusé | `texte_non_nfc` |
+| X1 | `X1-pas-un-geopackage` | nemeton | refusé | `pas_un_geopackage` |
+| X2 | `X2-version-illisible` | nemeton | refusé | `version_illisible` |
+| X3 | `X3-valeur-hors-liste` | nemeton | refusé | `structure` |
+| X4 | `X4-type-incoherent` | nemeton | refusé | `type_incoherent` |
+| X5 | `X5-ia-incomplete` | nemeton | refusé | `ia_incomplete` |
+| X6 | `X6-uuid-duplique` | nemeton | refusé | `uuid_duplique` |
+| X7a | `X7a-plot-inconnu` | nemeton | refusé | `rattachement_invalide` |
+| X7b | `X7b-rang-trop-grand` | nemeton | refusé | `rattachement_invalide` |
+
+X1 à X7b sont les cas complémentaires du testeur (mission 003, déplacés ici sur décision de Pascal, 2026-10-28) : les
+motifs du catalogue qu'aucun cas de 002 ne couvrait. Ils sont écrits par leur propre script,
+`generer_complements.py`, à partir de A3 ; `generer.py` (mission 002) ne les connaît pas. Les tests Python de 002 ne les
+rejouent pas non plus.
 
 Le titre et la source de chaque cas sont dans son `attendu.json`. R4 (version N+1 refusée) a été retiré : Pascal suit
 l'ADR 0003, une version N+1 est lue (Q1, cas A6). R1d, R10c et R11, proposés par l'agent, sont validés par Pascal
@@ -83,6 +96,7 @@ R13 (union refusée) jusqu'à la décision de Pascal du 2026-10-28 de traiter le
 
 ```sh
 python3 fixtures/echange/generer.py                              # réécrit les cas et les listes du schéma
+python3 -I fixtures/echange/generer_complements.py               # réécrit X1 à X7b (après generer.py)
 python3 -m unittest discover -s fixtures/echange/tests -v        # schéma, cas, contrôle de référence, fusion
 python3 fixtures/echange/verifier_ogrinfo.py                     # GDAL : chaque GeoPackage s'ouvre (CI)
 ```

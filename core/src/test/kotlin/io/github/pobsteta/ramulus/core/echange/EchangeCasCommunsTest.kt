@@ -12,7 +12,7 @@ import java.io.File
 
 /**
  * Critères 2, 3, 4 et 5 de la spec § 5, par les cas communs de `fixtures/echange/` (rejoués aussi en R par Nemeton,
- * ADR 0003 § 7) et ceux du testeur de `fixtures/echange-complements/` : le module GeoPackage doit conclure comme
+ * ADR 0003 § 7) et les cas complémentaires X1 à X7b du testeur (même dossier) : le module GeoPackage doit conclure comme
  * `attendu.json` (statut ET motifs exacts, ni plus ni moins), relire chaque fichier comme son instantané, et fusionner
  * comme le dit le cas.
  *

@@ -145,7 +145,7 @@ class Cas(val dossier: File) {
     fun verdictAttendu() = Verdict(statut, motifs, emptySet())
 
     companion object {
-        private val RACINES = listOf("../fixtures/echange", "../fixtures/echange-complements")
+        private val RACINES = listOf("../fixtures/echange")
 
         fun tous(): List<Cas> = RACINES.flatMap { racine ->
             (File(racine).listFiles() ?: emptyArray()).filter { File(it, "attendu.json").isFile }

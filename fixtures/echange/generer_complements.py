@@ -2,13 +2,13 @@
 fixtures/echange/ ne couvre (`pas_un_geopackage`, `version_illisible`, `structure`, `type_incoherent`,
 `ia_incomplete`, `uuid_duplique`, `rattachement_invalide`).
 
-    python3 -I fixtures/echange-complements/generer.py
+    python3 -I fixtures/echange/generer_complements.py
 
 Chaque cas part du rendu A3 (fixtures/echange/A3-rendu), y change une seule chose, et s'écrit au même format que les
 cas communs (un dossier, un .zip, son instantané, `attendu.json`). Le motif attendu est celui que le testeur a voulu ;
 le script vérifie que le contrôle de référence (fixtures/echange/deperis_v1.py) conclut pareil, sinon il s'arrête.
-Les cas ne sont pas dans fixtures/echange/ : ce dossier est tenu par la mission 002 (et son generer.py). Pascal
-tranche s'ils y entrent.
+Les cas sont dans fixtures/echange/, à côté de ceux de 002 (Pascal, 2026-10-28, T3), mais ce script les écrit seul :
+generer.py (mission 002) ne les connaît pas et ne les réécrit pas.
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 ICI = Path(__file__).resolve().parent
-ECHANGE = ICI.parent / "echange"
+ECHANGE = ICI
 sys.path.insert(0, str(ECHANGE))
 import deperis_v1 as d  # noqa: E402
 
@@ -80,13 +80,31 @@ CAS = [
 ]
 
 
+def notes_du_fichier(inst, photos):
+    """Les notes du fichier, comme dans les cas de 002 ; `photo_dsf` à null pour une note que le cas a modifiée
+    (même uuid qu'en A3 mais contenu changé), sinon la photo de A3. Le contrôle des domaines (`FixturesEchangeTest`)
+    s'appuie sur cette liste."""
+    sortie = []
+    for l, photo in zip(notes(inst), photos):
+        sortie.append({"fichier": "EXEMPLE-2027-01.zip", "table": "notations", "uuid": l["uuid"], "plot_id": l["plot_id"],
+                       "rang": l["rang"], "repere": l["repere"], "essence": l["essence"], "type": l["type"],
+                       "mb": l["mb"], "second": l["second"], "critere": l["critere"], "classe": l["classe"],
+                       "photo_dsf": photo})
+    return sortie
+
+
 def main():
     depart = d.lire_paquet(DEPART)
     rendu = d.lire_paquet(RENDU)
+    a3 = json.loads((RENDU.parent / "attendu.json").read_text(encoding="utf-8"))
+    photos_a3 = {n["uuid"]: n["photo_dsf"] for n in a3["notes"]}
     for nom, motif, mutation, titre in CAS:
         inst = copy.deepcopy(rendu.inst)
         inst.pop("photos_du_paquet", None)
+        origine = {l["uuid"]: copy.deepcopy(l) for l in notes(inst)}
         mutation(inst)
+        # Une note n'a plus de photo DSF si la mutation l'a changée ; le doublon X6 garde celle de sa jumelle.
+        photo_dsf = [photos_a3[l["uuid"]] if origine.get(l["uuid"]) == l else None for l in notes(inst)]
         cible = ICI / nom
         cible.mkdir(exist_ok=True)
         d.ecrire_paquet(cible / "EXEMPLE-2027-01.zip", inst, DERNIERE_MODIF, rendu.photos)
@@ -100,8 +118,8 @@ def main():
         attendu = {
             "cas": nom.split("-")[0], "titre": titre, "source": "mission 003 (testeur) ; docs/formats/deperis-v1.md",
             "lecteur": "nemeton", "fichiers": ["EXEMPLE-2027-01.zip"],
-            "depart": None if sans_depart else "../../echange/A1-tournee-depart/deperis.gpkg", "attendu": "refuse", "motifs": [motif],
-            "fusion": None, "notes": [],
+            "depart": None if sans_depart else "../A1-tournee-depart/deperis.gpkg", "attendu": "refuse", "motifs": [motif],
+            "fusion": None, "notes": notes_du_fichier(paquet.inst, photo_dsf),
         }
         (cible / "attendu.json").write_text(json.dumps(attendu, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
         print(f"{attendu['cas']:5} refuse   {motif:24} {titre}")

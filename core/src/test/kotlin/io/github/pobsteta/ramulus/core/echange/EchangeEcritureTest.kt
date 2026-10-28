@@ -172,9 +172,13 @@ class EchangeEcritureTest {
     // Les refus à l'écriture : le code du motif dans le message, et le fichier intact
     // ---------------------------------------------------------------------------------------------------------
 
-    private class Refus(val nom: String, val motif: String, val nouvelle: JsonObject.() -> JsonObject)
+    /** `motif` null : le format ne nomme pas de code pour ce refus (question posée à Pascal) ; on exige alors le refus seul. */
+    private class Refus(val nom: String, val motif: String?, val nouvelle: JsonObject.() -> JsonObject)
 
     private val premiereNote: JsonObject by lazy { saisie(lignes(Cas.instantaneAttendu(rendu3), "notations").first()) }
+
+    /** La classe que l'abaque donne à `premiereNote` (celle de A3) : la fournir quand même doit être refusé. */
+    private val classeJuste: String by lazy { lignes(Cas.instantaneAttendu(rendu3), "notations").first()["classe"].asString }
 
     private fun JsonObject.avec(cle: String, valeur: Any?): JsonObject = deepCopy().also {
         when (valeur) {
@@ -193,25 +197,46 @@ class EchangeEcritureTest {
         Refus("essence sans ses accents (Cedre)", "essence_hors_referentiel") { avec("essence", "Cedre").avec("type", "RESINEUX").avec("critere", "MA") },
         Refus("feuillu déclaré résineux", "type_incoherent") { avec("type", "RESINEUX").avec("critere", "MA") },
         Refus("MA pour un feuillu", "critere_incoherent") { avec("critere", "MA") },
-        Refus("classe saisie différente de l'abaque", "classe_differente_abaque") { avec("classe", "A") },
+        // Pascal, 2026-10-28 (T2) : la classe ne se saisit pas, qu'elle soit juste ou fausse. Aucun motif du catalogue
+        // ne dit « classe fournie » : le refus seul est exigé, pas son code (voir le rendu).
+        Refus("classe fournie, fausse (la classe ne se saisit pas)", null) { avec("classe", if (classeJuste == "A") "B" else "A") },
+        Refus("classe fournie, juste (la classe ne se saisit pas)", null) { avec("classe", classeJuste) },
         Refus("colonnes de l'IA à moitié remplies", "ia_incomplete") { avec("ia_mb", 2) },
         Refus("placette inconnue de la tournée", "rattachement_invalide") { avec("plot_id", "P999") },
         Refus("rang au-delà de nb_arbres (4)", "rattachement_invalide") { avec("rang", 5) },
-        Refus("opérateur en Unicode décomposé (NFD)", "texte_non_nfc") { avec("operateur", Normalizer.normalize("opérateur-é", Normalizer.Form.NFD)) },
     )
 
     @TestFactory
     fun `une note invalide est refusee avec le code du motif et laisse le fichier intact`(@TempDir tmp: File): List<DynamicTest> =
         refusDeNotes.mapIndexed { i, r ->
-            dynamicTest("${r.motif} : ${r.nom}") {
+            dynamicTest("${r.motif ?: "refus sans code fixé"} : ${r.nom}") {
                 val travail = copie(depart1, tmp, "travail$i.gpkg")
                 val avant = PasserelleEchange.instantane(travail)
                 val e = runCatching { PasserelleEchange.enregistrerNotation(travail, r.nouvelle(premiereNote)) }.exceptionOrNull()
                 assertTrue(e != null, "aucune exception : la note a été acceptée")
-                assertTrue(r.motif in (e?.message ?: ""), "le message doit citer ${r.motif} : ${e?.message}")
+                r.motif?.let { assertTrue(it in (e?.message ?: ""), "le message doit citer $it : ${e?.message}") }
                 assertNull(premiereDifference(avant, PasserelleEchange.instantane(travail)), "fichier modifié malgré le refus")
             }
         }
+
+    // Pascal, 2026-10-28 (T1) : un texte saisi en Unicode décomposé est normalisé en NFC à l'enregistrement, sans refus.
+    // (Le refus texte_non_nfc reste celui de la LECTURE d'un fichier rendu : cas R12, EchangeCasCommunsTest.)
+    @Test
+    fun `un texte saisi en Unicode decompose (NFD) est enregistre et relu en NFC, sans refus`(@TempDir tmp: File) {
+        val travail = copie(depart1, tmp)
+        val nfd = Normalizer.normalize("opérateur-é", Normalizer.Form.NFD)
+        val nfc = Normalizer.normalize(nfd, Normalizer.Form.NFC)
+        assertFalse(nfd == nfc, "le test suppose deux écritures différentes")
+
+        val ligne = PasserelleEchange.enregistrerNotation(travail, premiereNote.avec("operateur", nfd).avec("repere", Normalizer.normalize("é", Normalizer.Form.NFD)))
+
+        assertEquals(nfc, ligne["operateur"].asString)
+        assertEquals("é", ligne["repere"].asString)
+        val relue = lignes(PasserelleEchange.instantane(travail), "notations").single()
+        assertEquals(nfc, relue["operateur"].asString, "opérateur relu dans le fichier")
+        assertEquals("é", relue["repere"].asString, "repère relu dans le fichier")
+        assertTrue(Normalizer.isNormalized(relue["operateur"].asString, Normalizer.Form.NFC))
+    }
 
     private fun centre(x: Double, y: Double): JsonObject = sansFid(lignes(Cas.instantaneAttendu(rendu3), "centres").first()).also {
         it.add("geom", JsonParser.parseString("""{"x":$x,"y":$y}""").asJsonObject)
