@@ -146,6 +146,7 @@ notre ADR 0005 ne tranchaient, sont validés tels que le code les applique. Ils 
 | C5 | Avant la première sauvegarde d'une tournée, le repère des 5 minutes est la première saisie ; après un redémarrage du téléphone, la sauvegarde est due tout de suite. |
 | C6 | La table `sauvegardes` a une colonne `voie` ; la table `appareil` n'a pas de colonne « dernier démarrage ». |
 | C7 | Dans l'en-tête, `version_ramulus` est obligatoire et `version_nemeton` peut être nulle ; restent aussi les gardes contre un `uuid` ou un `objet_uuid` vide et contre une annulation sans `remplace_uuid`. |
+| S2 | Avant l'API 30 (Android 8 à 10), seule la connexion qui écrit est en `synchronous=FULL` ; les connexions de lecture gardent le réglage WAL d'Android (`db_wal_sync_mode`). Limite acceptée : à mesurer sur un vrai téléphone par le test instrumenté de la mission 011. |
 
 ## Écarts à `sursync-v1`
 
