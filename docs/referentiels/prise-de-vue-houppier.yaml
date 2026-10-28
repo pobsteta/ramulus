@@ -1,0 +1,92 @@
+# Conventions de prise de vue du houppier — référentiel Ramulus
+# Propriétaire : Pascal. Acquis par : acquereur (mission 001, cycle 2). Consulté le 2026-10-28.
+# Décision éclairée : la convention de prise de vue de l'ADR 0006 (mission 008), dont plusieurs règles étaient
+# marquées « non sourcées » ou « sourcées par analogie ». Ce fichier dit, règle par règle, ce que les sources
+# disent vraiment ; il ne tranche pas.
+#
+# Sources :
+#  K. Kälin U., Lang N., Hug C., Gessler A., Wegner J.D., « Defoliation estimation of forest trees from ground-level
+#     images », bioRxiv, 13 octobre 2018, DOI 10.1101/441733 ; sections 4.1 et 4.4 lues le 2026-10-28 :
+#     https://www.biorxiv.org/content/10.1101/441733v1.full   (prépublication, non relue par des pairs à cette date
+#     dans ce que j'ai vu ; rien n'a été vérifié sur une version publiée)
+#  I. ICP Forests, Manual Part IV, version 2020-4 (last update 04/2026), § 5.2.1 p. 10, § 6.1.3 p. 42,
+#     formulaire PHOT p. 43, § 6.1.4 p. 44, lus le 2026-10-28 :
+#     https://www.icp-forests.net/fileadmin/icp_forests/Dateien/Manual_Versions/2025-2026/ICPF_Manual_part04_2020-4_Crown.pdf
+#  D. DSF, note DGAL/SDQSPV/2018-433 (« Quantifier l'état de santé de la forêt… », juillet 2018), p. 5,
+#     « Comment procéder sur le terrain ? », lue le 2026-10-28 : https://agriculture.gouv.fr/telecharger/90879
+#
+# Concordance : I § 6.1.4 et D p. 5 disent la même distance (une hauteur d'arbre) : deux sources indépendantes
+# (réseau européen de surveillance, guide français) qui concordent. Pour la photo elle-même (K), il n'y a qu'une
+# source, une prépublication de recherche ; ni ICP ni le DSF ne donnent de protocole de prise de vue.
+#
+# Écarts relevés avec l'ADR 0006 (à corriger par l'orchestrateur ou par Pascal, pas par l'acquéreur) :
+#   E1. « Une photo par arbre — sourcée par Kälin » : Kälin dit « a trained observer took photos of individual
+#       trees » (4.1) ; il ne dit nulle part « une photo par arbre » ; ses recherches de « per tree » et « one image
+#       per tree » dans les sections 3 et 4 n'ont rien donné. La règle est suggérée, non énoncée.
+#   E2. « Cadrée sur le houppier entier » : Kälin dit « Photos are mostly well centered on a single tree and
+#       captured with an appropriate zoom level » ; « houppier entier » n'est pas écrit.
+#   E3. « Éviter le contre-jour : il fait surestimer la défoliation des résineux — sourcée » : Kälin 4.4 dit « Examples
+#       (f)-(h) contain conifers with bright backlighting, interpreted by the CNN model as high defoliation » ;
+#       l'estimation surestimée est celle du réseau de neurones, pas celle d'un opérateur ; trois exemples, sans
+#       étude systématique. Valeurs de ces trois exemples (vérité terrain GT → prédiction PR) : 30 % → 65,3 % ;
+#       5 % → 38,7 % ; 20 % → 47,6 %. La règle « éviter le contre-jour » est donc plausible, pas démontrée.
+#   E4. « ICP § 6.1.4 pour l'observation » : confirmé, et la page est la p. 44 (sans erreur) ; D p. 5 le confirme.
+
+regles:
+  - id: R1
+    regle: "Une photo par arbre, cadrée sur le houppier"
+    statut: "suggérée par Kälin, non énoncée (E1, E2)"
+    source: "K 4.1 : « All datasets have in common that a trained observer took photos of individual trees during a field survey. » ; « Photos are mostly well centered on a single tree and captured with an appropriate zoom level. »"
+  - id: R2
+    regle: "Se placer à une distance d'environ une hauteur d'arbre ; plusieurs points d'observation ; en vision latérale"
+    statut: "sourcée (deux sources concordantes) pour l'observation ; pour la photo, par analogie"
+    source: "I 6.1.4 p. 44 : « Observers should have a satisfactory view of the tree from several observation points. On ground level, the optimal view is attained at a distance of one tree length. On slopes, trees should be observed at a distance of about one tree length above the tree or at least on the same level. » ; D p. 5 : « Je me place à une distance équivalente à la hauteur de l'arbre, en vision latéral et je fais si possible plusieurs points d'observation. »"
+  - id: R3
+    regle: "Prendre en plein jour"
+    statut: "sourcée pour l'observation ; pour la photo, par analogie"
+    source: "I 6.1.4 p. 44 : « Assessments should be done in full daylight. »"
+  - id: R4
+    regle: "Éviter le contre-jour"
+    statut: "plausible, non démontrée (E3)"
+    source: "K 4.4 (exemples f-h, résineux, valeurs ci-dessus) ; I 5.2.1 p. 10, classe de visibilité 3 : « Crown only visible with backlighting (i.e. in outline). Note that some parameters can still be assessed when only back-lighting is present. »"
+  - id: R5
+    regle: "Prendre l'arbre de sorte qu'il soit reconnaissable et que les parties à observer soient visibles"
+    statut: "sourcée (recommandation de recherche, à l'adresse des équipes de terrain)"
+    source: "K 4.4 : « teaching field crews to take photos from viewpoints that allow observing those parts of the tree » ; « teaching field crews to take photos such that the individual tree of interest can be recognized »"
+  - id: R6
+    regle: "Prises de vue en saison de feuillage complet"
+    statut: "contexte de l'étude, non une règle de Ramulus (Pascal a décidé : toute saison, ADR 0002)"
+    source: "K section 4 : « all images were taken between beginning of July and end of August » ; I 5.1.1 p. 7 (fenêtre mi- à fin d'été). Voir saison-deperis.yaml."
+  - id: R7
+    regle: "Garder avec chaque photo la date, la position, la distance et la direction vers l'arbre, l'identité de l'arbre, l'essence, la classe sociale"
+    statut: "sourcée (formulaire PHOT d'ICP)"
+    source: "I formulaire PHOT p. 43 « Form for recording characteristics of photographed tree » : surveyor name/code ; country code, plot number, date (DDMMYY), latitude (+DDMMSS), longitude (+DDMMSS), altitude ; tree identification, species code, social class, crown shading, defoliation, discoloration ; visibility, specification of affected part, symptom, location in crown ; cause, extent ; flowering, fruiting, foliage transparency ; crown form, secondary shoot ; « Distance to tree (m) », « Direction to tree (°) » ; description of location ; description of photographed tree and crown ; reasoning of scoring ; other remarks."
+    limite: "Le formulaire est un cadre de saisie pour des photos de référence ; il n'impose ni distance ni direction de prise de vue, il dit seulement de les noter."
+  - id: R8
+    regle: "Photos de référence : un choix d'arbres de différentes classes de défoliation, chaque année, conservées durablement, pour la formation"
+    statut: "sourcée (ICP) ; à ne pas confondre avec la règle de prise de vue de Ramulus"
+    source: "I 6.1.3 p. 42 : « it is advisable to document and photograph a selection of the trees in different defoliation classes in each area in each year. Photographs should be accompanied by complete assessments of the trees using the relevant forms (PHOT, see below) and should be permanently stored at the appropriate National Focal Centres. It is necessary to document reference trees. » ; « Photographs should be used as a part of the training exercise… by using the same (or a sub set) of photographs every year. »"
+  - id: R9
+    regle: "Photos 2 à 4 à 90° les unes des autres (placettes « collecte »)"
+    statut: "NON SOURCÉE : rien trouvé dans K, I, D"
+    source: "Aucune. Kälin ne parle pas de photos multiples par arbre ; le formulaire PHOT d'ICP a une seule case « Photo »."
+  - id: R10
+    regle: "Même direction d'une année à l'autre"
+    statut: "NON SOURCÉE comme règle de prise de vue"
+    source: "Aucune règle trouvée. Le formulaire PHOT note la direction (R7), ce qui permet de la reprendre ; ICP 6.1.3 demande de réutiliser les mêmes photos pour la formation (R8), pas de rephotographier du même point."
+  - id: R11
+    regle: "Contrôles à la prise (flou, contre-jour, houppier coupé), signalés sans bloquer"
+    statut: "décision de Pascal (ADR 0006, 2026-10-28) ; contre-jour et visibilité : voir R4, R5 ; flou et houppier coupé : aucune source"
+
+non_trouve:
+  - "Hauteur de l'appareil, distance de prise de vue, modèle d'appareil, nombre d'arbres, liste des espèces : absents de Kälin (4.1) ; l'étude donne 2108 images (Urmeter 384, Parcours 1361, WSI 363), erreur absolue moyenne 5,5 / 8,3 / 14,8 %."
+  - "Protocole de prise de vue d'ICP Forests : le manuel ne donne qu'un formulaire de documentation (PHOT) et des photo guides de formation (§ 6.1.3 p. 42 ; § 4.1 p. 7 : « The use of photo guides with typical photos of trees with different defoliation is strongly recommended. », pour l'observation et non pour la prise de vue)."
+  - "Aucune source consultée ne traite du téléphone portable comme appareil de prise de vue du houppier."
+
+a_trancher:
+  - id: PV1
+    question: "Que fait la convention de l'ADR 0006 des règles R9 et R10 (non sourcées) ?"
+    proposition_acquereur: "Les garder comme valeurs provisoires nommées « non sourcées » jusqu'à un essai de terrain de Pascal (mission 001, « Valeur provisoire »), ou les retirer ; ne pas les citer comme tirées de Kälin ou d'ICP."
+  - id: PV2
+    question: "Corriger la colonne « source » de l'ADR 0006 pour R1, R2 et R4 selon E1 à E3 ?"
+    proposition_acquereur: "Oui : écrire « suggérée par », « sourcée pour l'observation », « plausible, non démontrée »."

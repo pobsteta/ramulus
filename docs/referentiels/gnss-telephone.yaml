@@ -1,0 +1,111 @@
+# Précision du GNSS d'un téléphone sous couvert forestier — référentiel Ramulus
+# Propriétaire : Pascal. Acquis par : acquereur (mission 001, cycle 2). Consulté le 2026-10-28.
+# Décision éclairée : le seuil d'écart entre le centre relevé et le point prévu (valeur provisoire de 30 m,
+# ADR 0004, mission 007). Ce fichier ne fixe pas le seuil ; il donne ce que les sources mesurent.
+#
+# CQQCOQP de la donnée principale (Purfürst 2022) :
+#   Pourquoi : savoir si le GNSS d'un téléphone suffit à placer le centre d'une placette (alarme sur erreur grossière).
+#   Qui : T. Purfürst, chaire d'exploitation forestière, université de Fribourg-en-Brisgau (recherche publique).
+#   Quoi : déviation bidimensionnelle absolue de la position (tableau 4), par modèle de téléphone.
+#   Comment : positionnement autonome statique, « not externally corrected in any way » ; 24 mesures d'environ
+#     10 min à 1 Hz ; les erreurs sont calculées à chaque seconde (chaque fix), PAS sur une position moyennée.
+#   Où : 15 sites sous couvert, points géodésiques officiels de position connue ; essences, relief, fermeture du
+#     couvert et état du feuillage variables (Europe centrale, pays non relu dans cette mission).
+#   Quand : feuillage variable (« foliage conditions varied »).
+#   Combien : 10 téléphones + 1 récepteur géodésique de référence (Geo 7X), n = 131 338 positions au total.
+#
+# Sources :
+#  P. Purfürst T., « Evaluation of Static Autonomous GNSS Positioning Accuracy Using Single-, Dual-, and Tri-Frequency
+#     Smartphones in Forest Canopy Environments », Sensors 22(3):1289, 8 février 2022, DOI 10.3390/s22031289.
+#     Lu le 2026-10-28 par le texte intégral XML d'Europe PMC :
+#     https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8838512/fullTextXML (tableau 4 et section 3.2).
+#     Les pages https://pmc.ncbi.nlm.nih.gov/articles/PMC8838512/ (verification reCAPTCHA) et
+#     https://www.mdpi.com/1424-8220/22/3/1289 (HTTP 403) n'ont pas pu être lues ; la page PMC de l'ADR 0003
+#     reste donc la référence citée, le contenu vient d'Europe PMC (même texte, voie différente).
+#  M. Murgaš V., Sačkov I., Sedliak M., Tunák D., Chudý F., « Assessing horizontal accuracy of inventory plots in
+#     forests with different mix of tree species composition and development stage », Journal of Forest Science
+#     64(11):478-485, 2018, DOI 10.17221/92/2018-JFS ; résumé (p. 478) et introduction (p. 479) lus le 2026-10-28 :
+#     https://jfs.agriculturejournals.cz/pdfs/jfs/2018/11/03.pdf
+#  S. Surculus, ADR 0003 « GNSS et repères » (dépôt https://github.com/pobsteta/surculus, fichier
+#     docs/adr/0003-gnss-et-reperes.md, commit 3c01f4b03c16d1bfc56b5efa73c97d3c75fa2b3e du 2026-10-27 ;
+#     lu le 2026-10-28), qui cite Purfürst 2022 tableau 4 : « 6,1 m d'erreur horizontale moyenne, CEP95 13,4 m,
+#     jusqu'à 42 m pour un modèle ». Ramulus l'a repris dans l'ADR 0004.
+#
+# Deuxième source qui se trompe pour une autre raison : Murgaš 2018 (récepteur de cartographie, placettes
+# d'inventaire, 2017 feuillage, vérité terrain relevée en 2018 sans feuillage) contre Purfürst (téléphones, points
+# géodésiques, mesures statiques de 10 min).
+#
+# Comparaison et écarts :
+#   Concordance d'ordre de grandeur : Purfürst, erreur moyenne des téléphones 6,50 m (calcul ci-dessous) ;
+#   Murgaš, RMSE 8,45 m sous couvert (45 placettes), 6,61 m à découvert (5 placettes).
+#   E1. Les chiffres de l'ADR 0003 sont ceux de la ligne « All » du tableau 4, qui INCLUT le récepteur
+#       géodésique de référence Geo 7X (n = 12 096 sur 131 338). Pour les seuls téléphones (n = 119 242), la
+#       moyenne pondérée des deux lignes « MultiF » est 6,50 m (calcul : (7,07 × 72 698 + 5,62 × 46 544) / 119 242),
+#       non 6,14 m. Le CEP95 de la ligne « All » (13,38 m) est celui de la ligne « MultiF Yes » ; pour les téléphones
+#       monofréquence il est de 13,64 m. L'ADR cite donc 6,1 m et 13,4 m (arrondis de 6,14 et 13,38) comme
+#       s'ils valaient pour des téléphones ; l'ordre de grandeur est juste, la valeur 6,1 m est trop basse de
+#       0,4 m pour les téléphones seuls.
+#   E2. « Jusqu'à 42 m pour un modèle » : confirmé comme CEP95 du Xcover 4 (41,99 m), un téléphone monofréquence ;
+#       la même valeur 41,99 figure en CEP99,7 des lignes « MultiF No » et « All » (donnée recoupée).
+#   E3. Purfürst mesure des fixes isolés (1 Hz, 10 min) ; la spec et l'ADR 0004 moyennent la position. Purfürst ne
+#       teste pas l'effet du moyennage : ce qu'il apporte sous couvert n'est pas sourcé ici.
+#   E4. Murgaš : récepteur de cartographie, non téléphone ; sa vérité terrain est un récepteur topographique ;
+#       il note « no statistically significant effect of tree species composition and stand age » (résumé),
+#       mais « decreased positional errors in coniferous forests as well as in younger forests ».
+#   E5. L'écart entre le point prévu et le centre relevé ajoute l'erreur du guidage (le téléphone guide l'opérateur
+#       sur son propre GNSS) à celle de la mesure : aucune source consultée ne mesure cet écart cumulé (inférence de
+#       l'acquéreur, non sourcée).
+
+purfurst_2022_tableau_4:
+  legende: "Characteristic values of the absolute two-dimensional position deviation (en mètres ; MF = multifréquence ; x̄ = moyenne ; CEP = erreur circulaire probable à xx %)"
+  lecture: "Texte intégral XML d'Europe PMC, 2026-10-28 ; la dernière ligne S5 et les lignes suivantes ont été lues en deuxième passe (le texte était tronqué en une passe)."
+  colonnes: [recepteur, multifrequence, moyenne_m, ecart_type_m, cep25_m, cep50_m, cep75_m, cep95_m, cep99_7_m, drms_m, "2drms_m", n]
+  lignes:
+    - [Geo 7X (référence géodésique), oui, 2.49, 2.11, 0.57, 1.42, 4.76, 5.46, 6.97, 3.26, 6.52, 12096]
+    - [P20, non, 5.22, 4.54, 2.82, 4.72, 6.67, 10.58, 37.64, 6.92, 13.83, 12270]
+    - [P40, oui, 6.28, 3.58, 4.03, 5.03, 7.97, 13.38, 16.00, 7.22, 14.45, 12645]
+    - [MI 8, oui, 5.85, 4.19, 3.11, 4.08, 7.52, 14.27, 22.53, 7.20, 14.39, 9492]
+    - [MI 8 Pro, oui, 6.75, 5.26, 3.34, 5.77, 8.51, 16.34, 30.46, 8.55, 17.10, 11780]
+    - [Mi10 light, oui, 3.73, 2.62, 1.79, 3.28, 5.39, 7.89, 16.10, 4.56, 9.13, 12627]
+    - [Xcover 4, non, 10.44, 10.19, 4.50, 8.05, 11.97, 41.99, 47.25, 14.59, 29.17, 12333]
+    - [Xcover 4s_a, non, 6.90, 3.48, 4.06, 6.02, 9.49, 13.25, 13.25, 7.73, 15.46, 12224]
+    - [Xcover 4s_b, non, 7.20, 3.44, 4.34, 7.22, 9.22, 12.27, 19.72, 7.98, 15.96, 12254]
+    - [A7, non, 5.86, 3.70, 3.40, 5.17, 7.06, 15.80, 17.74, 6.94, 13.87, 11691]
+    - [S5, non, 6.73, 4.41, 3.26, 6.20, 8.14, 16.72, 22.55, 8.05, 16.09, 11926]
+    - [MultiF No (groupe), non, 7.07, 5.77, 3.75, 6.02, 8.79, 13.64, 41.99, 9.13, 18.25, 72698]
+    - [MultiF Yes (groupe), oui, 5.62, 4.16, 2.79, 4.73, 7.32, 13.38, 24.04, 6.99, 13.98, 46544]
+    - [All (tous, avec Geo 7X), "", 6.14, 5.17, 3.08, 5.03, 8.03, 13.38, 41.99, 8.03, 16.05, 131338]
+  verifications_internes:
+    - "n : somme des 10 téléphones = 119 242 = 72 698 + 46 544 ; + Geo 7X 12 096 = 131 338 = ligne All (recoupé)."
+    - "Le texte de la section 3.2 donne les mêmes DRMS (Geo 7X 3,26 ; Mi 10 light 4,56 ; Huawei P20 6,92 ; Xiaomi Mi 8 7,20 ; Mi 8 Pro 8,55 ; Xcover 4 14,59 ; multi-fréquence 6,99 ; mono-fréquence 9,13) et un CEP médian de 4,73 m (multi) contre 6,02 m (mono)."
+    - "Le texte de la discussion donne 7,22 m pour le Mi 8 là où le tableau dit 7,20 ; la valeur de 7,22 est celle du P40 : incohérence de la source, non résolue (tableau gardé)."
+  limite: "Valeurs lues par un modèle de lecture sur le XML (page PMC et MDPI illisibles) : relire le tableau 4 sur la publication avant de citer une valeur isolée."
+
+murgas_2018:
+  mesure: "RMSE de l'erreur horizontale : 8,45 m sous couvert (45 placettes), 6,61 m à découvert (5 placettes)"
+  appareil: "récepteur GNSS de cartographie (« mapping-grade ») relevé en saison avec feuillage (2017) ; centres de placette vrais relevés par un récepteur topographique en saison sans feuillage (2018), forêt de Vígľaš, Slovaquie"
+  citation: "« Root mean square error of horizontal accuracies was 8.45 m in the plots under forest canopy and 6.61 m under open sky conditions. »"
+  precision_declaree_des_recepteurs_de_loisir_ou_cartographie: "« within 6-10 m » (p. 479, citée par les auteurs, non mesurée par eux)"
+
+seuil_provisoire_30_m:
+  valeur_proposee_par_adr_0004: 30
+  unite: "mètres"
+  statut: "valeur provisoire, non tranchée ; mesure : cette mission (sources publiées), puis un essai de Pascal sur le terrain (fiche 001)"
+  rapports_calcules_par_l_acquereur:
+    - "30 m / 8,45 m (RMSE Murgaš sous couvert) = 3,6"
+    - "30 m / 13,38 m (CEP95 de la ligne All) = 2,2"
+    - "30 m est inférieur au CEP95 de 41,99 m du Xcover 4 : plus de 5 % des fixes de ce modèle dépassent 41,99 m, donc au moins autant dépassent 30 m (conséquence logique du CEP95)."
+    - "30 m est supérieur aux CEP95 de 9 des 10 téléphones testés (7,89 à 16,72 m)."
+  lecture: "Un seuil de 30 m est un signal d'erreur grossière (ADR 0004). Il ne dit rien sur la qualité de l'ancrage d'un arbre : l'erreur typique d'un téléphone sous couvert (6 à 8 m) est bien en deçà ; le piquet et le numéro peint font l'identité (ADR 0004)."
+  a_trancher:
+    - id: G1
+      question: "Garder 30 m comme valeur provisoire du seuil d'écart au point prévu ?"
+      proposition_acquereur: "Oui, comme signal sans blocage, et le mesurer : relever 5 centres sur le même piquet à 5 passages différents (ou 2 appareils) pour obtenir l'erreur du téléphone de l'opérateur ; relire cet écart avant le gel de la mission 007."
+    - id: G2
+      question: "Corriger la citation de l'ADR 0003 de Surculus et celle de l'ADR 0004 de Ramulus (6,1 m, 13,4 m)"
+      proposition_acquereur: "Ces chiffres viennent de la ligne « All » qui contient le récepteur de référence ; dire « 6,5 m pour les téléphones seuls, CEP95 13,4 à 13,6 m selon le groupe, jusqu'à 42 m pour un modèle ». L'ADR de Surculus n'est pas à Ramulus : le message passe par Pascal."
+
+non_trouve:
+  - "Effet du moyennage de la position sur l'erreur sous couvert, pour un téléphone (non testé par Purfürst ; une étude de récepteurs portatifs de loisir citée par une recherche, non lue, parle d'un gain entre 1 s et 5 min : non utilisée)."
+  - "Écart cumulé entre le point prévu et le centre relevé quand le téléphone guide l'opérateur (E5)."
+  - "Taux de couvert (en %) des 15 sites : le texte dit seulement qu'il varie."
