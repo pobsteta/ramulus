@@ -35,7 +35,7 @@ et se prête mal à la photo en peuplement dense. **[à trancher : ARCHI en tran
   l'arbre, guidé (distance, contre-jour) ; il voit la fiche de référence de l'essence ; il pose MB et MR ou MA, ou
   valide ce que l'IA propose ; la classe s'affiche ; il passe à l'arbre suivant. Le bilan du peuplement se tient à
   jour.
-- **Ce qu'elle produit** **[à trancher : destinataire]** : un GeoPackage des arbres notés (position, essence, notes,
+- **Ce qu'elle produit** (destinataire **reporté par Pascal le 2026-10-28** : export générique en tranche 1) : un GeoPackage des arbres notés (position, essence, notes,
   classe, proposition de l'IA, photos), à verser dans **nemeton** (indicateurs de santé du peuplement, comme Groma
   pour l'inventaire) ou dans **sommieR** (registre de suivi).
 
@@ -54,9 +54,8 @@ sur 26 ; il sous-estime la mortalité de branches. Rapport :
 
 ## Ce qui reste ouvert
 
-1. **Où tourne l'IA** **[à trancher, ADR à écrire]** : un modèle embarqué (rapide, hors ligne, à entraîner) ou un
-   modèle distant (meilleur tout de suite, mais réseau et envoi de photos). Proposition : notation manuelle d'abord,
-   collecte des photos notées, puis modèle embarqué entraîné sur ces données.
+1. **Où tourne l'IA** — **tranché par Pascal le 2026-10-28** : notation manuelle d'abord (tranche 1 sans IA), avec
+   collecte des photos notées ; un modèle embarqué, entraîné sur ces données, ensuite. ADR 0002 à écrire.
 2. **Données d'entraînement** : les 250 photos des fiches suffisent pour tester, pas pour entraîner. Il faut des
    milliers d'arbres notés par des observateurs formés. **[à trancher : partenariat DSF / ONF / CNPF ?]**
 3. **Droits sur les photos des fiches** : on n'en garde que les notes (fixtures) ; les images ne sont pas versées
