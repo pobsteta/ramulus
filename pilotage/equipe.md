@@ -31,7 +31,7 @@ l'enrichissement.
 | 009 | Rendre la tournée : fusion des opérateurs, vérifications, `.zip`, mesure du temps de saisie, pour que Nemeton importe sans perte | `dev` | sonnet | oui · oui · non → après 004, 005 | appuyer | 004, 005 |
 
 Hors agents : **brief vers Nemeton** (`creer_tournee_deperis()`, `importer_deperis()`), écrit par l'orchestrateur
-après la mission 002 et envoyé par Pascal ; **signalement au DSF** des quatre incohérences : à trancher par Pascal.
+après la mission 002 et envoyé par Pascal ; **signalement au DSF** des quatre incohérences : par Pascal (décidé le 2026-10-28).
 
 ## Agents mobilisés et pourquoi
 
