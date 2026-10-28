@@ -15,7 +15,7 @@
 
 ## Planifié
 
-- **004 à 009** : fiches à écrire (repoussé du cycle 2 au cycle 3, plafond atteint ; voir `equipe.md`).
+- **004, 006 à 009** : fiches à écrire au cycle 3 (voir `equipe.md`).
 - **Orchestrateur** : brief vers Nemeton après 002.
 - **Pascal** : signaler au DSF les quatre incohérences des fiches (pin d'Alep, pin laricio, deux pins sylvestres) ;
   relevé : `docs/essais/2026-10-28-essai-ia-a-l-aveugle.md`.
@@ -24,6 +24,8 @@
 
 - **003** `testeur` · tests d'acceptation de l'échange · [fiche](missions/003-tests-acceptation-echange.md) ·
   lancée après la fusion de 002 · depuis le cycle 2.
+- **005** `dev` (opus, tenue) · journal en ajout seul et sauvegarde `.ramsync` ·
+  [fiche](missions/005-journal-et-sauvegarde.md) · plan demandé, à soumettre à Pascal · depuis le cycle 2.
 
 ## En revue
 
