@@ -6,7 +6,9 @@
 notation DEPERIS, les conventions de prise de vue du houppier et la précision du GNSS d'un téléphone sous couvert,
 pour que les règles de terrain de la tranche 1 ne soient pas inventées.
 
-**Redite par l'agent :** _à compléter par l'agent avant d'agir — s'il n'y arrive pas, il s'arrête._
+**Redite par l'agent (cycle 2, reportée par l'orchestrateur) :** sourcer dans `docs/referentiels/` Kraft, saison DEPERIS,
+prise de vue du houppier et précision GNSS d'un téléphone sous couvert, pour éclairer la règle de choix par défaut et
+la conduite saison/date (006), le seuil de 30 m (007) et la convention de photo (008).
 
 ## Les trois questions (règle de staffing)
 
@@ -72,3 +74,18 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
 ## Comment saura-t-on que ça marche ?
 
 Les fiches 006, 007 et 008 citent ces fichiers au lieu d'une valeur « à sourcer ».
+
+## Remarques du relecteur — aller-retour 1/3 (2026-10-28, commit 6a14a96)
+
+Verdict : **à reprendre**. Sources vérifiées sur pièces, toutes exactes ; seules ces corrections sont demandées,
+sans toucher au fond ni aux valeurs à trancher :
+
+1. **Bloquant** : `docs/referentiels/regles-missions.csv` est mal formé. L'en-tête a 6 champs, séparés par `;` ; des
+   champs contiennent « ; » sans guillemets (lignes 2, 3, 8, 10, 12, 14 et 18 : 7 champs ; ligne 9 : 9 champs). Mettre
+   les champs entre guillemets ou remplacer « ; » par « / » dans le texte : chaque ligne doit avoir exactement 6 champs.
+2. `kraft.yaml` (notes_icp, § 5.2.12) : « les "classes 31-39" de Kraft 1 à 3 » laisse croire à des classes de Kraft ;
+   ce sont des codes RM (removal/mortality) d'arbres de Kraft 1 à 3. Reformuler.
+3. `gnss-telephone.yaml` : remplacer le chemin local de l'ADR 0003 de Surculus par l'URL du dépôt
+   (github.com/pobsteta/surculus) avec le commit lu.
+4. `regles-missions.csv` : retirer la réserve « 006 (rôle à confirmer…) » ; `pilotage/equipe.md` dit que 006 dépend
+   de 001.
