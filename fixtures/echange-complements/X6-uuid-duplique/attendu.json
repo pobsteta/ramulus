@@ -1,0 +1,16 @@
+{
+ "cas": "X6",
+ "titre": "même uuid sur deux lignes de notations",
+ "source": "mission 003 (testeur) ; docs/formats/deperis-v1.md",
+ "lecteur": "nemeton",
+ "fichiers": [
+  "EXEMPLE-2027-01.zip"
+ ],
+ "depart": "../../echange/A1-tournee-depart/deperis.gpkg",
+ "attendu": "refuse",
+ "motifs": [
+  "uuid_duplique"
+ ],
+ "fusion": null,
+ "notes": []
+}

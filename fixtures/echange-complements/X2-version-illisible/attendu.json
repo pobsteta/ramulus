@@ -1,0 +1,16 @@
+{
+ "cas": "X2",
+ "titre": "version_schema = 0 (il n'y a pas de version 0)",
+ "source": "mission 003 (testeur) ; docs/formats/deperis-v1.md",
+ "lecteur": "nemeton",
+ "fichiers": [
+  "EXEMPLE-2027-01.zip"
+ ],
+ "depart": null,
+ "attendu": "refuse",
+ "motifs": [
+  "version_illisible"
+ ],
+ "fusion": null,
+ "notes": []
+}
