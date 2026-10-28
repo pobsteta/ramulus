@@ -14,7 +14,8 @@
 
 ## Planifié
 
-- **Pascal** : porte n° 2 — valider `pilotage/equipe.md` (9 missions de la tranche 1).
+- **Orchestrateur** : premier cycle (001 et 002 en parallèle, puis 003), à lancer dans une session où le plugin
+  `imperatrice` est chargé (option a du 2026-10-28).
 - **001** `acquereur` · référentiels de la tranche 1 · [fiche](missions/001-referentiels-tranche-1.md)
 - **002** `dev` (opus, tenue) · format d'échange `deperis-v1` · [fiche](missions/002-format-echange-deperis-v1.md)
 - **003** `testeur` · tests d'acceptation de l'échange, après 002 · [fiche](missions/003-tests-acceptation-echange.md)
@@ -32,4 +33,5 @@ _Rien._
 
 ## Fait
 
+- **Porte n° 2** (2026-10-28) : équipe validée telle que proposée (`pilotage/equipe.md`).
 - **Porte n° 1** (2026-10-28) : brief et spec validés, ADR 0001 à 0006 acceptées.
