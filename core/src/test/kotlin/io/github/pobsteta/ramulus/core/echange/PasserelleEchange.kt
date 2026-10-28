@@ -37,8 +37,10 @@ import java.util.zip.ZipFile
  *     ajoute une ligne à `centres` (JSON = les colonnes sauf `fid`, geom = {"x","y"} en EPSG:2154).
  * enregistrerNotation(gpkg: File, notation: String): String
  *     ajoute une ligne à `notations` (tournée de première notation) ou à `contre_notations` (contre-notation),
- *     selon `tournee.nature` : jamais l'une pour l'autre. JSON = les colonnes sauf `fid` et `classe` : la classe
- *     ne se saisit pas, elle est calculée par l'abaque. Rend la ligne telle qu'enregistrée, classe comprise.
+ *     selon `tournee.nature` : jamais l'une pour l'autre. JSON = les colonnes sauf `fid` ; `classe` absente, JSON
+ *     `null`, vide (`""`) ou faite de blancs (`"  "`) : elle est calculée par l'abaque (la classe ne se saisit pas). `classe` remplie, juste ou
+ *     fausse : refus, message citant `classe_saisie` (décision de Pascal, 2026-10-28, T2 bis). Rend la ligne
+ *     telle qu'enregistrée, classe comprise.
  * cloturerPlacette(gpkg: File, plotId: String)
  *     `placettes.etat` = « notee » ; rien d'autre n'est modifié dans `placettes`.
  * rendre(gpkg: File, depart: File, racinePhotos: File, operateur: String, versionRamulus: String, sortie: File): String
@@ -140,6 +142,14 @@ class Cas(val dossier: File) {
     val fichiers: List<File> = attendu.getAsJsonArray("fichiers").map { File(dossier, it.asString) }
     val depart: File? = attendu["depart"].takeUnless { it.isJsonNull }?.let { File(dossier, it.asString).canonicalFile }
     val fusion: JsonObject? = attendu["fusion"].takeUnless { it.isJsonNull }?.asJsonObject
+
+    /**
+     * `enregistrement` (T2 seulement) : un cas de SAISIE, pas de fichier (fixtures/echange/README.md). Les tests qui
+     * rejouent les cas par la lecture ou l'import d'un fichier le SAUTENT (`estSaisie`) ; seul
+     * `EchangeSaisieTest` le rejoue, par `enregistrerNotation`.
+     */
+    val enregistrement: JsonObject? = attendu["enregistrement"]?.takeUnless { it.isJsonNull }?.asJsonObject
+    val estSaisie: Boolean get() = enregistrement != null
     val nom: String get() = "$id : $titre"
 
     fun verdictAttendu() = Verdict(statut, motifs, emptySet())

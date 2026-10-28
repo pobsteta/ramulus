@@ -37,9 +37,12 @@ def tous_les_attendus() -> list[tuple[Path, dict]]:
 
 
 def attendus() -> list[tuple[Path, dict]]:
-    """Les cas de la mission 002 (A, S, R). Les cas X1 à X7b (mission 003) sont refusés pour des raisons que ces tests
-    de structure ne supposent pas (X1 n'est pas un GeoPackage) : `ComplementsTest` les prend en charge."""
-    return [(dossier, a) for dossier, a in tous_les_attendus() if not a["cas"].startswith("X")]
+    """Les cas de fichiers de la mission 002 (A, S, R) et F1 (mission 010). Les cas X1 à X7b (mission 003) sont refusés
+    pour des raisons que ces tests de structure ne supposent pas (X1 n'est pas un GeoPackage) : `ComplementsTest` les
+    prend en charge. Les cas à `enregistrement` (T2, mission 010) jugent une saisie, pas un fichier : `Enregistrement`
+    les prend en charge."""
+    return [(dossier, a) for dossier, a in tous_les_attendus()
+            if not a["cas"].startswith("X") and "enregistrement" not in a]
 
 
 def attendu(cas: str) -> tuple[Path, dict]:
@@ -259,7 +262,7 @@ class Cas(unittest.TestCase):
 
     def test_il_y_a_tous_les_cas_du_plan(self):
         ids = {a["cas"] for _, a in attendus()}
-        attendus_plan = {"A1", "A2", "A3", "A4", "A5", "A6", "S1", "S2", "S3", "R1a", "R1b", "R1c", "R1d", "R2",
+        attendus_plan = {"A1", "A2", "A3", "A4", "A5", "A6", "S1", "S2", "S3", "F1", "R1a", "R1b", "R1c", "R1d", "R2",
                          "R3a", "R3b", "R5a", "R5b", "R6", "R7", "R8a", "R8b", "R9", "R10a", "R10b", "R10c", "R11",
                          "R12"}
         self.assertEqual(attendus_plan, ids)
@@ -286,6 +289,7 @@ class Cas(unittest.TestCase):
                     self.assertEqual(attendue.photos, union.photos)
                     self.assertEqual([(e["objet"], e["cle"]) for e in fusion["ecartes"]],
                                      [(c.objet, c.cle) for c in conflits])
+                    self.assertEqual(fusion.get("placettes_signalees", []), d.placettes_signalees(conflits))
 
     def test_acceptes_et_signales_valides_contre_le_schema(self):
         for dossier, a in attendus():
@@ -314,7 +318,7 @@ class Cas(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             nouveaux = generer.generer(Path(tmp), schema=False)
             for a in nouveaux:
-                dossier = next(dd for dd, aa in attendus() if aa["cas"] == a["cas"])
+                dossier = next(dd for dd, aa in tous_les_attendus() if aa["cas"] == a["cas"])
                 self.assertEqual(json.loads((dossier / "attendu.json").read_text(encoding="utf-8")), a)
                 for f in a["fichiers"] + resultat_local(a):
                     with self.subTest(cas=a["cas"], fichier=f):
@@ -683,6 +687,53 @@ class Fusion(unittest.TestCase):
         self.assertEqual([], f.inst["tables"]["centres"]["lignes"])
         self.assertEqual(self.p1.inst["tables"]["notations"], f.inst["tables"]["notations"])
 
+    def test_conflit_de_centre_dit_la_placette(self):
+        autre = copy.deepcopy(self.p1)
+        autre.inst["tables"]["centres"]["lignes"][0]["precision_m"] = 9.9
+        _, conflits = d.fusionner([self.p1, autre], self.op, self.v)
+        self.assertEqual(["P001"], d.placettes_signalees(conflits))
+        self.assertEqual(["P001"], [c.plot_id for c in conflits])
+
+    def test_conflit_de_centre_signale_la_placette_quel_que_soit_son_etat(self):
+        for etat in ("", "notee", None):
+            with self.subTest(etat=etat):
+                a, b = copy.deepcopy(self.p1), copy.deepcopy(self.p1)
+                for p in (a, b):
+                    for l in p.inst["tables"]["placettes"]["lignes"]:
+                        if l["plot_id"] == "P001":
+                            l["etat"] = etat
+                b.inst["tables"]["centres"]["lignes"][0]["precision_m"] = 9.9
+                _, conflits = d.fusionner([a, b], self.op, self.v)
+                self.assertEqual(["P001"], d.placettes_signalees(conflits))
+
+    def test_conflit_de_note_ne_signale_aucune_placette(self):
+        """Seul un centre écarté signale sa placette (F1) : la décision ne dit rien d'une note écartée."""
+        autre = copy.deepcopy(self.p1)
+        self.note_p001(autre.inst, 2)["classe"] = "E"
+        _, conflits = d.fusionner([self.p1, autre], self.op, self.v)
+        self.assertTrue(conflits)
+        self.assertEqual([], d.placettes_signalees(conflits))
+
+    def test_f1_placette_notee_gardee_avec_ses_notes_sans_centre_et_signalee(self):
+        """F1 (Pascal, 2026-10-28) : le centre en conflit est écarté en entier, la placette « notee » et ses quatre
+        notes restent, la placette est signalée, quel que soit l'ordre des paquets."""
+        dossier, a = attendu("F1")
+        paquets = [d.lire_paquet(dossier / f) for f in a["fichiers"]]
+        depart = paquet("A1")
+        for p in paquets:
+            self.assertEqual("accepte", d.controler(p, depart, SCHEMA).statut)
+        for ordre in (paquets, paquets[::-1], paquets + paquets):
+            r, union, conflits = d.controler_fusion(ordre, self.op, self.v, depart, SCHEMA)
+            self.assertEqual(("signale", ["uuid_contenu_different"]), (r.statut, r.motifs), "\n".join(r.messages))
+            self.assertEqual(["P001"], d.placettes_signalees(conflits))
+            self.assertEqual([(e["objet"], e["cle"]) for e in a["fusion"]["ecartes"]],
+                             [(c.objet, c.cle) for c in conflits])
+            etats = {l["plot_id"]: l["etat"] for l in union.inst["tables"]["placettes"]["lignes"]}
+            self.assertEqual("notee", etats["P001"])
+            self.assertEqual(4, sum(1 for l in union.inst["tables"]["notations"]["lignes"] if l["plot_id"] == "P001"))
+            self.assertEqual(["P002", "P003"], [l["plot_id"] for l in union.inst["tables"]["centres"]["lignes"]])
+            self.assertTrue(any("placette P001 signalée" in m for m in r.messages), "\n".join(r.messages))
+
     def test_conflit_de_photo_ecarte_la_note_qui_la_cite(self):
         autre = copy.deepcopy(self.p1)
         nom = sorted(autre.photos)[0]
@@ -764,6 +815,62 @@ class Ecriture(unittest.TestCase):
         self.assertIn("Chêne sessile", essences)
         self.assertIn("Mélèze", essences)
         self.assertIn("Cèdre", essences)
+
+
+class Enregistrement(unittest.TestCase):
+    """T2 bis (Pascal, 2026-10-28) : une classe fournie à l'enregistrement est refusée avec `classe_saisie`, juste ou
+    fausse ; le contrôle d'un paquet rendu ne change pas (`classe_differente_abaque`, R2)."""
+
+    def setUp(self):
+        self.dossier, self.a = next((dd, a) for dd, a in tous_les_attendus() if a["cas"] == "T2")
+
+    def test_le_cas_t2_est_un_refus_classe_saisie(self):
+        self.assertEqual(("ramulus", "refuse", ["classe_saisie"]),
+                         (self.a["lecteur"], self.a["attendu"], self.a["motifs"]))
+        self.assertEqual("notations", self.a["enregistrement"]["table"])
+        self.assertEqual(2, len(self.a["enregistrement"]["saisies"]))
+
+    def test_classe_fournie_juste_ou_fausse_est_refusee(self):
+        n = 0
+        for s in self.a["enregistrement"]["saisies"]:
+            with self.subTest(saisie=s["nom"]):
+                r = d.controler_enregistrement(s["ligne"], SCHEMA)
+                self.assertEqual(("refuse", ["classe_saisie"]), (r.statut, r.motifs))
+                n += 1
+        self.assertEqual(2, n)
+
+    def test_une_saisie_est_juste_et_l_autre_fausse_par_l_abaque(self):
+        justes = []
+        for s in self.a["enregistrement"]["saisies"]:
+            l = s["ligne"]
+            justes.append(l["classe"] == generer.lire_abaque()[(l["mb"], l["second"])])
+        self.assertEqual([True, False], justes)
+
+    def test_sans_classe_la_saisie_passe(self):
+        for s in self.a["enregistrement"]["saisies"]:
+            for vide in (None, "absente", "", " ", "  ", "\t\n"):
+                ligne = {k: v for k, v in s["ligne"].items() if k != "classe"}
+                if vide != "absente":
+                    ligne["classe"] = vide
+                r = d.controler_enregistrement(ligne, SCHEMA)
+                self.assertEqual(("accepte", []), (r.statut, r.motifs))
+
+    def test_le_fichier_du_cas_est_la_tournee_de_depart_accepte(self):
+        r = d.controler(d.lire_paquet(self.dossier / self.a["fichiers"][0]), None, SCHEMA)
+        self.assertEqual(("accepte", []), (r.statut, r.motifs))
+
+    def test_un_paquet_rendu_avec_une_classe_fausse_garde_classe_differente_abaque(self):
+        """R2 ne change pas : le contrôle d'un paquet ne produit jamais `classe_saisie`."""
+        _, r2 = attendu("R2")
+        self.assertEqual(["classe_differente_abaque"], r2["motifs"])
+        r = d.controler(paquet("R2"), paquet("A1"), SCHEMA)
+        self.assertNotIn("classe_saisie", r.motifs)
+        self.assertEqual(["classe_differente_abaque"], r.motifs)
+
+    def test_une_classe_juste_dans_un_paquet_rendu_est_acceptee(self):
+        """A3 porte des classes justes : un paquet n'est pas refusé parce que ses notes ont une classe."""
+        r = d.controler(paquet("A3"), paquet("A1"), SCHEMA)
+        self.assertEqual(("accepte", []), (r.statut, r.motifs))
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ la complète sur le terrain. Décisions : [ADR 0003](../adr/0003-echange-avec-ne
 la mission 002 (Q1 à Q13, cités ci-dessous) et décisions de Pascal du 2026-10-28 sur la PR n° 5 (citées « Pascal,
 2026-10-28 »). Ce document ne décide rien qu'une de ces sources n'ait décidé.
 
-**Décisions de Pascal du 2026-10-28 sur la PR n° 5** :
+**Décisions de Pascal du 2026-10-28 sur la PR n° 5** (numérotées 1 à 5) :
 
 1. Les six choix annoncés dans la PR sont validés : les tables et colonnes inconnues sont ignorées dans toutes les
    versions, et gardées telles quelles ; sept motifs ajoutés au plan (`pas_un_geopackage`, `version_illisible`,
@@ -20,6 +20,15 @@ la mission 002 (Q1 à Q13, cités ci-dessous) et décisions de Pascal du 2026-10
 5. **Conflit de fusion traité comme Surculus** (`sursync-v1.md`, l. 63) : les deux versions sont écartées, le conflit
    est signalé (`uuid_contenu_different`), le reste de l'union est gardé (voir « Paquet rendu », cas S3). Cette
    décision remplace la précédente, qui refusait toute l'union.
+
+**Décisions de Pascal du 2026-10-28 sur la mission 010** (amendement du format) :
+
+6. **T2 bis, motif `classe_saisie`.** Une note qui arrive à Ramulus avec une classe déjà remplie, juste ou fausse, est
+   refusée **à l'enregistrement par Ramulus** avec ce motif : la classe ne se saisit pas, elle se calcule par l'abaque.
+   Le contrôle d'un paquet rendu ne change pas : `classe_differente_abaque` (R2). Cas T2.
+7. **F1, centre en conflit.** À la fusion des paquets de deux opérateurs, un centre qui arrive avec deux contenus
+   différents voit ses deux versions écartées (`uuid_contenu_different`). La placette « notee » et ses notes sont
+   **gardées**, et la placette est **signalée** : l'opérateur dit quel centre fait foi, puis rend de nouveau. Cas F1.
 
 - **Schéma** (source unique, copiée dans Nemeton, ADR 0003 § 7) : [`deperis-v1.schema.json`](deperis-v1.schema.json).
 - **Cas communs**, à rejouer en Kotlin et en R : [`fixtures/echange/`](../../fixtures/echange/README.md).
@@ -137,7 +146,7 @@ ne relève pas de nouveau centre (Q12), et un centre modifié est refusé (`plan
 | `mb` | INTEGER | 0 à 5 |
 | `second` | INTEGER | 0 à 5 : MR pour un feuillu, MA pour un résineux |
 | `critere` | TEXT | `MR` si feuillu, `MA` si résineux (fiches DSF 2025, page 1) |
-| `classe` | TEXT | `A` à `F`, **égale à l'abaque** appliqué à `mb` et `second` ([`abaque.csv`](../referentiels/deperis/abaque.csv)) ; calculée, jamais saisie ; Nemeton la recalcule à l'import |
+| `classe` | TEXT | `A` à `F`, **égale à l'abaque** appliqué à `mb` et `second` ([`abaque.csv`](../referentiels/deperis/abaque.csv)) ; calculée, jamais saisie (une note qui arrive à Ramulus avec une classe remplie est refusée, `classe_saisie`) ; Nemeton la recalcule à l'import |
 | `saison` | TEXT | `ETE` ou `HIVER` ; non comparée à celle de la placette (conduite à tenir à trancher par Pascal, spec § 4) |
 | `date_notation` | DATETIME | |
 | `operateur` | TEXT | non vide ; chaque ligne garde le sien après fusion (Q4) |
@@ -180,12 +189,28 @@ corrections concurrentes signalées comme conflit » ; Pascal, 2026-10-28) :
 - **le reste de l'union est gardé**, et contrôlé comme tout paquet : son statut est le sien, plus ce signalement
   (cas S3).
 
+**Centre en conflit (F1, Pascal, 2026-10-28).** Les deux versions du centre sont écartées, comme toute ligne en
+conflit, mais la **placette « notee » et ses notes sont gardées** (`etat` reste `notee`, aucune note n'est touchée) et
+la **placette est signalée** : l'union la rend sans centre, la liste des conflits donne son `plot_id` pour chaque centre
+écarté, et le contrôle de référence ajoute un message par placette signalée. L'opérateur dit alors quel centre fait foi,
+puis rend de nouveau (cas F1). Toute placette dont le centre est écarté est signalée, **quel que soit son `etat`** ;
+une note ou une photo écartée ne signale pas de placette. Dans QField, le centre absent suffit (aucune colonne de
+signalement) : le signalement se lit dans le rapport du contrôle (Ramulus, import Nemeton).
+
 Une photo appartient à la note qui la cite (`photos/<uuid>_<n>.jpg`, Q2) : les photos d'une note écartée sont écartées
 avec elle (sinon l'union porterait des photos citées par aucune note). Deux photos de même nom et de contenu différent
 sont un conflit sur la note qui les cite : les deux versions de la photo, la note et ses autres photos sont écartées,
 avec le même motif. Chaque paquet, seul, reste conforme et garde ses deux versions : c'est à l'opérateur de dire
 quelle note fait foi, et de rendre de nouveau. Deux lignes de même `uuid` et de contenu identique ne sont gardées
 qu'une fois.
+
+## Enregistrement d'une note par Ramulus
+
+Ramulus **calcule** la classe par l'abaque à partir de `mb` et de `second` : elle ne se saisit pas. Une note qui lui
+arrive avec une classe déjà remplie (ni absente, ni vide : une `classe` JSON `null`, `""` ou faite seulement de blancs, `"  "`, compte comme absente et est calculée sans refus), **juste ou fausse**, est refusée à l'enregistrement avec le
+motif `classe_saisie`, et le fichier reste intact (cas T2, deux saisies). Ce motif n'existe qu'à l'enregistrement : le
+contrôle d'un paquet rendu ne le produit jamais, une classe fausse y reste `classe_differente_abaque` (R2) et une
+classe juste y est acceptée. Les autres refus d'une note à l'enregistrement sont ceux du catalogue.
 
 ## Import par Nemeton
 
@@ -255,6 +280,7 @@ Le même catalogue est dans le schéma (`x-motifs`) ; un test vérifie qu'ils di
 | `critere_incoherent` | refusé | MR pour un résineux, MA pour un feuillu (R8b) |
 | `note_hors_bornes` | refusé | note hors de 0 à 5 (R8a) |
 | `classe_differente_abaque` | refusé | classe différente de l'abaque (R2) |
+| `classe_saisie` | refusé | à l'enregistrement par Ramulus seulement : note qui arrive avec une classe déjà remplie, juste ou fausse (T2) |
 | `ia_incomplete` | refusé | colonnes de l'IA ni toutes vides ni toutes remplies |
 | `uuid_duplique` | refusé | même `uuid` deux fois dans une table |
 | `rattachement_invalide` | refusé | `plot_id` absent de `placettes`, ou `rang` > `nb_arbres` |
@@ -265,7 +291,10 @@ Le même catalogue est dans le schéma (`x-motifs`) ; un test vérifie qu'ils di
 | `texte_non_nfc` | refusé | nom de table, de colonne ou valeur texte qui n'est pas en Unicode NFC (R12) |
 | `doublon_arbre` | signalé | deux notations du même arbre hors contre-notation (S1) |
 | `centre_eloigne` | signalé | centre à plus de 30 m du point prévu, seuil provisoire (S2) |
-| `uuid_contenu_different` | signalé | à la fusion, même `uuid` (ou même photo) avec deux contenus différents : les deux versions écartées, le reste de l'union gardé (S3 ; Surculus `sursync-v1.md`, l. 63 ; Pascal, 2026-10-28) |
+| `uuid_contenu_different` | signalé | à la fusion, même `uuid` (ou même photo) avec deux contenus différents : les deux versions écartées, le reste de l'union gardé ; pour un centre, la placette « notee » et ses notes sont gardées et la placette est signalée (S3, F1 ; Surculus `sursync-v1.md`, l. 63 ; Pascal, 2026-10-28) |
+
+`classe_saisie` est lui aussi un motif que le schéma ne porte pas dans un sous-schéma : il se juge sur la saisie, avant
+l'écriture (`deperis_v1.controler_enregistrement`), pas sur un fichier.
 
 `texte_non_nfc` et `uuid_contenu_different` ne sont pas dans le schéma lui-même : JSON Schema ne sait dire ni la forme
 NFC d'un texte, ni ce qui se passe entre deux fichiers. Le lecteur les contrôle (`deperis_v1.textes_non_nfc`,
