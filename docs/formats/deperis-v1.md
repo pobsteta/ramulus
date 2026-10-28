@@ -3,8 +3,20 @@
 Le fichier d'échange entre **Nemeton**, qui prépare la tournée DEPERIS et importe ce qui revient, et **Ramulus**, qui
 la complète sur le terrain. Décisions : [ADR 0003](../adr/0003-echange-avec-nemeton.md) (contrat) et
 [ADR 0004](../adr/0004-position-approchee.md) (position approchée) ; arbitrages de Pascal du 2026-10-28 sur le plan de
-la mission 002 (Q1 à Q13, cités ci-dessous). Ce document ne décide rien qu'une de ces sources n'ait décidé ; ce qui
-est proposé par l'agent est écrit « proposé ».
+la mission 002 (Q1 à Q13, cités ci-dessous) et décisions de Pascal du 2026-10-28 sur la PR n° 5 (citées « Pascal,
+2026-10-28 »). Ce document ne décide rien qu'une de ces sources n'ait décidé.
+
+**Décisions de Pascal du 2026-10-28 sur la PR n° 5** :
+
+1. Les six choix annoncés dans la PR sont validés : les tables et colonnes inconnues sont ignorées dans toutes les
+   versions, et gardées telles quelles ; sept motifs ajoutés au plan (`pas_un_geopackage`, `version_illisible`,
+   `structure`, `type_incoherent`, `ia_incomplete`, `uuid_duplique`, `rattachement_invalide`) ; les cas R1d, R10c et
+   R11 ; le conflit de fusion, jamais tranché en silence ; le site synthétique en Côte-d'Or et le délai de
+   contre-notation de 15 jours dans les exemples, **provisoire** ; `user_version` de 10200 à 10499.
+2. Dans un fichier N+1, une valeur nouvelle d'une colonne connue est **refusée** (voir « Version »).
+3. Le « même arbre » du signalement `doublon_arbre` : même `plot_id` et même `rang`, **ou** même `plot_id` et même
+   `repere`.
+4. **Tous les textes en Unicode NFC**, vérifiés par le contrôle de référence (`texte_non_nfc`, cas R12).
 
 - **Schéma** (source unique, copiée dans Nemeton, ADR 0003 § 7) : [`deperis-v1.schema.json`](deperis-v1.schema.json).
 - **Cas communs**, à rejouer en Kotlin et en R : [`fixtures/echange/`](../../fixtures/echange/README.md).
@@ -27,7 +39,7 @@ Somalie.
 
 | Règle | Source |
 |---|---|
-| OGC GeoPackage : `application_id` = `0x47504B47` (« GPKG »), `user_version` de 10200 à 10499 (1.2 à 1.4) ; Ramulus ne change jamais ceux qu'a écrits Nemeton. Les exemples portent 10400, comme le GeoPackage d'exemple de Groma écrit par GDAL | OGC 12-128 Req. 2 ; Groma `exemples/inventaire_video/` |
+| OGC GeoPackage : `application_id` = `0x47504B47` (« GPKG »), `user_version` de 10200 à 10499 (1.2 à 1.4) ; Ramulus ne change jamais ceux qu'a écrits Nemeton. Les exemples portent 10400, comme le GeoPackage d'exemple de Groma écrit par GDAL | OGC 12-128 Req. 2 ; Groma `exemples/inventaire_video/` ; Pascal, 2026-10-28 |
 | Nemeton écrit avec GDAL : `GEOMETRY_NAME=geom`, `FID=fid` (INTEGER PRIMARY KEY) pour toutes les tables | Groma § 2.2 ; ADR 0003 § 1 |
 | **`SPATIAL_INDEX=NO` sur `placettes` et `centres`** : ni table `rtree_*`, ni déclencheur R*Tree, ni ligne `gpkg_rtree_index` dans `gpkg_extensions`. Les déclencheurs de GDAL appellent `ST_IsEmpty`, `ST_MinX`… sur tout `UPDATE`, et un SQLite qui ne les déclare pas échoue (« no such function: ST_IsEmpty ») | Groma § 2.2 ; ADR 0003 § 1 ; cas R5 |
 | Ramulus écrit avec sqlite-jdbc, jamais avec le SQLite d'Android | Surculus ADR 0011 ; ADR 0003 § 1 |
@@ -35,9 +47,9 @@ Somalie.
 | Aucune colonne nommée `date` (mot réservé), quelle que soit la casse : `date_releve`, `date_notation`… | Groma § 2.1 ; cas R9 |
 | Horodatages : type déclaré `DATETIME`, texte ISO 8601 en UTC suffixé `Z`, millisecondes facultatives : `2027-07-06T09:12:00.000Z` (forme de GDAL) | OGC 12-128 ; Surculus (instants UTC) |
 | Booléens : type déclaré `BOOLEAN`, valeurs 0 ou 1 | OGC 12-128 ; pilote GPKG de GDAL |
-| Textes en UTF-8, forme Unicode NFC ; essences au caractère près, accents compris (« Mélèze ») | Q11 |
+| **Tous les textes** en UTF-8, forme Unicode NFC : noms de tables et de colonnes, et valeurs (y compris le texte JSON de `photos`). Un texte en forme décomposée (NFD, « e » suivi de l'accent, comme l'écrivent certains outils) est refusé (`texte_non_nfc`, cas R12). Les essences se comparent au caractère près, accents compris (« Mélèze ») | Pascal, 2026-10-28 (NFC) ; Q11 (essence par son nom exact) |
 | **Nemeton crée toutes les tables**, vides côté Ramulus ; Ramulus insère et met à jour, il ne crée ni ne supprime aucune table ni colonne | Q13 |
-| Une table ou une colonne que le lecteur ne connaît pas est **ignorée, et gardée telle quelle** quand Ramulus réécrit le fichier | ADR 0003 § 2 ; Q1 |
+| Une table ou une colonne que le lecteur ne connaît pas est **ignorée, et gardée telle quelle** quand Ramulus réécrit le fichier, dans toutes les versions | ADR 0003 § 2 ; Q1 ; Pascal, 2026-10-28 |
 | Les tables propres à GDAL ou à QGIS (`gpkg_ogr_contents`, `layer_styles`…) sont permises et ignorées | pilote GPKG de GDAL |
 
 ## Version
@@ -45,7 +57,10 @@ Somalie.
 **Une seule**, au niveau du fichier : `tournee.version_schema`, un entier, **1** pour ce format ; il n'existe pas de
 version 0 (comme `.sursync`, Surculus `docs/formats/sursync-v1.md`). Un lecteur de version N lit un fichier N+1 **en
 ignorant les tables et les colonnes nouvelles** (ADR 0003 § 2, Surculus ADR 0007, « Version » ; Pascal, Q1). Les
-colonnes connues gardent leurs règles : une valeur nouvelle d'un champ connu (une saison « PRINTEMPS ») est refusée.
+colonnes connues gardent leurs règles : **une valeur nouvelle d'une colonne connue est refusée** (une saison
+« PRINTEMPS », une `source` « gnss_externe »), même dans un fichier N+1 (Pascal, 2026-10-28). Conséquence : **étendre
+une liste de valeurs demande une version majeure** du format, que Ramulus et Nemeton publient ensemble ; une version
+N+1 ne peut qu'ajouter des tables ou des colonnes.
 Une version absente, non entière, nulle ou négative, ou une table `tournee` qui n'a pas exactement une ligne, est
 illisible (`version_illisible`). C'est l'inverse du `.ramsync` (ADR 0005), qui refuse N+1 : le `.ramsync` est une
 sauvegarde que seul Ramulus relit, `deperis.gpkg` passe d'un logiciel à l'autre.
@@ -132,8 +147,9 @@ ne relève pas de nouveau centre (Q12), et un centre modifié est refusé (`plan
 Les six colonnes de l'IA sont **toutes vides ou toutes remplies** (`ia_incomplete`) ; vides en tranche 1 (spec § 4).
 
 `notations` n'existe que dans une tournée de première notation ; `contre_notations` que dans une tournée de
-contre-notation. Deux notations du même arbre (même `plot_id` et même `rang`, ou même `plot_id` et même `repere`) dans
-`notations` sont **signalées** avant de rendre (`doublon_arbre`, ADR 0003 § 5).
+contre-notation. Deux notations du même arbre (même `plot_id` et même `rang`, ou même `plot_id` et même `repere` : Pascal,
+2026-10-28) dans `notations` sont **signalées** avant de rendre (`doublon_arbre`, ADR 0003 § 5). Le même rang ou le
+même repère sur deux placettes différentes n'est pas un doublon.
 
 ## Tournée de contre-notation
 
@@ -147,10 +163,16 @@ note fait foi dans le bilan.
 
 Un `.zip` nommé d'après `code_tournee` (`EXEMPLE-2027-01.zip`), qui contient `deperis.gpkg` à la racine et le dossier
 `photos/`. Chaque photo citée par une note est présente avec la bonne empreinte SHA-256, et chaque fichier de
-`photos/` est cité (contrôle proposé par l'agent, cas R10 ; forme de `photos` retenue par Pascal, Q2 ; `photo_absente`, `empreinte_photo_differente`,
-`photo_non_citee`). Plusieurs opérateurs : union sur l'`uuid` des centres et des notes avant de rendre ; deux lignes de
-même `uuid` et de contenu différent forment un conflit, signalé et jamais tranché en silence (Surculus ADR 0005, « Ordre
-total ») ; `tournee.operateur` est l'opérateur qui rend.
+`photos/` est cité (cas R10a à R10c, Pascal, 2026-10-28 ; forme de `photos` retenue par Pascal, Q2 ; `photo_absente`,
+`empreinte_photo_differente`, `photo_non_citee`).
+
+Plusieurs opérateurs : union sur l'`uuid` des centres et des notes avant de rendre ; `tournee.operateur` est
+l'opérateur qui rend (Q4). Deux lignes de même `uuid` et de contenu différent (ou deux photos de même nom et de contenu
+différent) forment un **conflit** : la fusion s'arrête, **aucune des deux versions n'est choisie**, et le résultat est
+refusé (`uuid_contenu_different`, cas R13), comme dans `.sursync` (Surculus `docs/formats/sursync-v1.md`, « même `uuid`
+deux fois, contenu différent » ; Surculus ADR 0005, « Ordre total » ; Pascal, 2026-10-28). Chaque paquet, seul, reste
+conforme : c'est à l'opérateur de dire quelle note fait foi, et de rendre de nouveau. Deux lignes de même `uuid` et de
+contenu identique ne sont gardées qu'une fois.
 
 ## Import par Nemeton
 
@@ -211,7 +233,7 @@ Le même catalogue est dans le schéma (`x-motifs`) ; un test vérifie qu'ils di
 | `version_illisible` | refusé | `version_schema` absente, non entière, ≤ 0 ; `tournee` sans ligne unique |
 | `structure` | refusé | table, colonne, type déclaré ou valeur non conforme, sans motif plus précis |
 | `index_spatial` | refusé | index spatial sur `placettes` ou `centres` (R5) |
-| `repere_hors_2154` | refusé | colonne géométrique hors EPSG:2154 (R11, proposé) |
+| `repere_hors_2154` | refusé | colonne géométrique hors EPSG:2154 (R11) |
 | `hors_france` | refusé | point hors de l'emprise d'EPSG:2154 (R3, R11) |
 | `colonne_date` | refusé | colonne nommée `date` (R9) |
 | `notations_dans_contre_notation` | refusé | première note dans une tournée de contre-notation (R6) |
@@ -227,8 +249,14 @@ Le même catalogue est dans le schéma (`x-motifs`) ; un test vérifie qu'ils di
 | `photo_absente` | refusé | photo citée absente du `.zip` (R10a) |
 | `empreinte_photo_differente` | refusé | SHA-256 différent de celui cité (R10b) |
 | `photo_non_citee` | refusé | fichier de `photos/` cité par aucune note (R10c) |
+| `texte_non_nfc` | refusé | nom de table, de colonne ou valeur texte qui n'est pas en Unicode NFC (R12) |
+| `uuid_contenu_different` | refusé | à la fusion, même `uuid` (ou même photo) avec deux contenus différents (R13) |
 | `doublon_arbre` | signalé | deux notations du même arbre hors contre-notation (S1) |
 | `centre_eloigne` | signalé | centre à plus de 30 m du point prévu, seuil provisoire (S2) |
+
+`texte_non_nfc` et `uuid_contenu_different` ne sont pas dans le schéma lui-même : JSON Schema ne sait dire ni la forme
+NFC d'un texte, ni ce qui se passe entre deux fichiers. Le lecteur les contrôle (`deperis_v1.textes_non_nfc`,
+`deperis_v1.controler_fusion`) ; ils sont au catalogue `x-motifs` comme les autres.
 
 Un paquet est **refusé** s'il porte au moins un motif de refus, **signalé** s'il ne porte que des signalements,
 **accepté** sinon.
@@ -241,8 +269,8 @@ Un paquet est **refusé** s'il porte au moins un motif de refus, **signalé** s'
 | `date` mot réservé ; colonnes de plan `wgt`, `ip`, `stratum`, `strat_*`, jamais modifiées | Groma, même brief, § 2.1 ; `core/src/groma/donnees/inventaire_video.schema.json` (types) |
 | Version unique au niveau du fichier, N lit N+1 ; repère lu dans `gpkg_spatial_ref_sys` ; tables enregistrées dans `gpkg_contents` (`features` ou `attributes`), clé INTEGER | Surculus `docs/adr/0007-*`, « Règles » (Version, Repère, Conformité GeoPackage) |
 | Écriture avec sqlite-jdbc ; comparaison des fichiers par leur contenu, jamais par empreinte | Surculus `docs/adr/0011-*`, « Règles » |
-| UUID v7 ; union sur l'`uuid` ; conflit signalé, jamais résolu en silence | Surculus `docs/adr/0005-*`, « Règles » ; notre ADR 0005 |
-| Version entière à partir de 1 ; motifs en codes lus par les tests ; empreinte SHA-256 en 64 chiffres hexadécimaux minuscules ; nom de fichier par le code de la tournée | Surculus `docs/formats/sursync-v1.md` |
+| UUID v7 ; union sur l'`uuid` ; conflit jamais résolu en silence | Surculus `docs/adr/0005-*`, « Règles » ; notre ADR 0005 |
+| Version entière à partir de 1 ; motifs en codes lus par les tests ; motif `uuid_contenu_different` ; empreinte SHA-256 en 64 chiffres hexadécimaux minuscules ; nom de fichier par le code de la tournée | Surculus `docs/formats/sursync-v1.md` |
 
 ## Limites de la version 1
 

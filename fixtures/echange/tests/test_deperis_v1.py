@@ -7,6 +7,7 @@ Coordonnées : EPSG:2154, X = est, Y = nord, en mètres ; (longitude, latitude) 
 
 from __future__ import annotations
 
+import contextlib
 import copy
 import csv
 import json
@@ -51,10 +52,15 @@ def octets_gpkg(chemin: Path) -> bytes:
     return chemin.read_bytes()
 
 
-def connexion(chemin: Path) -> sqlite3.Connection:
+@contextlib.contextmanager
+def connexion(chemin: Path):
+    """Le GeoPackage du fichier (ou du .zip), ouvert en mémoire, et toujours refermé."""
     cnx = sqlite3.connect(":memory:")
-    cnx.deserialize(octets_gpkg(chemin))
-    return cnx
+    try:
+        cnx.deserialize(octets_gpkg(chemin))
+        yield cnx
+    finally:
+        cnx.close()
 
 
 def motifs(inst: dict, depart: d.Paquet | None = None, photos=None) -> list[str]:
@@ -219,20 +225,30 @@ class Cas(unittest.TestCase):
     def test_il_y_a_tous_les_cas_du_plan(self):
         ids = {a["cas"] for _, a in attendus()}
         attendus_plan = {"A1", "A2", "A3", "A4", "A5", "A6", "S1", "S2", "R1a", "R1b", "R1c", "R1d", "R2", "R3a",
-                         "R3b", "R5a", "R5b", "R6", "R7", "R8a", "R8b", "R9", "R10a", "R10b", "R10c", "R11"}
+                         "R3b", "R5a", "R5b", "R6", "R7", "R8a", "R8b", "R9", "R10a", "R10b", "R10c", "R11", "R12",
+                         "R13"}
         self.assertEqual(attendus_plan, ids)
 
     def test_resultat_et_motifs(self):
+        """Sans fusion : chaque fichier conclut comme attendu. Avec fusion : chaque fichier seul conclut comme
+        `fusion.chaque_fichier`, et leur union comme attendu."""
         for dossier, a in attendus():
             depart = d.lire_paquet(dossier / a["depart"]) if a["depart"] else None
+            fusion = a["fusion"]
+            seul = (fusion["chaque_fichier"], []) if fusion else (a["attendu"], a["motifs"])
             for f in a["fichiers"]:
                 with self.subTest(cas=a["cas"], fichier=f):
                     r = d.controler(d.lire_paquet(dossier / f), depart, SCHEMA)
+                    self.assertEqual(seul, (r.statut, r.motifs), "\n".join(r.messages))
+            if fusion:
+                with self.subTest(cas=a["cas"], fusion=True):
+                    paquets = [d.lire_paquet(dossier / f) for f in a["fichiers"]]
+                    r, _ = d.controler_fusion(paquets, fusion["operateur"], fusion["version_ramulus"], depart, SCHEMA)
                     self.assertEqual((a["attendu"], a["motifs"]), (r.statut, r.motifs), "\n".join(r.messages))
 
     def test_acceptes_et_signales_valides_contre_le_schema(self):
         for dossier, a in attendus():
-            if a["attendu"] == "refuse":
+            if a["attendu"] == "refuse" and not a["fusion"]:
                 continue
             for f in a["fichiers"]:
                 with self.subTest(cas=a["cas"]):
@@ -304,7 +320,7 @@ class GeoPackage(unittest.TestCase):
     def test_en_tete_et_integrite(self):
         for a, chemin in self.fichiers():
             with self.subTest(cas=a["cas"], fichier=chemin.name):
-                cnx = connexion(chemin)
+                cnx = self.enterContext(connexion(chemin))
                 self.assertEqual(d.APPLICATION_ID_GPKG, cnx.execute("PRAGMA application_id").fetchone()[0])
                 self.assertEqual(10400, cnx.execute("PRAGMA user_version").fetchone()[0])
                 self.assertEqual("ok", cnx.execute("PRAGMA integrity_check").fetchone()[0])
@@ -317,7 +333,7 @@ class GeoPackage(unittest.TestCase):
 
     def test_tables_de_notes_sans_geometrie(self):
         for a, chemin in self.fichiers():
-            cnx = connexion(chemin)
+            cnx = self.enterContext(connexion(chemin))
             for t in d.TABLES_NOTES:
                 ligne = cnx.execute("SELECT data_type FROM gpkg_contents WHERE table_name = ?", (t,)).fetchone()
                 if ligne is None:
@@ -328,7 +344,7 @@ class GeoPackage(unittest.TestCase):
 
     def test_repere_2154_lu_dans_gpkg_spatial_ref_sys(self):
         _, a1 = attendu("A1")
-        cnx = connexion(attendu("A1")[0] / "deperis.gpkg")
+        cnx = self.enterContext(connexion(attendu("A1")[0] / "deperis.gpkg"))
         for t in ("placettes", "centres"):
             org, code = cnx.execute(
                 "SELECT s.organization, s.organization_coordsys_id FROM gpkg_geometry_columns g "
@@ -339,7 +355,7 @@ class GeoPackage(unittest.TestCase):
         """SPATIAL_INDEX=NO : un SQLite sans ST_IsEmpty (celui d'Android) peut écrire etat (Groma § 2.2)."""
         for cas in ("A1", "A2", "A6"):
             dossier, a = attendu(cas)
-            cnx = connexion(dossier / a["fichiers"][0])
+            cnx = self.enterContext(connexion(dossier / a["fichiers"][0]))
             maitre = [r[0] for r in cnx.execute("SELECT name FROM sqlite_master")]
             self.assertFalse([n for n in maitre if n.startswith(("rtree_placettes", "rtree_centres"))], cas)
             cnx.execute("UPDATE placettes SET etat = 'notee'")
@@ -349,7 +365,7 @@ class GeoPackage(unittest.TestCase):
         """Ce que les cas R5 refusent : le déclencheur R*Tree appelle ST_IsEmpty, inconnue de ce SQLite."""
         for cas, table in (("R5a", "placettes"), ("R5b", "centres")):
             dossier, a = attendu(cas)
-            cnx = connexion(dossier / a["fichiers"][0])
+            cnx = self.enterContext(connexion(dossier / a["fichiers"][0]))
             with self.assertRaisesRegex(sqlite3.OperationalError, "ST_IsEmpty"):
                 cnx.execute(f"UPDATE {table} SET fid = fid + 1000")
 
@@ -359,7 +375,7 @@ class ContreNotation(unittest.TestCase):
 
     def setUp(self):
         self.dossier, self.a = attendu("A2")
-        self.cnx = connexion(self.dossier / "deperis.gpkg")
+        self.cnx = self.enterContext(connexion(self.dossier / "deperis.gpkg"))
 
     def test_aucune_table_notations(self):
         noms = {r[0] for r in self.cnx.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
@@ -423,8 +439,17 @@ class VersionSuivante(unittest.TestCase):
         self.assertIn("version_illisible", motifs(inst))
 
     def test_valeur_nouvelle_d_un_champ_connu_refusee(self):
+        """Pascal, 2026-10-28 : dans un fichier N+1, une valeur nouvelle d'une colonne connue est refusée ; étendre
+        une liste demande donc une version majeure."""
         inst = copy.deepcopy(paquet("A6").inst)
         inst["tables"]["placettes"]["lignes"][0]["saison"] = "PRINTEMPS"
+        self.assertEqual(["structure"], motifs(inst))
+
+    def test_valeur_nouvelle_dans_une_table_connue_d_un_rendu_n_plus_1(self):
+        inst = copy.deepcopy(paquet("A3").inst)
+        inst["version_schema"] = 2
+        inst["tables"]["tournee"]["lignes"][0]["version_schema"] = 2
+        next(l for l in inst["tables"]["centres"]["lignes"] if l["plot_id"] == "P001")["source"] = "gnss_externe"
         self.assertEqual(["structure"], motifs(inst))
 
 
@@ -485,8 +510,36 @@ class Controles(unittest.TestCase):
         self.assertEqual(["rattachement_invalide"], motifs(self.inst))
 
     def test_doublon_par_le_repere(self):
+        """Même arbre : même plot_id et même rang, ou même plot_id et même repere (Pascal, 2026-10-28)."""
         self.note("P001", 2)["repere"] = self.note("P001", 1)["repere"]
         self.assertEqual(["doublon_arbre"], motifs(self.inst))
+
+    def test_meme_rang_ou_meme_repere_sur_deux_placettes_n_est_pas_un_doublon(self):
+        self.note("P003", 1)["repere"] = self.note("P001", 1)["repere"]  # rang 1 des deux côtés, repère « 1 »
+        self.assertEqual([], motifs(self.inst))
+
+    def test_texte_non_nfc_dans_une_valeur(self):
+        """Tous les textes en Unicode NFC (Pascal, 2026-10-28), vérifiés partout, pas seulement sur l'essence."""
+        self.note()["operateur"] = unicodedata.normalize("NFD", "opérateur-A")
+        self.assertEqual(["texte_non_nfc"], motifs(self.inst))
+
+    def test_essence_non_nfc_porte_les_deux_motifs(self):
+        n = self.note("P002", 2)  # Mélèze
+        n["essence"] = unicodedata.normalize("NFD", n["essence"])
+        self.assertNotEqual("Mélèze", n["essence"])
+        self.assertEqual(["essence_hors_referentiel", "texte_non_nfc"], motifs(self.inst))
+
+    def test_nom_de_colonne_et_texte_json_non_nfc(self):
+        self.inst["tables"]["autre"] = generer.table(
+            "attributes", {"fid": "INTEGER", unicodedata.normalize("NFD", "remarqué"): "TEXT"}, [], False)
+        self.assertEqual(["texte_non_nfc"], motifs(self.inst))
+        self.inst = copy.deepcopy(self.a3.inst)
+        self.note()["photos"][0]["nom"] = unicodedata.normalize("NFD", "photos/é.jpg")
+        self.assertIn("texte_non_nfc", motifs(self.inst))
+
+    def test_textes_accentues_en_nfc_acceptes(self):
+        self.note()["repere"] = "12é"
+        self.assertEqual([], motifs(self.inst))
 
     def test_seuil_du_centre_strict(self):
         p = next(l for l in self.inst["tables"]["placettes"]["lignes"] if l["plot_id"] == "P001")["geom"]
@@ -559,6 +612,28 @@ class Fusion(unittest.TestCase):
         autre.inst["tables"]["notations"]["lignes"][0]["classe"] = "E"
         with self.assertRaises(d.ConflitUuid):
             d.fusionner([self.p1, autre], self.op, self.v)
+        r, fusion = d.controler_fusion([self.p1, autre], self.op, self.v, paquet("A1"), SCHEMA)
+        self.assertEqual(("refuse", ["uuid_contenu_different"], None), (r.statut, r.motifs, fusion))
+        self.assertIn("classe", r.messages[0])
+
+    def test_conflit_de_photo(self):
+        autre = copy.deepcopy(self.p1)
+        nom = sorted(autre.photos)[0]
+        autre.photos[nom] = autre.photos[nom] + b"\x00"
+        r, _ = d.controler_fusion([self.p1, autre], self.op, self.v, paquet("A1"), SCHEMA)
+        self.assertEqual(("refuse", ["uuid_contenu_different"]), (r.statut, r.motifs))
+
+    def test_conflit_dans_le_cas_commun_r13_quel_que_soit_l_ordre(self):
+        dossier, a = attendu("R13")
+        p1, p2 = (d.lire_paquet(dossier / f) for f in a["fichiers"])
+        for ordre in ([p1, p2], [p2, p1]):
+            r, fusion = d.controler_fusion(ordre, self.op, self.v, paquet("A1"), SCHEMA)
+            self.assertEqual(("refuse", ["uuid_contenu_different"], None), (r.statut, r.motifs, fusion))
+
+    def test_fusion_sans_conflit_rend_le_paquet_controle(self):
+        r, fusion = d.controler_fusion([self.p1, self.p2], self.op, self.v, paquet("A1"), SCHEMA)
+        self.assertEqual(("accepte", []), (r.statut, r.motifs))
+        self.assertEqual(self.a3.inst, fusion.inst)
 
 
 class Ecriture(unittest.TestCase):
@@ -573,7 +648,7 @@ class Ecriture(unittest.TestCase):
 
     def test_photos_ecrites_en_texte_json(self):
         dossier, a = attendu("A3")
-        cnx = connexion(dossier / a["fichiers"][0])
+        cnx = self.enterContext(connexion(dossier / a["fichiers"][0]))
         textes = [r[0] for r in cnx.execute("SELECT photos FROM notations ORDER BY fid")]
         self.assertTrue(all(isinstance(t, str) for t in textes))
         self.assertIn("[]", textes)
@@ -582,7 +657,7 @@ class Ecriture(unittest.TestCase):
 
     def test_accents_intacts(self):
         dossier, a = attendu("A3")
-        cnx = connexion(dossier / a["fichiers"][0])
+        cnx = self.enterContext(connexion(dossier / a["fichiers"][0]))
         essences = {r[0] for r in cnx.execute("SELECT essence FROM notations")}
         self.assertIn("Chêne sessile", essences)
         self.assertIn("Mélèze", essences)

@@ -12,7 +12,7 @@
       "x-motif": "pas_un_geopackage"
     },
     "user_version": {
-      "description": "PRAGMA user_version : GeoPackage 1.2 à 1.4 (10200 à 10400). Ramulus ne le change jamais.",
+      "description": "PRAGMA user_version : GeoPackage 1.2 à 1.4 (10200 à 10499). Ramulus ne le change jamais (Pascal, 2026-10-28).",
       "type": "integer",
       "minimum": 10200,
       "maximum": 10499,
@@ -149,9 +149,17 @@
       "description": "Photo dont le SHA-256 n'est pas celui que cite la notation."
     },
     "photo_non_citee": {"statut": "refuse", "description": "Fichier du dossier photos/ cité par aucune notation."},
+    "texte_non_nfc": {
+      "statut": "refuse",
+      "description": "Texte (nom de table, nom de colonne ou valeur) qui n'est pas en Unicode NFC : « Mélèze » écrit en lettres et accents séparés ne se compare plus au référentiel (Pascal, 2026-10-28)."
+    },
+    "uuid_contenu_different": {
+      "statut": "refuse",
+      "description": "À la fusion de paquets rendus, même uuid (ou même photo) avec deux contenus différents : les deux versions sont refusées, aucune n'est choisie (Surculus, docs/formats/sursync-v1.md ; ADR 0005 de Surculus, « Ordre total » ; Pascal, 2026-10-28)."
+    },
     "doublon_arbre": {
       "statut": "signale",
-      "description": "Deux notations du même arbre (même plot_id et même rang, ou même repere) hors contre-notation (ADR 0003 § 5)."
+      "description": "Deux notations du même arbre (même plot_id et même rang, ou même plot_id et même repere) hors contre-notation (ADR 0003 § 5 ; définition du même arbre : Pascal, 2026-10-28)."
     },
     "centre_eloigne": {
       "statut": "signale",

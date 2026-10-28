@@ -14,8 +14,12 @@ Chaque dossier contient :
   sans SQLite) ;
 - `attendu.json` : `lecteur` (`ramulus` à l'ouverture d'une tournée, `nemeton` à l'import d'un rendu), `depart` (la
   tournée de départ à laquelle comparer un rendu), `attendu` (`accepte`, `signale` ou `refuse`), `motifs` (codes du
-  catalogue), `source`, et `notes` : chaque note du fichier, avec la photo des fiches DSF 2025 dont elle reprend les
-  notes (`photo_dsf`, `null` si le cas les a modifiées).
+  catalogue), `source`, `fusion`, et `notes` : chaque note du fichier, avec la photo des fiches DSF 2025 dont elle
+  reprend les notes (`photo_dsf`, `null` si le cas les a modifiées).
+- `fusion` est `null`, sauf pour les cas de plusieurs paquets (A5, R13). Alors chaque fichier, contrôlé seul, conclut
+  comme `fusion.chaque_fichier` ; `attendu` et `motifs` sont ceux de leur **union** sur l'`uuid`, faite au nom de
+  `fusion.operateur` et `fusion.version_ramulus` ; `fusion.resultat` est le paquet que cette union doit redonner, ou
+  `null` si elle s'arrête sur un conflit.
 
 ## Données
 
@@ -23,15 +27,17 @@ Chaque dossier contient :
 - Trois placettes **synthétiques** en Côte-d'Or, à environ 300 m les unes des autres (P001 à 5,0650° E,
   47,1150° N ; P002 à 5,0690° E, 47,1150° N ; P003 à 5,0650° E, 47,1180° N ; longitude puis latitude, en degrés),
   converties en EPSG:2154 (X = est, Y = nord, en mètres). Aucune forêt n'est nommée ; **les notes ne disent rien de
-  l'état réel du lieu** (ADR 0006). Le site est un choix de l'agent : à remplacer si Pascal en propose un.
+  l'état réel du lieu** (ADR 0006). Site validé par Pascal le 2026-10-28.
 - Notes reprises telles quelles de photos des fiches DSF 2025 (`fixtures/fiches-dsf-2025.json`), hors des quatre
-  incohérences connues : Chêne sessile, Hêtre, Charme (arbre mort, 5/5, F) sur P001 ; Sapin, Mélèze, Cèdre (A,
-  repère « 12b ») sur P002 ; Hêtre et Mélèze sur P003.
+  incohérences connues : quatre notes sur P001 (Chêne sessile, Hêtre, Charme mort à 5/5 en classe F, Chêne sessile
+  en classe B) ; trois sur P002 (Sapin, Mélèze, Cèdre en classe A, repère « 12b ») ; deux sur P003 (Hêtre, Mélèze) :
+  neuf notes en tout dans A3.
 - P001 est marquée « collecte » (deux photos par arbre), P002 « contre-notation ». Les photos sont de petites images
   JPEG de 8 × 8 pixels.
 - Opérateurs `operateur-A`, `operateur-B` (première notation) et `operateur-C` (contre-notation) : identifiants
   d'exemple, sans nom d'agent.
-- `delai_contre_notation_jours` = 15 : **valeur provisoire**, non fixée par Pascal.
+- `delai_contre_notation_jours` = 15 : **valeur provisoire** dans les exemples (Pascal, 2026-10-28) ; le délai réel
+  reste à fixer avant la publication du format.
 
 ## Les cas
 
@@ -63,9 +69,12 @@ Chaque dossier contient :
 | R10b | `R10b-empreinte-photo-differente` | nemeton | refusé | `empreinte_photo_differente` |
 | R10c | `R10c-photo-non-citee` | nemeton | refusé | `photo_non_citee` |
 | R11 | `R11-repere-autre-que-2154` | ramulus | refusé | `hors_france`, `repere_hors_2154` |
+| R12 | `R12-texte-non-nfc` | ramulus | refusé | `texte_non_nfc` |
+| R13 | `R13-fusion-conflit-uuid` | nemeton | chaque paquet accepté seul ; leur union refusée | `uuid_contenu_different` |
 
 Le titre et la source de chaque cas sont dans son `attendu.json`. R4 (version N+1 refusée) a été retiré : Pascal suit
-l'ADR 0003, une version N+1 est lue (Q1, cas A6). R10 et R11 sont proposés par l'agent.
+l'ADR 0003, une version N+1 est lue (Q1, cas A6). R1d, R10c et R11, proposés par l'agent, sont validés par Pascal
+(2026-10-28), comme R12 et R13, ajoutés après ses décisions du même jour (textes en NFC ; conflit de fusion).
 
 ## Régénérer et vérifier
 

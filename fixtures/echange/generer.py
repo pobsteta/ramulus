@@ -23,6 +23,7 @@ import csv
 import json
 import shutil
 import sys
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -485,6 +486,22 @@ def cas() -> list[dict]:
         nom = f"photos/{_note(inst, 'P003', 1)['uuid']}_1.jpg"
         photos[nom] = jpeg(nom)
 
+    def r12(inst, _):
+        # Écrit par un outil qui décompose les accents (forme NFD) : « à » devient « a » suivi de l'accent grave.
+        ligne = inst["tables"]["placettes"]["lignes"][0]
+        ligne["regle_choix"] = unicodedata.normalize("NFD", ligne["regle_choix"])
+
+    def r13(inst, photos):
+        # Le même arbre (même uuid) arrive aussi dans le paquet de l'opérateur B, corrigé : MR 2 au lieu de 3
+        # (notes de la photo dsf2025-06_05, même classe D). Chaque paquet seul est conforme ; leur union ne l'est pas.
+        copie = copy.deepcopy(_note(a3.inst, "P001", 1))
+        p = DSF["dsf2025-06_05"]
+        copie.update(mb=p["mb"], second=p["second"], classe=p["classe"])
+        for ph in copie["photos"]:
+            photos[ph["nom"]] = a3.photos[ph["nom"]]
+        lignes = inst["tables"]["notations"]["lignes"] + [copie]
+        inst["tables"]["notations"]["lignes"] = numeroter(lignes, COLONNES_NOTES)
+
     def r11(inst, _):
         t = inst["tables"]["placettes"]
         t["geometrie"]["srs"] = {"organisation": "EPSG", "code": 4326}
@@ -512,7 +529,7 @@ def cas() -> list[dict]:
              titre="Deux paquets partiels (P001 ; P002 et P003) : leur union sur l'uuid redonne A3, "
                    "quel que soit l'ordre, et se rejoue sans doublon",
              fusion={"operateur": "operateur-A", "version_ramulus": VERSION_RAMULUS,
-                     "resultat": f"../A3-rendu/{zip_a3}"}),
+                     "resultat": f"../A3-rendu/{zip_a3}", "chaque_fichier": "accepte"}),
         dict(cas="A6", dossier="A6-version-suivante", fichiers={"deperis.gpkg": v(a1, a6)}, lecteur="ramulus",
              attendu="accepte", motifs=[], source="ADR 0003 § 2 ; Q1",
              titre="Version 2 avec une colonne et une table inconnues : lue en les ignorant"),
@@ -533,7 +550,7 @@ def cas() -> list[dict]:
              titre="Colonne de plan supprimée : wgt"),
         dict(cas="R1d", dossier="R1d-centre-contre-notation-modifie", fichiers={zip_a4: v(a4, r1d)},
              lecteur="nemeton", depart=depart_a2, attendu="refuse", motifs=["plan_modifie"],
-             source="ADR 0003 § 6 ; Q12",
+             source="ADR 0003 § 6 ; Q12 ; Pascal, 2026-10-28",
              titre="Contre-notation dont le centre, fourni en lecture, revient déplacé de 2 m"),
         dict(cas="R2", dossier="R2-classe-differente-abaque", fichiers={zip_a3: v(a3, r2)}, lecteur="nemeton",
              depart=depart_a1, attendu="refuse", motifs=["classe_differente_abaque"], source="ADR 0003 § 6",
@@ -568,18 +585,31 @@ def cas() -> list[dict]:
              attendu="refuse", motifs=["colonne_date"], source="Groma, brief vers Nemeton, § 2.1",
              titre="Colonne nommée date dans centres"),
         dict(cas="R10a", dossier="R10a-photo-absente", fichiers={zip_a3: v(a3, r10a)}, lecteur="nemeton",
-             depart=depart_a1, attendu="refuse", motifs=["photo_absente"], source="ADR 0003 § 5 (proposé)",
+             depart=depart_a1, attendu="refuse", motifs=["photo_absente"], source="ADR 0003 § 5 ; Pascal, 2026-10-28",
              titre="Photo citée, absente du .zip"),
         dict(cas="R10b", dossier="R10b-empreinte-photo-differente", fichiers={zip_a3: v(a3, r10b)},
              lecteur="nemeton", depart=depart_a1, attendu="refuse", motifs=["empreinte_photo_differente"],
-             source="ADR 0003 § 5 (proposé)", titre="Photo dont l'empreinte SHA-256 n'est pas celle citée"),
+             source="ADR 0003 § 5 ; Pascal, 2026-10-28",
+             titre="Photo dont l'empreinte SHA-256 n'est pas celle citée"),
         dict(cas="R10c", dossier="R10c-photo-non-citee", fichiers={zip_a3: v(a3, r10c)}, lecteur="nemeton",
-             depart=depart_a1, attendu="refuse", motifs=["photo_non_citee"], source="ADR 0003 § 5 (proposé)",
+             depart=depart_a1, attendu="refuse", motifs=["photo_non_citee"],
+             source="ADR 0003 § 5 ; Pascal, 2026-10-28",
              titre="Photo du .zip citée par aucune notation"),
         dict(cas="R11", dossier="R11-repere-autre-que-2154", fichiers={"deperis.gpkg": v(a1, r11)},
              lecteur="ramulus", attendu="refuse", motifs=["hors_france", "repere_hors_2154"],
-             source="ADR 0003 § 1 (repère lu, jamais supposé ; proposé)",
+             source="ADR 0003 § 1 (repère lu, jamais supposé) ; Pascal, 2026-10-28",
              titre="Placettes écrites en WGS 84 (EPSG:4326, degrés) au lieu d'EPSG:2154"),
+        dict(cas="R12", dossier="R12-texte-non-nfc", fichiers={"deperis.gpkg": v(a1, r12)}, lecteur="ramulus",
+             attendu="refuse", motifs=["texte_non_nfc"], source="Pascal, 2026-10-28 (tous les textes en NFC)",
+             titre="Règle de choix de P001 écrite en Unicode NFD (« à » décomposé) au lieu de NFC"),
+        dict(cas="R13", dossier="R13-fusion-conflit-uuid",
+             fichiers={f"{CODE}-1.zip": op1, f"{CODE}-2.zip": v(op2, r13)}, lecteur="nemeton", depart=depart_a1,
+             attendu="refuse", motifs=["uuid_contenu_different"],
+             source="ADR 0003 § 5 ; Surculus, docs/formats/sursync-v1.md ; Pascal, 2026-10-28",
+             titre="Deux paquets, chacun conforme, qui portent la note de P001 rang 1 (même uuid) avec deux "
+                   "contenus (MR 3, puis 2) : la fusion s'arrête, aucune version n'est choisie",
+             fusion={"operateur": "operateur-A", "version_ramulus": VERSION_RAMULUS, "resultat": None,
+                     "chaque_fichier": "accepte"}),
     ]
 
 

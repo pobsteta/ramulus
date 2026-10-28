@@ -20,6 +20,7 @@ import math
 import re
 import sqlite3
 import struct
+import unicodedata
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -564,6 +565,10 @@ def controler(paquet: Paquet, depart: Paquet | None = None, schema: dict | None 
                 ajouter("centre_eloigne", f"centres : {c['plot_id']} à {d:.1f} m du point prévu "
                                           f"(seuil provisoire {SEUIL_CENTRE_ELOIGNE_M:.0f} m)")
 
+    # Tous les textes en Unicode NFC (Pascal, 2026-10-28) : noms de tables et de colonnes, valeurs.
+    for message in textes_non_nfc(inst):
+        ajouter("texte_non_nfc", message)
+
     if paquet.photos is not None:
         _controler_photos(inst, paquet.photos, ajouter)
     if depart is not None:
@@ -579,6 +584,42 @@ def controler(paquet: Paquet, depart: Paquet | None = None, schema: dict | None 
     else:
         statut = "accepte"
     return Resultat(statut, sorted(motifs), messages)
+
+
+def _non_nfc(texte: str) -> bool:
+    return unicodedata.normalize("NFC", texte) != texte
+
+
+def textes_non_nfc(inst: dict) -> list[str]:
+    """Chaque texte de l'instantané qui n'est pas en forme NFC : nom de table, nom de colonne, valeur (y compris dans
+    le texte JSON de `photos`). Rend un message par texte fautif, avec la table, la ligne et la colonne."""
+    sortie = []
+
+    def parcourir(v, ou: str) -> None:
+        if isinstance(v, str):
+            if _non_nfc(v):
+                sortie.append(f"{ou} : {v!r} n'est pas en Unicode NFC")
+        elif isinstance(v, list):
+            for i, x in enumerate(v):
+                parcourir(x, f"{ou}[{i}]")
+        elif isinstance(v, dict):
+            for k, x in v.items():
+                parcourir(x, f"{ou}.{k}")
+
+    for nom, t in inst.get("tables", {}).items():
+        if _non_nfc(nom):
+            sortie.append(f"nom de table {nom!r} n'est pas en Unicode NFC")
+        if not isinstance(t, dict):
+            continue
+        for col in t.get("colonnes", {}):
+            if _non_nfc(col):
+                sortie.append(f"{nom} : nom de colonne {col!r} n'est pas en Unicode NFC")
+        geo = (t.get("geometrie") or {}).get("colonne")
+        for i, ligne in enumerate(t.get("lignes", [])):
+            for col, v in ligne.items():
+                if col != geo:
+                    parcourir(v, f"{nom}, ligne {i + 1}, {col}")
+    return sortie
 
 
 def _controler_photos(inst: dict, photos: dict[str, bytes], ajouter) -> None:
@@ -645,7 +686,10 @@ def _controler_plan(inst: dict, depart: dict, ajouter) -> None:
 # --------------------------------------------------------------------------------------------------------------
 
 class ConflitUuid(ValueError):
-    """Le même uuid porte deux contenus différents : rien n'est choisi en silence."""
+    """Le même uuid porte deux contenus différents : rien n'est choisi en silence (motif `uuid_contenu_different`,
+    comme Surculus `docs/formats/sursync-v1.md` ; Pascal, 2026-10-28)."""
+
+    motif = "uuid_contenu_different"
 
 
 def fusionner(paquets: list[Paquet], operateur: str, version_ramulus: str) -> Paquet:
@@ -664,7 +708,9 @@ def fusionner(paquets: list[Paquet], operateur: str, version_ramulus: str) -> Pa
                 contenu = {k: v for k, v in ligne.items() if k != "fid"}
                 deja = par_uuid.get(contenu["uuid"])
                 if deja is not None and deja != contenu:
-                    raise ConflitUuid(f"{table} : uuid {contenu['uuid']} porte deux contenus différents")
+                    ecarts = sorted(k for k in set(deja) | set(contenu) if deja.get(k) != contenu.get(k))
+                    raise ConflitUuid(f"{table} : uuid {contenu['uuid']} porte deux contenus différents "
+                                      f"(colonnes {ecarts})")
                 par_uuid[contenu["uuid"]] = contenu
         lignes = []
         for fid, u in enumerate(sorted(par_uuid), start=1):
@@ -685,6 +731,20 @@ def fusionner(paquets: list[Paquet], operateur: str, version_ramulus: str) -> Pa
     base.pop("photos_du_paquet", None)
     base["photos_du_paquet"] = [{"nom": n, "sha256": sha256(o)} for n, o in sorted(photos.items())]
     return Paquet(base, photos)
+
+
+def controler_fusion(paquets: list[Paquet], operateur: str, version_ramulus: str, depart: Paquet | None = None,
+                     schema: dict | None = None) -> tuple[Resultat, Paquet | None]:
+    """Fusionne des paquets rendus puis contrôle le résultat, comme Nemeton à l'import de plusieurs paquets.
+
+    Un conflit (même uuid, ou même photo, avec deux contenus) arrête la fusion : le résultat est refusé avec le motif
+    `uuid_contenu_different`, aucune des deux versions n'est gardée, et aucun paquet fusionné n'est rendu.
+    """
+    try:
+        fusion = fusionner(paquets, operateur, version_ramulus)
+    except ConflitUuid as e:
+        return Resultat("refuse", [ConflitUuid.motif], [f"{ConflitUuid.motif} : {e}"]), None
+    return controler(fusion, depart, schema), fusion
 
 
 # --------------------------------------------------------------------------------------------------------------
