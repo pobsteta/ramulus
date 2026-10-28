@@ -1,8 +1,14 @@
-# ADR 0001 — L'IA propose, l'opérateur décide
+# ADR 0001 — L'IA propose, l'opérateur décide ; la proposition s'affiche après la note
 
-- **Statut :** proposée (2026-10-28), critiquée par le `contradicteur` le même jour, amendée d'après les arbitrages de
-  Pascal ; à trancher
-- **Décideur :** Pascal
+- **Date :** 2026-10-28
+- **Statut :** proposée, amendée après critique du `contradicteur` et arbitrages de Pascal (2026-10-28)
+- **Proposée par :** Claude (orchestrateur)
+- **Tranchée par :** Pascal
+
+## La décision en une phrase
+
+La note enregistrée est toujours celle d'un opérateur ; quand l'IA viendra, sa proposition s'affichera après la
+première note de l'opérateur, et les deux seront gardées.
 
 ## Contexte
 
@@ -15,7 +21,7 @@ contre-notation à l'aveugle de 5 % des placettes (brief).
 
 La tranche 1 se fait **sans IA** (Pascal, 2026-10-28) : cette ADR fixe la règle pour le moment où l'IA arrivera.
 
-## Décision proposée
+## Décision détaillée
 
 1. **La note enregistrée est toujours celle d'un opérateur.** L'IA ne remplit jamais seule MB ni MR/MA.
 2. **La proposition de l'IA est gardée à côté de la note** (`PropositionIa` : notes, confiance, modèle), avec
@@ -34,6 +40,17 @@ La tranche 1 se fait **sans IA** (Pascal, 2026-10-28) : cette ADR fixe la règle
 - Où tourne l'IA : embarquée, entraînée après la collecte de la tranche 1 (Pascal, 2026-10-28) ; l'ADR 0002 l'écrira
   au crible FRANCE.
 
+## Le crible FRANCE
+
+| Lettre | Réponse | Ce que ça coûte | Prêts à payer ? |
+|---|---|---|---|
+| **F** | Une règle simple : l'opérateur note, l'IA vient après | un second regard par arbre | oui |
+| **R** | L'opérateur porte la note et en a les moyens (il note avant de voir l'IA) | — | oui |
+| **A** | Ancrage paré ; si l'IA se trompe, la note de l'opérateur reste | — | oui |
+| **N** | IA seule, au tri, au bureau, proposition avant la note : examinées ci-dessous | — | — |
+| **C** | Trois valeurs gardées par arbre (première note, proposition, note finale) | quelques colonnes | oui |
+| **É** | Les couples gardés forment un jeu de données réutilisable (ADR 0006) | — | — |
+
 ## Options écartées
 
 - **IA seule, opérateur en contrôle par sondage** : écartée tant que l'IA rate plus d'un arbre mort sur deux.
@@ -41,3 +58,13 @@ La tranche 1 se fait **sans IA** (Pascal, 2026-10-28) : cette ADR fixe la règle
   l'IA ne progresse pas sur les notes (un seul faux dégradé sur 62 arbres sains dans l'essai).
 - **IA au bureau seulement** (contrôle après coup sur photos) : non retenue ; l'échantillon de photos le permettrait.
 - **Proposition affichée avant la note** : écartée, à cause de l'ancrage.
+
+## Sources
+
+- Essai du 2026-10-28 : `docs/essais/2026-10-28-essai-ia-a-l-aveugle.md`.
+- Manuel ICP Forests, partie IV, § 6.1.2 :
+  <https://www.icp-forests.net/fileadmin/icp_forests/Dateien/Manual_Versions/2025-2026/ICPF_Manual_part04_2020-4_Crown.pdf>.
+
+## Question de contrôle
+
+Cette décision tient-elle nos six valeurs, et que sommes-nous prêts à payer pour cela ?

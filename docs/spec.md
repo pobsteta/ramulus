@@ -1,38 +1,43 @@
 # Ramulus — spécification
 
-> **Rédigée le 28 octobre 2026 d'après le brief validé par Pascal le même jour** (`docs/brief.md`, journal). À
-> critiquer par le `contradicteur`, puis à valider par Pascal : **porte n° 1**. Ce que Pascal n'a pas tranché
-> s'écrit « à trancher par Pascal » et renvoie à une ADR.
+> **Rédigée le 28 octobre 2026 d'après le brief validé par Pascal le même jour**, critiquée par le `contradicteur`
+> et amendée d'après les arbitrages de Pascal (journal). **À valider par Pascal : porte n° 1.** Ce qu'il n'a pas
+> tranché s'écrit « à trancher par Pascal » et renvoie à une ADR.
 
 ## 1. Le parcours sur le terrain
 
-1. **Recevoir la tournée.** Au bureau, Nemeton tire le plan d'échantillonnage et écrit la tournée DEPERIS (un
-   GeoPackage, ADR 0003). L'opérateur la copie sur le téléphone ; Ramulus l'ouvre hors ligne.
+1. **Recevoir la tournée.** Au bureau, Nemeton tire le plan d'échantillonnage et **écrit la tournée** DEPERIS (un
+   GeoPackage, ADR 0003 ; Pascal, 2026-10-28). L'opérateur la copie sur le téléphone ; Ramulus l'ouvre hors ligne.
 2. **Aller à la placette.** Carte des placettes à faire, guidage jusqu'au point prévu, position du centre relevée
    (GNSS du téléphone ou RTK : ADR 0004, à trancher par Pascal).
 3. **Choisir les arbres.** Ramulus rappelle la règle de la campagne (nombre d'arbres, règle de choix, par défaut
    classes de Kraft 1 à 3) ; l'opérateur désigne chaque arbre retenu, numéroté dans l'ordre de la règle.
-4. **Noter chaque arbre.** Essence (liste du référentiel ; essence hors des 19 fiches : voir § 4), MB, puis MR ou
-   MA ; la classe s'affiche par l'abaque. La fiche de référence du DSF s'ouvre en lien, pour la saison de la
+4. **Noter chaque arbre.** Essence (une des 19 essences du référentiel ; un arbre d'une autre essence n'est pas
+   noté, § 4), MB, puis MR ou MA ; la classe s'affiche par l'abaque. La fiche de référence du DSF s'ouvre en lien, pour la saison de la
    campagne.
-5. **Photographier selon le régime de la placette.** Une photo du houppier par arbre ; 2 à 4 photos par arbre sur
-   les placettes que le plan a marquées « collecte ». Contrôles à la prise : flou, contre-jour, houppier coupé.
+5. **Photographier selon le régime de la placette**, et selon la convention de prise de vue (ADR 0006). Une photo
+   du houppier par arbre ; 2 à 4 photos par arbre sur les placettes que le plan a marquées « collecte ». Contrôles
+   à la prise, signalés sans bloquer : flou, contre-jour, houppier coupé (Pascal, 2026-10-28).
 6. **Clore la placette.** Bilan de la placette (classes, part de D-E-F) ; la placette passe « notée ». Sur les
-   placettes marquées « contre-notation », un second opérateur note sans voir la première notation.
-7. **Rendre la tournée.** Ramulus vérifie la tournée (§ 5), fusionne les opérateurs, et produit le paquet rendu à
-   Nemeton.
+   placettes marquées « contre-notation », un second opérateur note à partir d'une **tournée à part, sans les
+   premières notes**, dans un délai maximal à fixer par Pascal ; la première note fait foi (ADR 0003).
+7. **Rendre la tournée.** Ramulus vérifie la tournée (§ 5), fusionne les opérateurs, et produit le `.zip` rendu à
+   Nemeton (GeoPackage et photos). La sauvegarde hors de l'appareil suit l'ADR 0005 (trois voies, comme Surculus).
 
 ## 2. Les données
 
+Couches et colonnes : ADR 0003 (seule source). En bref :
+
 | Donnée | Qui l'écrit | Où |
 | --- | --- | --- |
-| Placettes du plan (point prévu, colonnes du plan, paramètres de campagne) | Nemeton, jamais modifiées par Ramulus | couche `placettes` de la tournée |
-| Paramètres de campagne : `nb_arbres`, `regle_choix`, `saison`, `collecte_photos`, `contre_notation` | Nemeton | colonnes de `placettes` |
-| Centre relevé, date, opérateur, état de la placette | Ramulus | couche `centres` |
-| Arbre noté : `uuid`, `plot_id`, rang, position (distance, azimut ou point), essence, MB, MR ou MA, classe, opérateur, horodatage, photos | Ramulus | couche `notations` |
-| Proposition de l'IA (tranche ultérieure) : notes, confiance, modèle, et première note de l'opérateur | Ramulus | colonnes de `notations` (ADR 0001) |
-| Journal des saisies (une saisie = un UUID, ajout seul) | Ramulus | base locale, sauvegardée |
-| Photos | Ramulus | dossier de la tournée, nom et empreinte dans `notations` |
+| Version du fichier, préparation, opérateur | Nemeton, puis Ramulus | table `tournee` |
+| Placettes du plan, colonnes de plan jamais modifiées, paramètres de campagne (`nb_arbres`, `regle_choix`, `saison`, `collecte_photos`, `contre_notation`), azimut et convergence | Nemeton | couche `placettes` |
+| État de la placette | Ramulus | `placettes.etat` |
+| Centre relevé | Ramulus | couche `centres` |
+| Arbre noté : `uuid`, rang, distance, azimut, point calculé, essence, type, MB, MR ou MA, classe, saison, date, opérateur, photos ; colonnes réservées de l'IA (première note, proposition) | Ramulus | couche `notations` |
+| Contre-notation | Ramulus, second opérateur | couche `contre_notations`, tournée à part |
+| Journal des saisies (ajout seul, union sur l'UUID) | Ramulus | base Room, sauvegardée (ADR 0005) |
+| Photos | Ramulus | dossier `photos/` du `.zip`, nom et empreinte dans `notations` |
 
 La classe est toujours **recalculée** par l'abaque à l'import par Nemeton : une classe rendue qui ne correspond pas
 aux notes est une erreur.
@@ -51,10 +56,14 @@ dégradé au-delà de 20 % de E-F (comparaison stricte). Source : fiches DSF 202
   de l'ADR 0001.
 - État « non noté » avec motif codé et règle de remplacement : proposés par le contradicteur, **non retenus** par
   Pascal (2026-10-28). Conséquence à connaître : un arbre de la règle absent ou abattu n'a pas de saisie dédiée ;
-  l'opérateur passe au suivant selon la règle.
+  l'opérateur passe au suivant selon la règle. Écart assumé aux codes de remplacement d'ICP Forests (partie IV,
+  § 4.1, 5.2.12).
 - Fiches DSF embarquées pour un usage hors ligne : non retenu ; la fiche s'ouvre en lien.
-- Une essence hors des 19 fiches se note sans fiche de référence, essence saisie dans la liste de la tournée
-  **[à trancher par Pascal : accepter ou refuser ces arbres]**.
+- **Une essence hors des 19 fiches n'est pas notée** (proposition d'accepter ces arbres non retenue par Pascal,
+  2026-10-28).
+- Saison de la campagne qui ne correspond pas à la date du jour, essence sans fiche pour la saison (charme en
+  hiver) : conduite à tenir **à trancher par Pascal**. La page du ministère dit que MB et MR/MA s'observent en
+  toute saison.
 
 ## 5. Critères d'acceptation
 
@@ -76,22 +85,26 @@ dégradé au-delà de 20 % de E-F (comparaison stricte). Source : fiches DSF 202
 - Saison et période de notation DEPERIS recommandées, et règle « même saison d'une année à l'autre » : note DGAL
   2018-433 et fiches DSF.
 - Conventions de prise de vue du houppier pour l'estimation sur image (Kälin et al., WSL ; ICP Forests, photo
-  guides).
+  guides) : **avant la tranche 1** (ADR 0006).
 
 ## 7. Décisions structurantes (ADR)
 
 | ADR | Objet | État |
 | --- | --- | --- |
 | 0001 | L'IA propose, l'opérateur décide ; proposition affichée après la note | proposée, amendée |
-| 0002 | IA embarquée, entraînée après la collecte de la tranche 1 | proposée |
-| 0003 | Échange avec Nemeton : tournée et paquet rendu (GeoPackage) ; Nemeton fait foi, sommieR reçoit le bilan de Nemeton | proposée |
+| 0002 | IA embarquée après la collecte ; seuil mesuré par placette et campagne | proposée, amendée |
+| 0003 | Échange avec Nemeton : tournée écrite par Nemeton, règles de Groma, import tout ou rien, contre-notation à part | proposée, amendée |
 | 0004 | Position : centre et arbres (GNSS du téléphone, RTK, distance et azimut) | à écrire, à trancher par Pascal |
-| 0005 | Stack : celle de Surculus (Kotlin, Compose, Room, minSdk 26), bibliothèques communes `terrain-*` | à écrire |
+| 0005 | Stack et reprises de Surculus (journal, sauvegarde, sqlite-jdbc) | proposée |
+| 0006 | Photos : convention de prise de vue, détenteur, licence, sortie de l'appareil | proposée, trois choix à trancher |
+
+Brief à écrire vers Nemeton après l'acceptation de l'ADR 0003 : sait-il tirer ce plan et écrire cette tournée ?
 
 ## 8. Tranches
 
 - **Tranche 0 (faite, PR n° 1)** : domaine DEPERIS, écran de notation manuelle en session.
-- **Tranche 1** : tournée Nemeton, guidage, notation par placette, photos selon le régime, journal, contre-notation,
-  paquet rendu, mesure du temps de saisie.
+- **Tranche 1** (après les ADR 0003 à 0006 et la convention de prise de vue) : tournée Nemeton, guidage, notation
+  par placette, photos selon le régime et la convention, journal et sauvegarde, contre-notation, paquet rendu,
+  mesure du temps de saisie.
 - **Tranche 2** : essai IA n° 2 sur les fiches, puis modèle embarqué entraîné sur la collecte (ADR 0002) ;
   proposition affichée après la note.

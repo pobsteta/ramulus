@@ -1,57 +1,91 @@
-# ADR 0003 — Échange avec Nemeton : la tournée et le paquet rendu
+# ADR 0003 — Échange avec Nemeton : une tournée GeoPackage écrite par Nemeton, complétée par Ramulus, importée tout ou rien
 
-- **Statut :** proposée (2026-10-28), à critiquer par le `contradicteur`, puis à trancher par Pascal ; brief vers
-  Nemeton à écrire ensuite (`pilotage/briefs/vers-nemeton/`)
-- **Décideur :** Pascal
+- **Date :** 2026-10-28
+- **Statut :** proposée, amendée après critique du `contradicteur` et arbitrages de Pascal (2026-10-28)
+- **Proposée par :** Claude (orchestrateur)
+- **Tranchée par :** Pascal
+
+## La décision en une phrase
+
+Nemeton écrit la tournée `deperis.gpkg` (EPSG:2154) à partir de son plan d'échantillonnage, selon les règles
+d'écriture déjà éprouvées par Groma ; Ramulus la complète avec sqlite-jdbc comme Surculus, et la rend dans un `.zip`
+avec ses photos ; Nemeton l'importe tout ou rien, de façon rejouable, en recalculant la classe ; la contre-notation
+voyage dans une tournée et une couche à part.
 
 ## Contexte
 
-Brief validé : le plan d'échantillonnage est fait sur Nemeton ; **Nemeton fait foi** et importe le paquet arbre par
-arbre ; **sommieR reçoit de Nemeton** le bilan par unité de gestion. Groma a déjà un contrat avec nemeton sur le
-même modèle (`groma/briefs/vers-nemeton/2026-10-12-inventaire-video.md`) : GeoPackage EPSG:2154, couche
-`placettes` issue du plan (colonnes de plan cachées, jamais modifiées), couches écrites par l'application, schéma
-JSON comme source unique, import par une fonction de nemeton qui valide puis fusionne par `plot_id`.
+- Brief validé : plan fait sur Nemeton, **Nemeton fait foi**, sommieR reçoit de Nemeton le bilan par unité de
+  gestion. Pascal, 2026-10-28 : **Nemeton écrit la tournée** ; les décisions de Groma et de Surculus sont
+  **reprises telles quelles**.
+- Ce que Groma a appris : `groma/briefs/vers-nemeton/2026-10-12-inventaire-video.md`, § 2.1 à 2.3 (options GDAL,
+  déclencheurs R*Tree et SQLite d'Android, `date` mot réservé, convergence des méridiens, colonnes de plan
+  contrôlées).
+- Ce que Surculus a tranché : ADR 0011 (sqlite-jdbc sur l'appareil), ADR 0007 (version au niveau du fichier,
+  repère lu dans `gpkg_spatial_ref_sys`), ADR 0005 (sauvegarde).
+- Options envisagées : sommieR prépare et reçoit (modèle Surculus) ; paquet propre à Ramulus (JSON) ; QField seul.
 
-## Décision proposée
+## Le contrat
 
-1. **Un seul fichier, aller et retour** : `deperis.gpkg`, EPSG:2154, écrit par Nemeton (fonction proposée
-   `creer_tournee_deperis()`), complété par Ramulus, relu par Nemeton (`importer_deperis()`). Pas de second format.
-2. **Couches** :
-   - `placettes` (POINT, point prévu) : colonnes du plan nemeton (`plot_id`, `wgt`, `ip`, `stratum`…) jamais
-     modifiées ; paramètres de campagne `nb_arbres`, `regle_choix` (défaut `kraft_1_3`), `saison` (`ete`/`hiver`),
-     `collecte_photos` (booléen), `contre_notation` (booléen) ; `etat` (`a_faire`/`notee`) écrit par Ramulus ;
-   - `centres` (POINT) : position relevée, précision, source GNSS, date, opérateur ;
-   - `notations` (POINT ou distance-azimut, ADR 0004) : `uuid`, `plot_id`, `rang`, `essence`, `mb`, `second`,
-     `critere` (`MR`/`MA`), `classe`, `operateur`, `horodatage`, `photos`, `contre_notation` (booléen), et les
-     colonnes réservées de l'IA (ADR 0001), vides en tranche 1.
-3. **Schéma JSON** source unique dans le dépôt Ramulus (`docs/formats/deperis-v1.schema.json`), copié dans nemeton,
-   avec des cas communs (`fixtures/echange/`) rejoués en Kotlin et en R, comme Groma et Surculus.
-4. **Nemeton recalcule la classe** à l'import par l'abaque et refuse un paquet où elle diffère des notes.
-5. **sommieR** ne lit jamais le paquet : il reçoit de Nemeton le bilan par unité de gestion (brief vers
-   nemetonshiny ou sommieR à écrire après ce contrat).
+1. **Fichier** : `deperis.gpkg`, EPSG:2154 lu dans `gpkg_spatial_ref_sys` ; écrit par Nemeton avec
+   `GEOMETRY_NAME=geom`, `FID=fid`, **`SPATIAL_INDEX=NO`** sur toute couche que Ramulus modifie (Groma § 2.2).
+   Ramulus écrit avec **sqlite-jdbc** (Surculus ADR 0011), jamais avec le SQLite d'Android.
+2. **Version** : une seule, au niveau du fichier, dans une table `tournee` (version du schéma, `prepare_le`,
+   `version_nemeton` ; `operateur`, `version_ramulus` écrits par Ramulus) ; un lecteur de version N lit N+1 en
+   ignorant les champs nouveaux (Surculus ADR 0007).
+3. **Couches** :
+   - `placettes` (POINT prévu) : colonnes du plan Nemeton (`plot_id`, `wgt`, `ip`, `stratum`…), **jamais
+     modifiées**, contrôlées à l'import ; paramètres de campagne `nb_arbres`, `regle_choix` (défaut `kraft_1_3`),
+     `saison`, `collecte_photos`, `contre_notation` ; `unite_azimut`, `declinaison_deg`, `convergence_deg`
+     (Groma) ; `etat` écrit par Ramulus ;
+   - `centres` (POINT relevé) : `plot_id`, précision, source GNSS, `date_releve`, opérateur ;
+   - `notations` (**POINT calculé**) : `uuid`, `plot_id`, `rang`, `distance_m`, `azimut` (observations brutes en
+     colonnes), `essence`, `type` (feuillu / résineux), `mb`, `second`, `critere`, `classe`, `saison`,
+     `date_notation`, `operateur`, `photos` (noms et empreintes), colonnes réservées de l'IA (ADR 0001 :
+     première note, proposition, confiance, modèle), vides en tranche 1.
+4. **Contre-notation** : Nemeton écrit pour le second opérateur une **tournée à part**, sans couche `notations` ;
+   il la rend dans une couche **`contre_notations`**. Délai maximal entre les deux passages : à fixer par Pascal
+   (ICP Forests : « très près de la date » du premier). **La première note fait foi** dans le bilan.
+5. **Rendu** : un `.zip` contenant `deperis.gpkg` et le dossier `photos/` ; plusieurs opérateurs : fusion par
+   union sur l'`uuid` avant de rendre ; deux notations du même arbre hors contre-notation signalées.
+6. **Import par Nemeton** (fonction proposée `importer_deperis()`) : tout ou rien ; rejouable sans doublon
+   (fusion par `uuid`) ; refuse un paquet dont les colonnes de plan ont changé, ou dont une classe diffère de
+   l'abaque appliqué aux notes.
+7. **Schéma** : source unique `docs/formats/deperis-v1.schema.json` dans Ramulus, copiée dans Nemeton ; cas
+   communs `fixtures/echange/` rejoués en Kotlin et en R.
+8. **sommieR** ne lit jamais la tournée : il reçoit de Nemeton le bilan par unité de gestion.
 
-## Crible FRANCE
+## Le crible FRANCE
 
-- **Frugale** : un fichier, un format ouvert, déjà lu par QField (repli possible sur la même tournée).
-- **Responsable** : une seule source qui fait foi (Nemeton), pas de double saisie.
-- **Anticiper** : colonnes de l'IA réservées dès la v1 ; version du schéma dans le nom (`v1`).
-- **Novateur** : reprend le contrat éprouvé de Groma au lieu d'en inventer un.
-- **Coût** : deux fonctions dans nemeton, un module dans nemetonshiny ; coût porté par Pascal dans ces dépôts.
-- **Écologique** : sans objet notable.
+| Lettre | Réponse | Ce que ça coûte | Prêts à payer ? |
+|---|---|---|---|
+| **F** | Un fichier, un format ouvert (OGC GeoPackage), lisible par QField | règles d'écriture strictes | oui |
+| **R** | Nemeton écrit et importe (Pascal, dans nemeton et nemetonshiny) ; Ramulus complète | deux fonctions et un module côté Nemeton | à confirmer par Pascal (brief vers Nemeton) |
+| **A** | Version de fichier, import rejouable, contrôle des colonnes de plan, test d'écriture sur appareil | tests en deux langages | oui |
+| **N** | sommieR, JSON propre, QField seul : écartés ci-dessous | — | — |
+| **C** | Reprise de Groma et Surculus au lieu d'un contrat neuf | dépendance à leurs choix | oui |
+| **É** | Réutilise l'écrivain GeoPackage de Surculus et le contrat de Groma ; le schéma servira à d'autres | — | — |
 
 ## Valeurs sacrifiées
 
-- L'autonomie de Ramulus : sans tournée de Nemeton, pas de campagne (l'écran de notation libre de la tranche 0
-  restera pour l'essai et la formation).
-- La lecture directe par sommieR : un intermédiaire de plus.
+- **L'autonomie de Ramulus** : sans tournée de Nemeton, pas de campagne (l'écran de notation libre reste pour la
+  formation et l'essai).
+- **La lecture directe par sommieR** : un intermédiaire de plus.
+- **Le repli QField** : QField lit la tournée mais ne calcule pas la classe ; une tournée remplie dans QField doit
+  être recalculée par Nemeton (l'import le fait, point 6).
 
 ## Options écartées
 
-- **sommieR prépare et reçoit** (modèle Surculus) : écarté, Nemeton fait foi (Pascal, 2026-10-28).
-- **Un paquet propre à Ramulus (zip JSON) distinct de la tournée** : écarté, deux formats à tenir.
+- **sommieR prépare et reçoit** : Nemeton fait foi (Pascal).
+- **Paquet JSON propre à Ramulus** : deux formats à tenir.
+- **Contre-notation dans la couche `notations`** : non aveugle (contradicteur).
 
-## Ouvert
+## Sources
 
-- Qui écrit la tournée, nemeton ou sommieR : brief validé « à trancher par Pascal » ; cette ADR propose nemeton.
-- Où vont les photos : dans le dossier de la tournée, à côté du GeoPackage (comme les rasters de Groma) ; leur
-  devenir chez Nemeton est à trancher.
+- Groma, `briefs/vers-nemeton/2026-10-12-inventaire-video.md`, § 2.1-2.3.
+- Surculus, `docs/adr/0005`, `0007`, `0011`.
+- OGC GeoPackage Encoding Standard 1.3 (OGC 12-128r18).
+- Manuel ICP Forests, partie IV, § 6.1.2.1.
+
+## Question de contrôle
+
+Cette décision tient-elle nos six valeurs, et que sommes-nous prêts à payer pour cela ?
