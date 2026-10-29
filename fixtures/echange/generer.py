@@ -417,6 +417,10 @@ def cas() -> list[dict]:
         inst["tables"]["table_future"] = table("attributes", {"fid": "INTEGER", "libelle": "TEXT"},
                                                [{"fid": 1, "libelle": "table d'une version future"}], False)
 
+    def a7(inst, _):  # Ramulus ne peint pas les arbres : repere NULL partout (Pascal, 2026-10-29)
+        for l in inst["tables"]["notations"]["lignes"]:
+            l["repere"] = None
+
     def s1(inst, photos):
         doublon = copy.deepcopy(_note(inst, "P003", 2))
         doublon["uuid"] = uuid("2027-07-07T07:30:00.000Z", "notations-P003-2-doublon")
@@ -568,6 +572,10 @@ def cas() -> list[dict]:
         dict(cas="A6", dossier="A6-version-suivante", fichiers={"deperis.gpkg": v(a1, a6)}, lecteur="ramulus",
              attendu="accepte", motifs=[], source="ADR 0003 § 2 ; Q1",
              titre="Version 2 avec une colonne et une table inconnues : lue en les ignorant"),
+        dict(cas="A7", dossier="A7-notation-sans-repere", fichiers={zip_a3: v(a3, a7)}, lecteur="nemeton",
+             depart=depart_a1, attendu="accepte", motifs=[], source="Pascal, 2026-10-29 ; mission 018",
+             titre="Paquet rendu dont les neuf notations ont un repère NULL (Ramulus ne demande pas de numéro peint) : "
+                   "accepté, deux repères NULL ne sont pas le même arbre"),
         dict(cas="S1", dossier="S1-doublon-arbre", fichiers={zip_a3: v(a3, s1)}, lecteur="nemeton",
              depart=depart_a1, attendu="signale", motifs=["doublon_arbre"], source="ADR 0003 § 5",
              titre="Deux notations du même arbre (P003, rang 2, repère 22) hors contre-notation"),

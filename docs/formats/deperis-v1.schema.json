@@ -163,7 +163,7 @@
     },
     "doublon_arbre": {
       "statut": "signale",
-      "description": "Deux notations du même arbre (même plot_id et même rang, ou même plot_id et même repere) hors contre-notation (ADR 0003 § 5 ; définition du même arbre : Pascal, 2026-10-28)."
+      "description": "Deux notations du même arbre (même plot_id et même rang ; ou même plot_id et même repere si les deux repere sont non NULL) hors contre-notation (ADR 0003 § 5 ; définition du même arbre : Pascal, 2026-10-28)."
     },
     "centre_eloigne": {
       "statut": "signale",
@@ -461,7 +461,7 @@
       }
     },
     "table_notes": {
-      "description": "notations (première notation) et contre_notations (tournée à part) : mêmes colonnes, table sans géométrie, rattachée par plot_id, rang et repere (ADR 0003 § 3-4, ADR 0004).",
+      "description": "notations (première notation) et contre_notations (tournée à part) : mêmes colonnes, table sans géométrie, rattachée par plot_id et rang, repere étant facultatif (ADR 0003 § 3-4, ADR 0004).",
       "allOf": [{"$ref": "#/$defs/table_attributs"}],
       "properties": {
         "colonnes": {
@@ -550,8 +550,8 @@
           "minimum": 1
         },
         "repere": {
-          "description": "Numéro peint sur l'arbre, en texte (« 12b » permis, Q10).",
-          "$ref": "#/$defs/texte"
+          "description": "Repère physique déjà présent sur l'arbre (plaque, ancienne marque), recopié de la tournée de départ s'il y figure ; sinon NULL ; jamais demandé à l'opérateur (Pascal, 2026-10-29). Texte (« 12b » permis, Q10).",
+          "anyOf": [{"type": "null"}, {"$ref": "#/$defs/texte"}]
         },
         "essence": {"$ref": "#/$defs/essence"},
         "type": {"x-motif": "type_incoherent", "enum": ["FEUILLU", "RESINEUX"]},

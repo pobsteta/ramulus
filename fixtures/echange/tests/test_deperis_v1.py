@@ -262,7 +262,7 @@ class Cas(unittest.TestCase):
 
     def test_il_y_a_tous_les_cas_du_plan(self):
         ids = {a["cas"] for _, a in attendus()}
-        attendus_plan = {"A1", "A2", "A3", "A4", "A5", "A6", "S1", "S2", "S3", "F1", "R1a", "R1b", "R1c", "R1d", "R2",
+        attendus_plan = {"A1", "A2", "A3", "A4", "A5", "A6", "A7", "S1", "S2", "S3", "F1", "R1a", "R1b", "R1c", "R1d", "R2",
                          "R3a", "R3b", "R5a", "R5b", "R6", "R7", "R8a", "R8b", "R9", "R10a", "R10b", "R10c", "R11",
                          "R12"}
         self.assertEqual(attendus_plan, ids)
@@ -558,6 +558,24 @@ class Controles(unittest.TestCase):
         """Même arbre : même plot_id et même rang, ou même plot_id et même repere (Pascal, 2026-10-28)."""
         self.note("P001", 2)["repere"] = self.note("P001", 1)["repere"]
         self.assertEqual(["doublon_arbre"], motifs(self.inst))
+
+    def test_repere_null_est_accepte(self):
+        """Ramulus ne peint pas les arbres : repere NULL permis (Pascal, 2026-10-29)."""
+        for l in self.inst["tables"]["notations"]["lignes"]:
+            l["repere"] = None
+        self.assertEqual([], motifs(self.inst))
+
+    def test_deux_reperes_null_ne_sont_pas_le_meme_arbre(self):
+        self.note("P001", 1)["repere"] = None
+        self.note("P001", 2)["repere"] = None
+        self.assertEqual([], motifs(self.inst))
+
+    def test_meme_rang_est_un_doublon_meme_sans_repere(self):
+        self.note("P001", 1)["repere"] = None
+        copie = copy.deepcopy(self.note("P001", 1))
+        copie["uuid"] = "01a68e2b-47c0-7d87-9db2-164808fe9999"
+        self.inst["tables"]["notations"]["lignes"].append(copie)
+        self.assertIn("doublon_arbre", motifs(self.inst))
 
     def test_meme_rang_ou_meme_repere_sur_deux_placettes_n_est_pas_un_doublon(self):
         self.note("P003", 1)["repere"] = self.note("P001", 1)["repere"]  # rang 1 des deux côtés, repère « 1 »

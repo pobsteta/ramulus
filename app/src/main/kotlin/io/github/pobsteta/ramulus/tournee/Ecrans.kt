@@ -119,6 +119,8 @@ fun AppRamulus(vm: TourneeViewModel, reglages: ReglagesRamulus) {
 
 // --- Éléments communs -------------------------------------------------------------------------------------------
 
+private const val REGLE_CHOIX_PAR_DEFAUT = "Kraft 1 à 3, tour d'horizon depuis le nord, sens horaire"
+
 @Composable
 private fun Page(
     titre: String,
@@ -207,7 +209,7 @@ private fun EcranPlacettes(vm: TourneeViewModel, etat: EtatTournee) {
             val statut = p.statut
             val (libelle, couleur) = when (statut) {
                 Statut.NOTEE -> "Notée" to MaterialTheme.colorScheme.primary
-                Statut.EN_COURS -> "${p.arbres.size} sur ${p.nbArbres} arbres" to Ambre
+                Statut.EN_COURS -> "${p.nbRangsNotes} sur ${p.nbArbres} arbres" to Ambre
                 Statut.CENTRE_RELEVE -> "Centre relevé" to Ambre
                 Statut.A_FAIRE -> "À faire" to Color.Gray
             }
@@ -242,7 +244,7 @@ private fun EcranPlacette(vm: TourneeViewModel, etat: EtatTournee, plotId: Strin
         titre = plotId,
         question = when (p.statut) {
             Statut.NOTEE -> "Placette notée"
-            else -> "${p.arbres.size} sur ${p.nbArbres} arbres notés"
+            else -> "${p.nbRangsNotes} sur ${p.nbArbres} arbres notés"
         },
         pied = pied(t, etat.operateur),
         retour = { vm.enArriere { c.retour() } },
@@ -253,7 +255,7 @@ private fun EcranPlacette(vm: TourneeViewModel, etat: EtatTournee, plotId: Strin
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text("Règle de choix", style = MaterialTheme.typography.labelLarge)
-            Text(p.regleChoix ?: "Kraft 1 à 3, tour d'horizon depuis le nord, sens horaire", fontSize = 18.sp)
+            Text(p.regleChoix ?: REGLE_CHOIX_PAR_DEFAUT, fontSize = 18.sp)
         }
         if (saison != null) AVerifier(listOf(saison))
         Erreur(etat.erreur)
@@ -274,11 +276,11 @@ private fun EcranPlacette(vm: TourneeViewModel, etat: EtatTournee, plotId: Strin
             principal = centre != null || t.estContreNotation,
         ) { c.versArbres(plotId) }
         if (!p.estNotee) {
-            GrosBouton("Clore la placette", enabled = p.arbres.isNotEmpty(), principal = p.arbres.size >= p.nbArbres) {
+            GrosBouton("Clore la placette", enabled = p.arbres.isNotEmpty(), principal = p.complete) {
                 vm.enArriere { c.cloturerPlacette(plotId) }
             }
-            if (p.arbres.isNotEmpty() && p.arbres.size < p.nbArbres) {
-                AVerifier(listOf("${p.arbres.size} sur ${p.nbArbres} arbres notés : vous pouvez clore quand même."))
+            if (p.arbres.isNotEmpty() && !p.complete) {
+                AVerifier(listOf("${p.nbRangsNotes} sur ${p.nbArbres} arbres notés : vous pouvez clore quand même."))
             }
             if (!t.estContreNotation && centre == null && p.arbres.isNotEmpty()) AVerifier(listOf("Aucun centre relevé."))
         }
@@ -314,8 +316,6 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
     val a = etat.arbre
     val contexte = LocalContext.current
     var menu by remember { mutableStateOf(false) }
-    // Le texte vit ici pendant la frappe ; il repart à vide quand l'arbre est enregistré.
-    var repere by remember(a.rang, p.arbres.size) { mutableStateOf(a.repere) }
     var photographie by rememberSaveable { mutableStateOf(false) }
     if (photographie) {
         EcranPhoto(vm, plotId) { photographie = false }
@@ -325,22 +325,19 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
 
     Page(
         titre = "$plotId · arbre ${a.rang} sur ${p.nbArbres}",
-        question = "Tour d'horizon depuis le nord, sens horaire",
+        question = p.regleChoix ?: REGLE_CHOIX_PAR_DEFAUT,
         pied = pied(t, etat.operateur),
         retour = { vm.enArriere { c.retour() } },
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(onClick = { c.changerRang(-1) }, Modifier.size(64.dp)) { Text("−", fontSize = 24.sp) }
-            OutlinedTextField(
-                value = repere,
-                onValueChange = { repere = it; c.changerRepere(it) },
-                label = { Text("Numéro peint") },
-                singleLine = true,
-                modifier = Modifier.weight(1f),
-                textStyle = MaterialTheme.typography.titleLarge,
-            )
-            OutlinedButton(onClick = { c.changerRang(1) }, Modifier.size(64.dp)) { Text("+", fontSize = 24.sp) }
-        }
+        val formulaire = !p.complete || a.rouvert
+        if (!formulaire) {
+            Text("Placette complète : ${p.nbRangsNotes} arbres sur ${p.nbArbres}", style = MaterialTheme.typography.titleLarge)
+            if (!p.estNotee) GrosBouton("Clore la placette", principal = true) { vm.enArriere { c.cloturerPlacette(plotId) } }
+        } else Text(
+            "Arbre ${a.rang} sur ${p.nbArbres} — continuez le tour depuis le nord, sens horaire",
+            style = MaterialTheme.typography.titleLarge,
+        )
+        if (formulaire) Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Box {
             OutlinedButton(onClick = { menu = true }, Modifier.fillMaxWidth().heightIn(min = 64.dp)) {
                 Text(a.essence?.nom ?: "Choisir l'essence", fontSize = 20.sp)
@@ -391,26 +388,31 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
         }
         AVerifier(c.avertissementsArbre() + etat.avertissements)
         Erreur(etat.erreur)
-        GrosBouton("Enregistrer l'arbre", enabled = a.complet && !p.estNotee) { vm.enArriere { c.enregistrerArbre() } }
+        GrosBouton(if (p.arbres.any { it.rang == a.rang }) "Enregistrer la correction" else "Enregistrer l'arbre", enabled = a.complet && !p.estNotee) { vm.enArriere { c.enregistrerArbre() } }
+        }
 
         if (p.arbres.isNotEmpty()) {
-            Text("Déjà notés", style = MaterialTheme.typography.titleMedium)
-            for (n in p.arbres) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("Déjà notés (touchez un arbre pour le corriger)", style = MaterialTheme.typography.titleMedium)
+            for (n in p.arbresRetenus) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(enabled = !p.estNotee) { c.rouvrirArbre(n.rang) },
+                ) {
                     Text("${n.rang}", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.size(24.dp))
                     Box(
                         Modifier.size(36.dp).background(n.classe?.let(::couleurClasse) ?: Color.Gray, RoundedCornerShape(8.dp)),
                         contentAlignment = Alignment.Center,
                     ) { Text(n.classe?.name ?: "?", color = Color.White, fontWeight = FontWeight.Bold) }
                     Column {
-                        Text("n° ${n.repere} · ${n.essence} · MB ${n.mb} · ${n.second}")
+                        Text("${n.essence} · MB ${n.mb} · ${n.second}" + if (n.rang in p.rangsCorriges) " · corrigé" else "")
                         if (n.photos.size < regime.min) Text("photo manquante", color = Ambre, fontSize = 14.sp)
                     }
                 }
             }
         }
-        if (!p.estNotee && p.arbres.isNotEmpty()) {
-            GrosBouton("Clore la placette", principal = p.arbres.size >= p.nbArbres) { vm.enArriere { c.cloturerPlacette(plotId) } }
+        if (!p.estNotee && p.arbres.isNotEmpty() && formulaire) {
+            GrosBouton("Clore la placette", principal = p.complete) { vm.enArriere { c.cloturerPlacette(plotId) } }
         }
     }
 }

@@ -26,7 +26,7 @@ class CasCommunsLusTest {
 
     @Test
     fun `les cas sont tous lus, avec leurs fichiers et leurs instantanes`() {
-        assertEquals(38, cas.size, "28 cas de 002 + 8 cas complémentaires X1 à X7b de 003 + F1 et T2 de 010, tous dans fixtures/echange")
+        assertEquals(39, cas.size, "28 cas de 002 + 8 cas complémentaires X1 à X7b de 003 + F1 et T2 de 010 + A7 de 018, tous dans fixtures/echange")
         assertEquals(cas.size, cas.map { it.id }.toSet().size, "identifiants de cas distincts")
         for (c in cas) {
             assertTrue(c.fichiers.isNotEmpty(), c.id)
