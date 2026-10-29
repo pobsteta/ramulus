@@ -40,6 +40,11 @@ Couches et colonnes : ADR 0003 (seule source). En bref :
 | Journal des saisies (ajout seul, union sur l'UUID) | Ramulus | base Room, sauvegardée (ADR 0005) |
 | Photos | Ramulus | dossier `photos/` du `.zip`, nom et empreinte dans `notations` |
 
+**Ajout du 2026-10-29 (Pascal, mission 018).** On ne peint pas les arbres : le rang est attribué par l'application dans
+le tour d'horizon (depuis le nord, sens horaire), sans saisie. `repere` reste dans le format, facultatif : un repère
+physique déjà sur l'arbre et porté par la tournée de départ y est recopié, sinon NULL (ADR 0004, rubrique du même jour).
+Le § 1 et le tableau ci-dessus restent lus avec cette correction.
+
 La classe est toujours **recalculée** par l'abaque à l'import par Nemeton : une classe rendue qui ne correspond pas
 aux notes est une erreur.
 

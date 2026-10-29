@@ -359,6 +359,30 @@ class EchangeEcritureTest {
         assertTrue(sortie.isFile, "un signalement ne bloque pas le rendu")
     }
 
+    @Test
+    fun `des notations sans repere (NULL) se rendent sans signalement, et le repere ecrit est relu`(@TempDir tmp: File) {
+        val attendu = Cas.instantaneAttendu(rendu3)
+        val travail = copie(depart1, tmp)
+        val racine = File(tmp, "appareil").also { extrairePhotos(rendu3, it) }
+        lignes(attendu, "centres").forEach { PasserelleEchange.enregistrerCentre(travail, sansFid(it)) }
+        for ((i, n) in lignes(attendu, "notations").withIndex()) {
+            // Ni numéro peint ni colonne : le repère reste NULL, sauf une notation qui recopie un repère physique du départ.
+            val l = saisie(n)
+            if (i == 0) l.addProperty("repere", "PL-7") else l.remove("repere")
+            PasserelleEchange.enregistrerNotation(travail, l)
+        }
+        lignes(attendu, "placettes").filter { it["etat"].asString == "notee" }
+            .forEach { PasserelleEchange.cloturerPlacette(travail, it["plot_id"].asString) }
+        val ecrit = lignes(PasserelleEchange.instantane(travail), "notations")
+        assertEquals("PL-7", ecrit[0]["repere"].asString)
+        assertTrue(ecrit.drop(1).all { it["repere"].isJsonNull }, "repere NULL quand on n'en donne pas")
+
+        val v = PasserelleEchange.rendre(travail, depart1, racine, "operateur-A", "exemple", File(tmp, "r.zip"))
+
+        assertEquals("accepte", v.statut, v.toString())
+        assertEquals(emptySet<String>(), v.motifs)
+    }
+
     // ---------------------------------------------------------------------------------------------------------
     // Les photos : le paquet n'est pas rendu si elles ne correspondent pas aux notes (R10a à R10c, côté Ramulus)
     // ---------------------------------------------------------------------------------------------------------

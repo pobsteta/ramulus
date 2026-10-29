@@ -127,11 +127,10 @@ class PhotosTourneeTest {
         return c
     }
 
-    private fun saisir(c: ControleurTournee, repere: String) {
+    private fun saisir(c: ControleurTournee, @Suppress("UNUSED_PARAMETER") repere: String) { // 018 : plus de numéro peint à saisir
         c.choisirEssence(Essences.toutes.first { it.nom == "Chêne sessile" })
         c.choisirMb(Note(2))
         c.choisirSecond(Note(1))
-        c.changerRepere(repere)
     }
 
     private val racinePhotos get() = File(tmp, "tournees/EXEMPLE-2027-01/photos/photos")

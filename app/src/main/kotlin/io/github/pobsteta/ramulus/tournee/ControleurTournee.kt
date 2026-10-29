@@ -9,6 +9,7 @@ import com.google.gson.JsonParser
 import io.github.pobsteta.ramulus.core.deperis.Abaque
 import io.github.pobsteta.ramulus.core.deperis.Classe
 import io.github.pobsteta.ramulus.core.deperis.EssenceDeperis
+import io.github.pobsteta.ramulus.core.deperis.Essences
 import io.github.pobsteta.ramulus.core.deperis.Note
 import io.github.pobsteta.ramulus.core.echange.EchangeRefuse
 import io.github.pobsteta.ramulus.core.gnss.CentreReleve
@@ -45,14 +46,15 @@ data class PhotoEnAttente(val fichier: String, val signalements: List<Signalemen
 /** L'arbre que l'opérateur est en train de noter. La classe n'est jamais saisie : elle sort de l'abaque. */
 data class ArbreEnCours(
     val rang: Int = 1,
-    val repere: String = "",
+    /** Arbre déjà noté, rouvert pour correction : seul cas où l'on écrit un rang déjà noté. */
+    val rouvert: Boolean = false,
     val essence: EssenceDeperis? = null,
     val mb: Note? = null,
     val second: Note? = null,
     val photos: List<PhotoEnAttente> = emptyList(),
 ) {
     val classe: Classe? get() = if (mb != null && second != null) Abaque.classe(mb, second) else null
-    val complet: Boolean get() = essence != null && mb != null && second != null && repere.isNotBlank()
+    val complet: Boolean get() = essence != null && mb != null && second != null
 }
 
 /** Une tournée déjà copiée sur l'appareil, à reprendre. */
@@ -366,15 +368,22 @@ class ControleurTournee(
 
     fun choisirMb(n: Note) = maj { copy(arbre = arbre.copy(mb = n)) }
     fun choisirSecond(n: Note) = maj { copy(arbre = arbre.copy(second = n)) }
-    fun changerRepere(texte: String) = maj { copy(arbre = arbre.copy(repere = texte)) }
 
-    fun changerRang(delta: Int) {
+    /**
+     * Rouvre un arbre déjà noté pour le corriger : il garde son rang (attribué par l'application, jamais choisi) et ses
+     * notes reviennent à l'écran. L'enregistrer de nouveau écrit une nouvelle ligne du même rang ; le contrôle du rendu
+     * la signale (`doublon_arbre`) pour que la correction soit vue, jamais en silence.
+     */
+    fun rouvrirArbre(rang: Int) {
         val e = etat.ecran as? Ecran.Arbres ?: return
-        val n = etat.tournee?.placette(e.plotId)?.nbArbres ?: return
-        maj { copy(arbre = arbre.copy(rang = (arbre.rang + delta).coerceIn(1, n))) }
+        val p = etat.tournee?.placette(e.plotId) ?: return
+        if (p.estNotee) return
+        val lu = p.arbres.lastOrNull { it.rang == rang } ?: return
+        val essence = Essences.toutes.firstOrNull { it.nom == lu.essence }
+        maj { copy(arbre = ArbreEnCours(rang = lu.rang, rouvert = true, essence = essence, mb = Note(lu.mb), second = Note(lu.second)), erreur = null) }
     }
 
-    /** Avertissements de l'arbre en cours : fiche manquante (SA2), rang ou numéro déjà noté. Aucun ne bloque. */
+    /** Avertissements de l'arbre en cours : fiche manquante (SA2), rang déjà noté. Aucun ne bloque. */
     fun avertissementsArbre(): List<String> {
         val e = etat.ecran as? Ecran.Arbres ?: return emptyList()
         val p = etat.tournee?.placette(e.plotId) ?: return emptyList()
@@ -383,7 +392,6 @@ class ControleurTournee(
             a.essence?.let { Avertissements.ficheManquante(it, p.saison)?.let(::add) }
             if (a.complet) photoManquante(p, a.photos.size)?.let(::add)
             if (p.arbres.any { it.rang == a.rang }) add("Le rang ${a.rang} est déjà noté.")
-            if (a.repere.isNotBlank() && p.arbres.any { it.repere == a.repere.trim() }) add("Le numéro ${a.repere.trim()} est déjà noté.")
         }
     }
 
@@ -402,7 +410,8 @@ class ControleurTournee(
 
     /**
      * Enregistre l'arbre en cours : classe calculée par l'abaque par l'échange (jamais saisie), puis journal, puis
-     * l'arbre suivant du tour d'horizon. Sans effet tant qu'une note, l'essence ou le numéro manque.
+     * l'arbre suivant du tour d'horizon. Sans effet tant qu'une note ou l'essence manque. Le rang vient de l'application ; le numéro peint
+     * (`repere`) n'existe plus : la colonne reste NULL (Pascal, 2026-10-29).
      */
     fun enregistrerArbre() {
         val ecran = etat.ecran as? Ecran.Arbres ?: return
@@ -410,10 +419,10 @@ class ControleurTournee(
         val p = t.placette(ecran.plotId) ?: return
         val op = etat.operateur ?: return
         val a = etat.arbre
+        if (p.complete && !a.rouvert) return // placette complète : pas de rang à noter, seulement des corrections voulues
         val essence = a.essence ?: return
         val mb = a.mb ?: return
         val second = a.second ?: return
-        if (a.repere.isBlank()) return
 
         val maintenant = horloge()
         val uuid = uuids.tirer(maintenant.toEpochMilli())
@@ -422,7 +431,9 @@ class ControleurTournee(
             addProperty("uuid", uuid)
             addProperty("plot_id", p.plotId)
             addProperty("rang", a.rang)
-            addProperty("repere", a.repere.trim())
+            // Un repère physique déjà sur l'arbre (plaque, ancienne marque) et porté par la tournée de départ est recopié ;
+            // sinon NULL. Ramulus ne le demande jamais à l'opérateur (Pascal, 2026-10-29).
+            repereDuDepart(t, p.plotId, a.rang)?.let { addProperty("repere", it) }
             addProperty("essence", essence.nom)
             addProperty("type", essence.type.name)
             addProperty("mb", mb.valeur)
@@ -451,7 +462,6 @@ class ControleurTournee(
         val valeur = JsonObject().apply {
             addProperty("plot_id", p.plotId)
             addProperty("rang", a.rang)
-            addProperty("repere", a.repere.trim())
             addProperty("essence", essence.nom)
             addProperty("mb", mb.valeur)
             addProperty("second", second.valeur)
@@ -474,6 +484,12 @@ class ControleurTournee(
         maj { copy(arbre = ArbreEnCours(rang = apres?.prochainRang ?: a.rang, essence = essence), erreur = null) }
     }
 
+    /** Le `repere` que la copie de départ (jamais écrite) porte pour cet arbre, ou `null`. */
+    private fun repereDuDepart(t: TourneeLue, plotId: String, rang: Int): String? = runCatching {
+        LectureTournee.depuis(echange.instantane(depart(t.code))).placette(plotId)?.arbres
+            ?.firstOrNull { it.rang == rang && !it.repere.isNullOrBlank() }?.repere
+    }.getOrNull()
+
     // --- Clore, rendre --------------------------------------------------------------------------------------------
 
     fun cloturerPlacette(plotId: String) {
@@ -488,7 +504,7 @@ class ControleurTournee(
         }
         val valeur = JsonObject().apply {
             addProperty("plot_id", plotId)
-            addProperty("nb_arbres_notes", p.arbres.size)
+            addProperty("nb_arbres_notes", p.nbRangsNotes)
         }
         ecrireJournal(t, uuids.tirer(horloge().toEpochMilli()), TypeLigne.PLACETTE_NOTEE, valeur, op, finDePlacette = true)
         recharger(t.code)

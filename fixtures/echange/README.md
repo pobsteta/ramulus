@@ -56,6 +56,7 @@ Chaque dossier contient :
 | A4 | `A4-rendu-contre-notation` | nemeton | accepté | — |
 | A5 | `A5-fusion-deux-operateurs` | nemeton | accepté ; l'union des deux paquets redonne A3 | — |
 | A6 | `A6-version-suivante` | ramulus | accepté, colonnes et table nouvelles ignorées | — |
+| A7 | `A7-notation-sans-repere` | nemeton | accepté, `repere` NULL partout | — |
 | S1 | `S1-doublon-arbre` | nemeton | signalé | `doublon_arbre` |
 | S2 | `S2-centre-eloigne` | nemeton | signalé | `centre_eloigne` |
 | S3 | `S3-fusion-conflit-uuid` | nemeton | chaque paquet accepté seul ; leur union signalée, sans la note de P001 rang 1 ni ses photos, tout le reste gardé | `uuid_contenu_different` |
