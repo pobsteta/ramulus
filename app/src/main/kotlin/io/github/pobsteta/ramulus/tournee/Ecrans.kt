@@ -3,6 +3,7 @@ package io.github.pobsteta.ramulus.tournee
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.BackHandler
@@ -41,7 +42,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -52,6 +55,9 @@ import io.github.pobsteta.ramulus.core.deperis.Essences
 import io.github.pobsteta.ramulus.gnss.ReleverLeCentre
 import io.github.pobsteta.ramulus.notation.ClasseEnCours
 import io.github.pobsteta.ramulus.notation.LigneNotes
+import io.github.pobsteta.ramulus.photo.EcranPhoto
+import io.github.pobsteta.ramulus.photo.PriseDeVue
+import io.github.pobsteta.ramulus.photo.rappelDeConvention
 import io.github.pobsteta.ramulus.ui.theme.couleurClasse
 import java.util.Locale
 
@@ -273,7 +279,9 @@ private fun EcranPlacette(vm: TourneeViewModel, etat: EtatTournee, plotId: Strin
             }
             if (!t.estContreNotation && centre == null && p.arbres.isNotEmpty()) AVerifier(listOf("Aucun centre relevé."))
         }
-        if (p.collectePhotos) Text("Photos : pas encore dans cette version.", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+        if (p.collectePhotos) {
+            Text("Placette « collecte » : 2 à 4 photos du houppier par arbre, à 90° les unes des autres.", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+        }
     }
 }
 
@@ -302,6 +310,12 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
     val a = etat.arbre
     val contexte = LocalContext.current
     var menu by remember { mutableStateOf(false) }
+    var photographie by rememberSaveable { mutableStateOf(false) }
+    if (photographie) {
+        EcranPhoto(vm, plotId) { photographie = false }
+        return
+    }
+    val regime = c.regimePhotos(plotId)
 
     Page(
         titre = "$plotId · arbre ${a.rang} sur ${p.nbArbres}",
@@ -335,6 +349,32 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
             LigneNotes("${essence.type.secondCritere.libelle} (${essence.type.secondCritere.name})", a.second) { c.choisirSecond(it) }
             ClasseEnCours(a.classe)
         }
+        // La note d'abord, la photo après (brief) ; elle n'est jamais obligatoire pour enregistrer l'arbre.
+        if (a.complet && !p.estNotee) {
+            Text("Photo du houppier", style = MaterialTheme.typography.titleMedium)
+            for (l in rappelDeConvention(regime)) Text(l, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            a.photos.forEachIndexed { i, photo ->
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    val fichier = c.fichierEnAttente(photo)
+                    val miniature = remember(photo.fichier) {
+                        fichier?.let { f ->
+                            BitmapFactory.decodeFile(f.path, BitmapFactory.Options().apply { inSampleSize = 8 })?.asImageBitmap()
+                        }
+                    }
+                    if (miniature != null) Image(miniature, contentDescription = "Vue ${i + 1}", modifier = Modifier.size(64.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Vue ${i + 1}", fontWeight = FontWeight.Bold)
+                        for (sg in photo.signalements) Text(PriseDeVue.enClair(sg), color = Ambre, fontSize = 14.sp)
+                    }
+                    TextButton(onClick = { vm.enArriere { c.retirerPhoto(i) } }, Modifier.heightIn(min = 48.dp)) { Text("Retirer") }
+                }
+            }
+            GrosBouton(
+                if (a.photos.isEmpty()) "Photographier le houppier" else "Photographier une autre vue",
+                enabled = a.photos.size < regime.max,
+                principal = a.photos.size < regime.min,
+            ) { photographie = true }
+        }
         AVerifier(c.avertissementsArbre() + etat.avertissements)
         Erreur(etat.erreur)
         GrosBouton(if (p.arbres.any { it.rang == a.rang }) "Enregistrer la correction" else "Enregistrer l'arbre", enabled = a.complet && !p.estNotee) { vm.enArriere { c.enregistrerArbre() } }
@@ -352,7 +392,10 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
                         Modifier.size(36.dp).background(n.classe?.let(::couleurClasse) ?: Color.Gray, RoundedCornerShape(8.dp)),
                         contentAlignment = Alignment.Center,
                     ) { Text(n.classe?.name ?: "?", color = Color.White, fontWeight = FontWeight.Bold) }
-                    Text("${n.essence} · MB ${n.mb} · ${n.second}")
+                    Column {
+                        Text("${n.essence} · MB ${n.mb} · ${n.second}")
+                        if (n.photos.size < regime.min) Text("photo manquante", color = Ambre, fontSize = 14.sp)
+                    }
                 }
             }
         }

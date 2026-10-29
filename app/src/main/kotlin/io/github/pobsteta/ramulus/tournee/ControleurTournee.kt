@@ -16,6 +16,12 @@ import io.github.pobsteta.ramulus.core.gnss.CentreReleve
 import io.github.pobsteta.ramulus.core.gnss.EcartAuPointPrevu
 import io.github.pobsteta.ramulus.core.journal.TypeLigne
 import io.github.pobsteta.ramulus.core.journal.UuidV7
+import io.github.pobsteta.ramulus.core.photo.Empreinte
+import io.github.pobsteta.ramulus.core.photo.JpegSansExif
+import io.github.pobsteta.ramulus.core.photo.NomsPhotos
+import io.github.pobsteta.ramulus.core.photo.PhotoGardee
+import io.github.pobsteta.ramulus.core.photo.RegimePhotos
+import io.github.pobsteta.ramulus.core.photo.SignalementImage
 import java.io.File
 import java.io.InputStream
 import java.text.Normalizer
@@ -34,12 +40,16 @@ sealed interface Ecran {
     data object Rendu : Ecran
 }
 
+/** Une photo prise pour l'arbre en cours, pas encore nommée : elle prend son nom `<uuid>_<n>.jpg` à l'enregistrement de l'arbre. */
+data class PhotoEnAttente(val fichier: String, val signalements: List<SignalementImage>)
+
 /** L'arbre que l'opérateur est en train de noter. La classe n'est jamais saisie : elle sort de l'abaque. */
 data class ArbreEnCours(
     val rang: Int = 1,
     val essence: EssenceDeperis? = null,
     val mb: Note? = null,
     val second: Note? = null,
+    val photos: List<PhotoEnAttente> = emptyList(),
 ) {
     val classe: Classe? get() = if (mb != null && second != null) Abaque.classe(mb, second) else null
     val complet: Boolean get() = essence != null && mb != null && second != null
@@ -98,7 +108,10 @@ class ControleurTournee(
     private fun dossier(code: String) = File(racine, code)
     private fun depart(code: String) = File(dossier(code), "depart/deperis.gpkg")
     private fun travail(code: String) = File(dossier(code), "travail/deperis.gpkg")
+    /** La racine des photos rendues : `racinePhotos/photos/<uuid>_<n>.jpg` (contrat de `EchangeDeperis.rendre`). */
     private fun photos(code: String) = File(dossier(code), "photos")
+    private fun dossierPhotos(code: String) = File(photos(code), NomsPhotos.DOSSIER)
+    private fun enAttente(code: String) = File(dossier(code), "photos-en-attente")
 
     @Synchronized
     private fun maj(f: EtatTournee.() -> EtatTournee) {
@@ -200,7 +213,85 @@ class ControleurTournee(
 
     fun versArbres(plotId: String) {
         val p = etat.tournee?.placette(plotId) ?: return
+        // Un nouvel arbre commence : les photos laissées en attente par un arbre abandonné ne servent plus. Choix accepté
+        // (orchestrateur, 2026-10-29) : une prise de vue interrompue par la mort du processus est perdue, car l'arbre en
+        // cours (ArbreEnCours) n'est pas non plus conservé ; l'opérateur la refait.
+        etat.tournee?.let { enAttente(it.code).deleteRecursively() }
         maj { copy(ecran = Ecran.Arbres(plotId), erreur = null, arbre = ArbreEnCours(rang = p.prochainRang, essence = derniereEssence)) }
+    }
+
+    // --- Les photos du houppier (mission 008, ADR 0006) ------------------------------------------------------------
+
+    /** Combien de photos pour cette placette : 1, ou 2 à 4 si elle est « collecte » (PV1, provisoire). */
+    fun regimePhotos(plotId: String): RegimePhotos = RegimePhotos.de(etat.tournee?.placette(plotId)?.collectePhotos == true)
+
+    /**
+     * Garde la photo de l'arbre en cours (JPEG déjà écrit sans EXIF par l'écran de prise de vue ; si un EXIF subsiste,
+     * il est retiré ici). Elle reste en attente, privée à l'application : elle reçoit son nom à l'enregistrement de
+     * l'arbre. Au-delà du maximum du régime, la photo est refusée avec un mot, sans effet sur la note.
+     */
+    fun ajouterPhoto(jpeg: ByteArray, signalements: List<SignalementImage>): Boolean {
+        val ecran = etat.ecran as? Ecran.Arbres ?: return false
+        val t = etat.tournee ?: return false
+        val regime = regimePhotos(ecran.plotId)
+        if (etat.arbre.photos.size >= regime.max) {
+            maj { copy(erreur = "Au plus ${regime.max} photo${if (regime.max > 1) "s" else ""} pour cet arbre.") }
+            return false
+        }
+        if (!JpegSansExif.estUnJpeg(jpeg)) {
+            maj { copy(erreur = "Cette photo n'est pas un JPEG : elle n'est pas gardée.") }
+            return false
+        }
+        return try {
+            val octets = JpegSansExif.retirer(jpeg)
+            val dossierAttente = enAttente(t.code).also { it.mkdirs() }
+            val nom = "${uuids.tirer(horloge().toEpochMilli())}.jpg"
+            File(dossierAttente, nom).writeBytes(octets)
+            maj { copy(arbre = arbre.copy(photos = arbre.photos + PhotoEnAttente(nom, signalements)), erreur = null) }
+            true
+        } catch (e: Exception) {
+            maj { copy(erreur = "Photo non gardée : ${e.message ?: e.javaClass.simpleName}") }
+            false
+        }
+    }
+
+    /** Retire une photo de l'arbre en cours (position `index` dans la liste, à partir de 0). */
+    fun retirerPhoto(index: Int) {
+        val t = etat.tournee ?: return
+        val p = etat.arbre.photos.getOrNull(index) ?: return
+        File(enAttente(t.code), p.fichier).delete()
+        maj { copy(arbre = arbre.copy(photos = arbre.photos.filterIndexed { i, _ -> i != index })) }
+    }
+
+    /** Le fichier d'une photo en attente (pour l'aperçu). */
+    fun fichierEnAttente(photo: PhotoEnAttente): File? = etat.tournee?.let { File(enAttente(it.code), photo.fichier) }
+
+    /**
+     * Donne aux photos en attente leur nom définitif `photos/<uuid>_<n>.jpg` et leur empreinte. Un `.nomedia` dans
+     * `racinePhotos/photos/` empêche toute galerie de les indexer. Rend la colonne `photos` et les fichiers écrits
+     * (à défaire si l'écriture de la note est refusée).
+     */
+    private fun nommerLesPhotos(code: String, uuidNote: String, attente: List<PhotoEnAttente>): Pair<List<PhotoGardee>, List<File>> {
+        if (attente.isEmpty()) return emptyList<PhotoGardee>() to emptyList()
+        val cible = dossierPhotos(code).also { it.mkdirs() }
+        // Au-dessus de photos/ et non dedans : le rendu (R10c) tient tout fichier de photos/ pour une photo à citer.
+        File(photos(code), ".nomedia").takeUnless { it.exists() }?.writeBytes(ByteArray(0))
+        val gardees = mutableListOf<PhotoGardee>()
+        val ecrits = mutableListOf<File>()
+        try {
+            attente.forEachIndexed { i, p ->
+                val n = i + 1
+                val source = File(enAttente(code), p.fichier)
+                val fichier = File(cible, NomsPhotos.fichier(uuidNote, n))
+                source.copyTo(fichier, overwrite = false)
+                ecrits += fichier
+                gardees += PhotoGardee(NomsPhotos.nom(uuidNote, n), Empreinte.sha256(fichier.inputStream()))
+            }
+        } catch (e: Exception) {
+            ecrits.forEach { it.delete() }
+            throw e
+        }
+        return gardees to ecrits
     }
 
     /** Retour d'un cran : arbres ou centre vers la placette, placette vers la liste, liste vers l'accueil. */
@@ -297,8 +388,16 @@ class ControleurTournee(
         val a = etat.arbre
         return buildList {
             a.essence?.let { Avertissements.ficheManquante(it, p.saison)?.let(::add) }
+            if (a.complet) photoManquante(p, a.photos.size)?.let(::add)
             if (p.arbres.any { it.rang == a.rang }) add("Le rang ${a.rang} est déjà noté.")
         }
+    }
+
+    /** « Photo manquante » : jamais un blocage (Pascal, 2026-10-28). `null` si le régime de la placette est tenu. */
+    private fun photoManquante(p: PlacetteLue, nb: Int): String? {
+        val regime = RegimePhotos.de(p.collectePhotos)
+        if (nb >= regime.min) return null
+        return if (regime.max == 1) "Photo manquante." else "Photo manquante : $nb sur ${regime.min} à ${regime.max} vues."
     }
 
     /** Avertissement de saison (SA1) de la placette, d'après la date du jour. */
@@ -340,14 +439,22 @@ class ControleurTournee(
             addProperty("saison", saison.name)
             addProperty("date_notation", iso(maintenant))
             addProperty("operateur", op)
-            add("photos", JsonArray())
         }
+        val (gardees, ecrits) = try {
+            nommerLesPhotos(t.code, uuid, a.photos)
+        } catch (e: Exception) {
+            maj { copy(erreur = "Photos non gardées : ${e.message ?: e.javaClass.simpleName}. L'arbre n'est pas enregistré.") }
+            return
+        }
+        ligne.add("photos", NomsPhotos.colonne(gardees))
         try {
             echange.enregistrerNotation(travail(t.code), ligne.toString())
         } catch (e: Exception) {
+            ecrits.forEach { it.delete() }
             maj { copy(erreur = refusDEcriture(e)) }
             return
         }
+        a.photos.forEach { File(enAttente(t.code), it.fichier).delete() }
         // Le journal ne porte ni classe ni proposition de l'IA : MB et MR/MA seulement (plan 005, Q9).
         val valeur = JsonObject().apply {
             addProperty("plot_id", p.plotId)
@@ -360,6 +467,15 @@ class ControleurTournee(
         }
         val type = if (t.estContreNotation) TypeLigne.CONTRE_NOTATION else TypeLigne.NOTATION
         ecrireJournal(t, uuid, type, valeur, op, finDePlacette = false)
+        // Une photo = un objet du journal (ADR 0005, plan 005 Q3) : uuid de la note, nom et SHA-256 du fichier gardé.
+        gardees.forEach { g ->
+            val photo = JsonObject().apply {
+                addProperty("note_uuid", uuid)
+                addProperty("nom", g.nom)
+                addProperty("sha256", g.sha256)
+            }
+            ecrireJournal(t, uuids.tirer(horloge().toEpochMilli()), TypeLigne.PHOTO, photo, op, finDePlacette = false)
+        }
         recharger(t.code)
         val apres = etat.tournee?.placette(p.plotId)
         maj { copy(arbre = ArbreEnCours(rang = apres?.prochainRang ?: a.rang, essence = essence), erreur = null) }
