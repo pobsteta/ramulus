@@ -140,3 +140,9 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
 ## Comment saura-t-on que ça marche ?
 
 Pascal ouvre Ramulus, Surculus et Marculus l'un après l'autre et reconnaît la même maison.
+
+## Remarque du 2026-10-29 (cap de Pascal)
+
+- « Garde les 3 petits points empilés pour tout le monde » : le menu est un « ⋮ » à droite du bandeau, comme
+  Surculus et Marculus, et non un hamburger. Les entrées restent les mêmes. La bascule liste / kanban est juste à
+  gauche du « ⋮ ».
