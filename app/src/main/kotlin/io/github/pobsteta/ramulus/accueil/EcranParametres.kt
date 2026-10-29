@@ -91,6 +91,19 @@ fun EcranParametres(vm: TourneeViewModel, etat: EtatTournee, reglages: ReglagesR
                 onMoins = { reglages.definirSeuilEcart(reglages.seuilEcartM - ReglagesRamulus.PAS_SEUIL_M) },
                 onPlus = { reglages.definirSeuilEcart(reglages.seuilEcartM + ReglagesRamulus.PAS_SEUIL_M) })
 
+            Section("Photos")
+            Text(
+                "Seuils provisoires de la mission 008, affichés ici ; Pascal les règle sur des photos de forêt avant le gel.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            for (s in seuilsPhotos()) {
+                Row(Modifier.fillMaxWidth().heightIn(min = 40.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(s.nom, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                    Text(s.valeur, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                }
+            }
+
             Section("Sauvegarde")
             Text("Dernière sauvegarde .ramsync", style = MaterialTheme.typography.titleMedium)
             Text(texteDerniereSauvegarde(reglages.derniereSauvegarde), style = MaterialTheme.typography.bodyLarge)

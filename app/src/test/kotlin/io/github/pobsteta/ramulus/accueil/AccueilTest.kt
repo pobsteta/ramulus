@@ -225,6 +225,18 @@ class AccueilTest {
         assertEquals("29/01/2027 à 13:05", texteDerniereSauvegarde(Instant.parse("2027-01-29T12:05:00Z")))
     }
 
+    @Test
+    fun `Parametres montre les seuils provisoires des photos, lus aux constantes de 008`() {
+        val s = seuilsPhotos().associate { it.nom to it.valeur }
+        assertEquals(5, s.size)
+        assertEquals("100", s.entries.first { it.key.startsWith("Flou") }.value)
+        assertEquals("20 %", s.entries.first { it.key.contains("clairs") }.value)
+        assertEquals("25 %", s.entries.first { it.key.contains("sombres") }.value)
+        assertEquals("2048 px", s.entries.first { it.key.contains("grand côté") }.value)
+        assertEquals("85", s.entries.first { it.key.contains("JPEG") }.value)
+        assertTrue(s.keys.any { it.contains("230") } && s.keys.any { it.contains("60") })
+    }
+
     // --- À propos ----------------------------------------------------------------------------------------------------
 
     @Test
