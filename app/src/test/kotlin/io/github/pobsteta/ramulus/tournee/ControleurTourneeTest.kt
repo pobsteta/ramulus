@@ -602,9 +602,11 @@ class ControleurTourneeTest {
     }
 
     @Test
-    fun `un controleur ne dans un snapshot de composition, ecrit depuis un autre fil, montre son nouvel etat`() {
-        // Le cas du téléphone : le contrôleur naît pendant la composition (snapshot mutable), puis demarrer() écrit
-        // depuis le fil de travail. L'état écrit doit être lu, après l'application du snapshot de composition.
+    fun `une ecriture faite depuis un autre fil se lit dans etats`() {
+        // Vérifie seulement ceci : demarrer() et renommerOperateur(), écrits depuis un autre fil, se lisent dans etat et
+        // dans le flux etats, même si le contrôleur est né dans un snapshot mutable. Ce test passait déjà avec l'ancien
+        // mutableStateOf : il ne prouve pas le défaut du téléphone. Cette preuve est l'essai sur l'appareil, inscrit
+        // au journal.
         val composition = androidx.compose.runtime.snapshots.Snapshot.takeMutableSnapshot()
         val c = composition.enter { controleurSansDemarrer() }
         val fil = Thread { c.demarrer() }
@@ -639,6 +641,9 @@ class ControleurTourneeTest {
         // Rendu de nouveau, puis une notation : même effet.
         c.reprendre("EXEMPLE-2027-01"); c.rendre()
         assertTrue(rendue())
+        // Cas inverse : naviguer sans rien écrire ne retire pas la marque.
+        c.reprendre("EXEMPLE-2027-01"); c.choisirPlacette("P001"); c.versArbres("P001"); c.retour()
+        assertTrue(rendue(), "reprendre, choisir, ouvrir les arbres et revenir n'écrivent rien")
         c.choisirPlacette("P001"); c.versArbres("P001")
         noter(c, "Chêne sessile", 2, 1)
         assertFalse(rendue(), "la notation a retiré la marque")
