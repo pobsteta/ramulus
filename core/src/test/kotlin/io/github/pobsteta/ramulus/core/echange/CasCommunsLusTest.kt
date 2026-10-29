@@ -49,4 +49,24 @@ class CasCommunsLusTest {
             }
         }
     }
+
+    @Test
+    fun `T2 est le seul cas de saisie, avec deux saisies dont la classe est remplie, et sa tournee reste celle de A1`() {
+        val saisies = cas.filter { it.estSaisie }
+        assertEquals(listOf("T2"), saisies.map { it.id }, "cas qui portent enregistrement (les tests de fichier les sautent)")
+        val t2 = saisies.single()
+        val enr = t2.enregistrement!!
+        assertEquals("notations", enr["table"].asString)
+        val lignes = enr.getAsJsonArray("saisies").map { it.asJsonObject }
+        assertEquals(2, lignes.size, "deux saisies : classe juste, classe fausse")
+        for (s in lignes) {
+            val classe = s.getAsJsonObject("ligne")["classe"]
+            assertTrue(classe != null && classe.isJsonPrimitive && classe.asString in setOf("A", "B", "C", "D", "E", "F"), "classe remplie de ${s["nom"]}")
+        }
+        assertEquals("refuse", t2.statut)
+        assertEquals(setOf("classe_saisie"), t2.motifs)
+        // La tournée de T2 est celle de A1 : mêmes lignes, mêmes tables (l'instantané ; les octets du .gpkg n'ont pas à l'être).
+        val a1 = Cas.instantaneAttendu(cas.single { it.id == "A1" }.fichiers.single())
+        assertEquals(a1, Cas.instantaneAttendu(t2.fichiers.single()), "T2 : la tournée à laquelle on ajoute est A1")
+    }
 }

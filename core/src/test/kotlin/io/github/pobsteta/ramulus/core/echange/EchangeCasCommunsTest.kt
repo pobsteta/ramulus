@@ -23,29 +23,32 @@ class EchangeCasCommunsTest {
 
     private val cas = Cas.tous()
 
+    /** Les cas rejoués par un fichier : ceux qui portent `enregistrement` (T2) sont des cas de saisie, voir `EchangeSaisieTest`. */
+    private val casDeFichier = cas.filter { !it.estSaisie }
+
     private fun verifier(c: Cas, obtenu: Verdict) {
         assertEquals(c.statut, obtenu.statut, "${c.nom} : statut")
         assertEquals(c.motifs, obtenu.motifs, "${c.nom} : motifs (ni plus, ni moins)")
     }
 
-    /** Lecteur « ramulus » : à l'ouverture d'une tournée de Nemeton (A1, A2, A6, R5, R6, R9, R11, R12). */
+    /** Lecteur « ramulus » : à l'ouverture d'une tournée de Nemeton (A1, A2, A6, R5, R6, R9, R11, R12) ; T2 est sauté (cas de saisie). */
     @TestFactory
     fun `a l ouverture, la tournee de Nemeton est jugee comme attendu`(): List<DynamicTest> =
-        cas.filter { it.lecteur == "ramulus" }.map { c ->
+        casDeFichier.filter { it.lecteur == "ramulus" }.map { c ->
             dynamicTest(c.nom) { verifier(c, PasserelleEchange.ouvrir(c.fichiers.single())) }
         }
 
     /** Lecteur « nemeton » sur un seul paquet : le rendu est contrôlé avant d'être rendu (A3, A4, R1 à R3, R7 à R10, S1, S2, X*). */
     @TestFactory
     fun `un paquet rendu est juge comme attendu par rapport a la tournee de depart`(): List<DynamicTest> =
-        cas.filter { it.lecteur == "nemeton" && it.fusion == null }.map { c ->
+        casDeFichier.filter { it.lecteur == "nemeton" && it.fusion == null }.map { c ->
             dynamicTest(c.nom) { verifier(c, PasserelleEchange.controlerRendu(c.fichiers.single(), c.depart)) }
         }
 
     /** Chaque fichier de chaque cas se relit avec tous ses attributs : l'instantané est celui du cas (critère 2). */
     @TestFactory
     fun `chaque fichier se relit sans perte d attribut`(): List<DynamicTest> =
-        cas.flatMap { c ->
+        casDeFichier.flatMap { c ->
             c.fichiers.map { f ->
                 dynamicTest("${c.id} : ${f.name}") {
                     val ecart = premiereDifference(Cas.instantaneAttendu(f), PasserelleEchange.instantane(f))
