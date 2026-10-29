@@ -91,6 +91,12 @@ fun EcranParametres(vm: TourneeViewModel, etat: EtatTournee, reglages: ReglagesR
                 onMoins = { reglages.definirSeuilEcart(reglages.seuilEcartM - ReglagesRamulus.PAS_SEUIL_M) },
                 onPlus = { reglages.definirSeuilEcart(reglages.seuilEcartM + ReglagesRamulus.PAS_SEUIL_M) })
 
+            Text(
+                "Alerte au relevé seulement ; le contrôle du rendu garde 30 m (format deperis-v1).",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
             Section("Photos")
             Text(
                 "Seuils provisoires de la mission 008, affichés ici ; Pascal les règle sur des photos de forêt avant le gel.",

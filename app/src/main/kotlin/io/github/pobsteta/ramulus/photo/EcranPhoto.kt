@@ -25,6 +25,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,7 +62,8 @@ fun EcranPhoto(vm: TourneeViewModel, plotId: String, fini: () -> Unit) {
     val c = vm.controleur
     val contexte = LocalContext.current
     val regime = c.regimePhotos(plotId)
-    val arbre = c.etat.arbre
+    val etatCourant by c.etats.collectAsState()
+    val arbre = etatCourant.arbre
     BackHandler(onBack = fini)
 
     var autorisee by remember {
@@ -118,7 +120,7 @@ fun EcranPhoto(vm: TourneeViewModel, plotId: String, fini: () -> Unit) {
                 for (s in derniere.signalements) Text(PriseDeVue.enClair(s), color = Ambre, fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
             }
             if (message != null) Text(message!!, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
-            if (c.etat.erreur != null) Text(c.etat.erreur!!, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
+            if (etatCourant.erreur != null) Text(etatCourant.erreur!!, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
 
             Button(
                 onClick = {

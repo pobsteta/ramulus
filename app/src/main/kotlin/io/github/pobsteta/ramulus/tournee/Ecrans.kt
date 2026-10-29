@@ -35,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -97,7 +98,7 @@ fun vueDe(etat: EtatTournee): Vue {
 @Composable
 fun AppRamulus(vm: TourneeViewModel, reglages: ReglagesRamulus) {
     val c = vm.controleur
-    val etat = c.etat
+    val etat by c.etats.collectAsState()
     BackHandler(enabled = etat.ecran !in listOf(Ecran.Accueil, Ecran.Operateur)) { vm.enArriere { c.retour() } }
     val plotId = when (val e = etat.ecran) {
         is Ecran.Placette -> e.plotId

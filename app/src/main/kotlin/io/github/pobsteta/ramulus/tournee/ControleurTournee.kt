@@ -1,8 +1,7 @@
 package io.github.pobsteta.ramulus.tournee
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -103,8 +102,14 @@ class ControleurTournee(
     private val uuids: UuidV7 = UuidV7(),
     private val zone: ZoneId = ZoneId.of("Europe/Paris"),
 ) {
-    var etat by mutableStateOf(EtatTournee())
-        private set
+    // L'état vit dans un StateFlow, pas dans un State de Compose : il s'écrit depuis le fil de travail (demarrer(), les
+    // gestes) et se lit depuis l'écran (collectAsState) sans dépendre du snapshot où le contrôleur est né.
+    private val flux = MutableStateFlow(EtatTournee())
+
+    /** L'état, à collecter par l'écran. */
+    val etats: StateFlow<EtatTournee> get() = flux
+
+    val etat: EtatTournee get() = flux.value
 
     private companion object {
         /** Fichier posé dans le dossier de la tournée une fois le `.zip` rendu et déposé. */
@@ -123,7 +128,7 @@ class ControleurTournee(
 
     @Synchronized
     private fun maj(f: EtatTournee.() -> EtatTournee) {
-        etat = etat.f()
+        flux.value = flux.value.f()
     }
 
     /** Un échec inattendu d'un geste : dit en clair, sans planter l'application. */
@@ -564,7 +569,12 @@ class ControleurTournee(
 
     // --- Outils ---------------------------------------------------------------------------------------------------
 
+    /**
+     * Relit la tournée après une écriture (centre, notation, clôture de placette). Une écriture modifie la tournée : la
+     * marque « rendue » tombe, la tournée revient dans « À faire » jusqu'au prochain rendu (arbitrage du 2026-10-29).
+     */
     private fun recharger(code: String) {
+        File(dossier(code), MARQUE_RENDUE).delete()
         val lue = LectureTournee.depuis(echange.instantane(travail(code)))
         maj { copy(tournee = lue) }
     }

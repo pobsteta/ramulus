@@ -1,6 +1,10 @@
 package io.github.pobsteta.ramulus
 
 import android.os.Bundle
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -54,9 +58,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Le contrôleur et les réglages naissent ici, sur le fil principal, avant la composition : leur état n'est
+        // jamais créé dans le snapshot de la composition (il démarre sur un autre fil dès sa création).
+        val controle = vm
+        val reglagesLus = reglages
         setContent {
-            RamulusTheme(reglages.choixTheme) {
-                AppRamulus(vm, reglages)
+            RamulusTheme(reglagesLus.choixTheme) {
+                // Une Surface donne à tout l'écran la couleur de fond et la couleur du texte du thème (onBackground) :
+                // sans elle le texte posé hors Scaffold reste noir, illisible en Sombre.
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    AppRamulus(controle, reglagesLus)
+                }
             }
         }
     }

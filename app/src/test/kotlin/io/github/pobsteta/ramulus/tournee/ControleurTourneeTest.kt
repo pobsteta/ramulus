@@ -104,10 +104,12 @@ class ControleurTourneeTest {
         tmp.deleteRecursively()
     }
 
-    private fun controleur() = ControleurTournee(
+    private fun controleurSansDemarrer() = ControleurTournee(
         racine = File(tmp, "tournees"), echange = echange, journal = journal, stock = stock, export = export,
         versionRamulus = "test", horloge = { maintenant },
-    ).also { it.demarrer() }
+    )
+
+    private fun controleur() = controleurSansDemarrer().also { it.demarrer() }
 
     private fun ouvrir(c: ControleurTournee, gpkg: File) = c.ouvrirTournee(gpkg.inputStream())
 
@@ -597,5 +599,53 @@ class ControleurTourneeTest {
         }
         assertEquals(Vue.PLACETTES, vueDe(EtatTournee(ecran = Ecran.Placette("inconnue"), tournee = t)))
         assertEquals(Vue.PLACETTE, vueDe(EtatTournee(ecran = Ecran.Placette(plot), tournee = t)))
+    }
+
+    @Test
+    fun `un controleur ne dans un snapshot de composition, ecrit depuis un autre fil, montre son nouvel etat`() {
+        // Le cas du téléphone : le contrôleur naît pendant la composition (snapshot mutable), puis demarrer() écrit
+        // depuis le fil de travail. L'état écrit doit être lu, après l'application du snapshot de composition.
+        val composition = androidx.compose.runtime.snapshots.Snapshot.takeMutableSnapshot()
+        val c = composition.enter { controleurSansDemarrer() }
+        val fil = Thread { c.demarrer() }
+        fil.start(); fil.join()
+        composition.apply().check()
+        composition.dispose()
+        assertEquals("operateur-A", c.etat.operateur)
+        assertEquals(Ecran.Accueil, c.etat.ecran)
+        // Et l'état lu dans un snapshot ouvert avant l'écriture ne l'empêche pas d'être vu ensuite.
+        val lecteur = androidx.compose.runtime.snapshots.Snapshot.takeSnapshot()
+        val fil2 = Thread { c.renommerOperateur("Claire") }
+        fil2.start(); fil2.join()
+        lecteur.dispose()
+        assertEquals("Claire", c.etat.operateur)
+        assertEquals("Claire", c.etats.value.operateur, "le flux que l'écran collecte porte le même état")
+    }
+
+    @Test
+    fun `toute ecriture apres le rendu retire la marque rendue et la tournee revient dans A faire`() {
+        val c = controleur()
+        ouvrir(c, fixture("A1-tournee-depart"))
+        echange.rendu = { sortie -> sortie.writeText("zip"); """{"verdict":"ok","motifs":[],"messages":[]}""" }
+        c.rendre()
+        fun rendue() = File(tmp, "tournees/EXEMPLE-2027-01/rendue").exists()
+        assertTrue(rendue())
+        // Un centre relevé après le rendu modifie la tournée.
+        c.choisirPlacette("P001")
+        c.enregistrerCentre("P001", centreProche(c.etat.tournee!!.placette("P001")!!), EcartAuPointPrevu(3.6, false))
+        assertFalse(rendue(), "le centre a retiré la marque")
+        c.retour(); c.retour(); c.retour()
+        assertFalse(c.etat.enCours.single().rendue)
+        // Rendu de nouveau, puis une notation : même effet.
+        c.reprendre("EXEMPLE-2027-01"); c.rendre()
+        assertTrue(rendue())
+        c.choisirPlacette("P001"); c.versArbres("P001")
+        noter(c, "Chêne sessile", 2, 1)
+        assertFalse(rendue(), "la notation a retiré la marque")
+        // Et la clôture.
+        c.rendre()
+        assertTrue(rendue())
+        c.cloturerPlacette("P001")
+        assertFalse(rendue(), "la clôture a retiré la marque")
     }
 }
