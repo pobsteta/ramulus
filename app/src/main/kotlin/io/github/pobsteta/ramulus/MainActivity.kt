@@ -7,6 +7,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import io.github.pobsteta.ramulus.accueil.MagasinPrefs
+import io.github.pobsteta.ramulus.accueil.ReglagesRamulus
 import io.github.pobsteta.ramulus.data.journal.HorlogesAndroid
 import io.github.pobsteta.ramulus.data.journal.JournalRepository
 import io.github.pobsteta.ramulus.data.journal.RamulusDatabase
@@ -23,6 +25,9 @@ import io.github.pobsteta.ramulus.ui.theme.RamulusTheme
 import java.io.File
 
 class MainActivity : ComponentActivity() {
+    // Thème, GNSS, date de la dernière sauvegarde : gardés sur le téléphone seulement.
+    private val reglages by lazy { ReglagesRamulus(MagasinPrefs(applicationContext)) }
+
     private val vm: TourneeViewModel by viewModels {
         viewModelFactory {
             initializer {
@@ -36,7 +41,7 @@ class MainActivity : ComponentActivity() {
                     ControleurTournee(
                         racine = File(ctx.filesDir, "tournees"),
                         echange = EchangeReel,
-                        journal = JournalAndroid(journal, sauvegarde),
+                        journal = JournalAndroid(journal, sauvegarde, surSauvegarde = { reglages.noterSauvegarde(it) }),
                         stock = StockOperateurPrefs(ctx),
                         export = ExportDocuments(ctx),
                         versionRamulus = version,
@@ -50,8 +55,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            RamulusTheme {
-                AppRamulus(vm)
+            RamulusTheme(reglages.choixTheme) {
+                AppRamulus(vm, reglages)
             }
         }
     }

@@ -167,6 +167,10 @@ dependencies {
     implementation(libs.compose.ui.graphics)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.core)
+    implementation(libs.compose.material.icons.extended)
+    // Style commun de la plateforme (mission 019) : le schéma de couleurs de Marculus, Surculus et Groma.
+    implementation(libs.terrain.style)
     debugImplementation(libs.compose.ui.tooling)
 
     testImplementation(kotlin("test-junit"))

@@ -27,7 +27,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import io.github.pobsteta.ramulus.core.gnss.CentreReleve
-import io.github.pobsteta.ramulus.core.gnss.CollecteCentre
+import io.github.pobsteta.ramulus.accueil.ReglagesRamulus
 import io.github.pobsteta.ramulus.core.gnss.EcartAuPointPrevu
 import io.github.pobsteta.ramulus.core.gnss.PointLambert93
 import io.github.pobsteta.ramulus.core.gnss.ResultatReleve
@@ -35,7 +35,7 @@ import java.util.Locale
 
 /**
  * « Relever le centre » : écoute le GNSS du téléphone, moyenne les mesures, affiche la précision, le nombre de
- * mesures et l'écart au point [prevu] (Lambert-93, s'il est connu). Un écart de plus de 30 m est **signalé**, jamais
+ * mesures et l'écart au point [prevu] (Lambert-93, s'il est connu). Un écart de plus que le seuil des Paramètres (30 m par défaut, provisoire) est **signalé**, jamais
  * bloquant : [surCentre] est appelé quand l'opérateur valide, avec l'écart. L'écriture dans le GeoPackage n'est pas
  * ici (mission 004). Gros boutons : gants, soleil.
  */
@@ -43,12 +43,13 @@ import java.util.Locale
 fun ReleverLeCentre(
     prevu: PointLambert93?,
     surCentre: (CentreReleve, EcartAuPointPrevu?) -> Unit,
+    reglages: ReglagesRamulus,
     modifier: Modifier = Modifier,
 ) {
     val ctx = LocalContext.current
     var autorisee by remember { mutableStateOf(SourcePosition.localisationAutorisee(ctx)) }
     var enCours by remember { mutableStateOf(false) }
-    var collecte by remember { mutableStateOf(CollecteCentre()) }
+    var collecte by remember { mutableStateOf(reglages.nouvelleCollecte()) }
     var nbMesures by remember { mutableIntStateOf(0) }
     var precisionRefusee by remember { mutableStateOf(false) }
     val demande = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
@@ -115,11 +116,11 @@ fun ReleverLeCentre(
                         val c = resultat.centre
                         Text("Précision annoncée : ${un(c.precisionM)} m ; dispersion des mesures : ${un(c.dispersionM)} m")
                         if (prevu != null) {
-                            val e = EcartAuPointPrevu.entre(c.position, prevu)
+                            val e = reglages.ecart(c.position.distanceA(prevu))
                             Text("Écart au point prévu : ${un(e.metres)} m")
                             if (e.signale) {
                                 Text(
-                                    "Centre éloigné du point prévu (plus de ${EcartAuPointPrevu.SEUIL_PROVISOIRE_M.toInt()} m) : " +
+                                    "Centre éloigné du point prévu (plus de ${reglages.seuilEcartM} m) : " +
                                         "vérifiez le piquet. Vous pouvez valider quand même.",
                                     color = MaterialTheme.colorScheme.error,
                                 )
@@ -134,7 +135,7 @@ fun ReleverLeCentre(
                 Button(
                     onClick = {
                         if (!enCours) {
-                            collecte = CollecteCentre()
+                            collecte = reglages.nouvelleCollecte()
                             nbMesures = 0
                         }
                         enCours = !enCours
@@ -142,7 +143,7 @@ fun ReleverLeCentre(
                     Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 ) { Text(if (enCours) "Arrêter" else if (nbMesures > 0) "Recommencer" else "Relever le centre") }
                 if (resultat is ResultatReleve.Centre && !enCours) {
-                    val e = prevu?.let { EcartAuPointPrevu.entre(resultat.centre.position, it) }
+                    val e = prevu?.let { reglages.ecart(resultat.centre.position.distanceA(it)) }
                     OutlinedButton(
                         onClick = { surCentre(resultat.centre, e) },
                         Modifier.fillMaxWidth().heightIn(min = 56.dp),

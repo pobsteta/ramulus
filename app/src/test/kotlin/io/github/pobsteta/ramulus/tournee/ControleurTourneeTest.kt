@@ -434,4 +434,71 @@ class ControleurTourneeTest {
         assertNull(c.etat.erreur)
         assertTrue(journal.saisies.single().valeur.contains("\"saison\":\"ETE\""), journal.saisies.single().valeur)
     }
+
+    // --- Accueil (mission 019) -------------------------------------------------------------------------------------
+
+    @Test
+    fun `une tournee rendue passe dans Terminees, une tournee refusee ou jamais rendue reste a faire`() {
+        val c = controleur()
+        ouvrir(c, fixture("A1-tournee-depart"))
+        c.retour()
+        assertFalse(c.etat.enCours.single().rendue)
+        ouvrir(c, fixture("A1-tournee-depart"))
+        echange.rendu = { """{"verdict":"refuse","motifs":["classe_differente_abaque"],"messages":["x"]}""" }
+        c.rendre()
+        c.retour(); c.retour()
+        assertFalse(c.etat.enCours.single().rendue, "un rendu refusé ne termine pas la tournée")
+        echange.rendu = { sortie -> sortie.writeText("zip"); """{"verdict":"ok","motifs":[],"messages":[]}""" }
+        c.versRendu(); c.rendre()
+        c.retour(); c.retour()
+        assertEquals(Ecran.Accueil, c.etat.ecran)
+        assertTrue(c.etat.enCours.single().rendue)
+        assertTrue(controleur().etat.enCours.single().rendue, "la marque survit au redémarrage")
+    }
+
+    @Test
+    fun `Parametres s'ouvre et ramene a l'accueil, le nom se change sans quitter l'ecran`() {
+        val c = controleur()
+        c.versParametres()
+        assertEquals(Ecran.Parametres, c.etat.ecran)
+        c.renommerOperateur("   ")
+        assertNotNull(c.etat.erreur)
+        assertEquals("operateur-A", stock.nom)
+        c.renommerOperateur(" Claire Martin ")
+        assertEquals(Ecran.Parametres, c.etat.ecran)
+        assertEquals("Claire Martin", c.etat.operateur)
+        assertEquals("Claire Martin", stock.nom)
+        c.retour()
+        assertEquals(Ecran.Accueil, c.etat.ecran)
+    }
+
+    @Test
+    fun `l'ecran initial n'est jamais vide, avant comme apres la lecture du nom`() {
+        // Avant demarrer() : l'état par défaut montre l'accueil (bandeau, menu), pas du vide.
+        assertEquals(Vue.ACCUEIL, vueDe(EtatTournee()))
+        stock.nom = null
+        assertEquals(Vue.NOM, vueDe(controleur().etat))
+        stock.nom = "operateur-A"
+        assertEquals(Vue.ACCUEIL, vueDe(controleur().etat))
+    }
+
+    @Test
+    fun `toute combinaison d'ecran et de tournee donne une vue, jamais du vide`() {
+        val c = controleur()
+        ouvrir(c, fixture("A1-tournee-depart"))
+        val t = c.etat.tournee!!
+        val plot = t.placettes.first().plotId
+        val ecrans = listOf(
+            Ecran.Operateur, Ecran.Accueil, Ecran.Parametres, Ecran.Placettes, Ecran.Rendu,
+            Ecran.Placette(plot), Ecran.Centre(plot), Ecran.Arbres(plot), Ecran.Placette("inconnue"), Ecran.Arbres("inconnue"),
+        )
+        for (e in ecrans) {
+            assertNotNull(vueDe(EtatTournee(ecran = e, tournee = t)), "avec tournée : $e")
+            // Sans tournée, les écrans de tournée retombent sur l'accueil.
+            val sans = vueDe(EtatTournee(ecran = e, tournee = null))
+            assertTrue(sans == Vue.NOM || sans == Vue.ACCUEIL || sans == Vue.PARAMETRES, "sans tournée : $e -> $sans")
+        }
+        assertEquals(Vue.PLACETTES, vueDe(EtatTournee(ecran = Ecran.Placette("inconnue"), tournee = t)))
+        assertEquals(Vue.PLACETTE, vueDe(EtatTournee(ecran = Ecran.Placette(plot), tournee = t)))
+    }
 }

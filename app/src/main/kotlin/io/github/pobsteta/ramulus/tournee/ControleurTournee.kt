@@ -26,6 +26,7 @@ import java.time.temporal.ChronoUnit
 sealed interface Ecran {
     data object Operateur : Ecran
     data object Accueil : Ecran
+    data object Parametres : Ecran
     data object Placettes : Ecran
     data class Placette(val plotId: String) : Ecran
     data class Centre(val plotId: String) : Ecran
@@ -46,7 +47,7 @@ data class ArbreEnCours(
 }
 
 /** Une tournée déjà copiée sur l'appareil, à reprendre. */
-data class TourneeEnCours(val code: String, val nature: String, val nbPlacettes: Int, val nbNotees: Int)
+data class TourneeEnCours(val code: String, val nature: String, val nbPlacettes: Int, val nbNotees: Int, val rendue: Boolean = false)
 
 /** Ce que le rendu a donné : verdict, motifs en clair, nom du `.zip` déposé (absent si refusé). */
 data class ResultatRendu(
@@ -92,6 +93,11 @@ class ControleurTournee(
 ) {
     var etat by mutableStateOf(EtatTournee())
         private set
+
+    private companion object {
+        /** Fichier posé dans le dossier de la tournée une fois le `.zip` rendu et déposé. */
+        const val MARQUE_RENDUE = "rendue"
+    }
 
     private var derniereEssence: EssenceDeperis? = null
 
@@ -181,7 +187,7 @@ class ControleurTournee(
             if (!g.exists()) return@mapNotNull null
             runCatching {
                 val t = LectureTournee.depuis(echange.instantane(g))
-                TourneeEnCours(t.code, t.nature, t.placettes.size, t.nbNotees)
+                TourneeEnCours(t.code, t.nature, t.placettes.size, t.nbNotees, rendue = File(d, MARQUE_RENDUE).exists())
             }.getOrNull()
         }
 
@@ -212,9 +218,23 @@ class ControleurTournee(
             is Ecran.Placette -> Ecran.Placettes
             Ecran.Rendu -> Ecran.Placettes
             Ecran.Placettes -> Ecran.Accueil
+            Ecran.Parametres -> Ecran.Accueil
             else -> e
         }
         maj { copy(ecran = suivant, erreur = null, enCours = if (suivant == Ecran.Accueil) tourneesEnCours() else enCours) }
+    }
+
+    fun versParametres() = maj { copy(ecran = Ecran.Parametres, erreur = null) }
+
+    /** Change le nom de l'opérateur depuis Paramètres, sans quitter l'écran ; un nom vide est refusé en clair. */
+    fun renommerOperateur(nom: String) {
+        val propre = Normalizer.normalize(nom.trim(), Normalizer.Form.NFC)
+        if (propre.isEmpty()) {
+            maj { copy(erreur = "Entrez votre nom.") }
+            return
+        }
+        stock.ecrire(propre)
+        maj { copy(operateur = propre, erreur = null) }
     }
 
     fun versRendu() = maj { copy(ecran = Ecran.Rendu, erreur = null, rendu = null) }
@@ -401,6 +421,8 @@ class ControleurTournee(
                 return
             }
             val nom = export.exporter(sortie, "${t.code}.zip")
+            // La tournée est rendue : l'accueil la range dans « Terminées » (et le kanban en « Réalisée »).
+            runCatching { File(dossier(t.code), MARQUE_RENDUE).writeText(nom) }
             runCatching { journal.sauvegarderSiDue(t.code, t.versionNemeton, finDePlacette = true) }
             maj { copy(rendu = ResultatRendu(statut, motifs, msgs, nom), ecran = Ecran.Rendu, erreur = null) }
         } catch (e: Exception) {
