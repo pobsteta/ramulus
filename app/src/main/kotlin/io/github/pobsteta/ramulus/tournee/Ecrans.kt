@@ -88,6 +88,8 @@ fun AppRamulus(vm: TourneeViewModel) {
 
 // --- Éléments communs -------------------------------------------------------------------------------------------
 
+private const val REGLE_CHOIX_PAR_DEFAUT = "Kraft 1 à 3, tour d'horizon depuis le nord, sens horaire"
+
 @Composable
 private fun Page(
     titre: String,

@@ -267,18 +267,20 @@ class ControleurTourneeTest {
     }
 
     @Test
-    fun `l'enregistrement exige un numero peint, l'essence et les deux notes`() {
+    fun `l'enregistrement exige l'essence et les deux notes, et aucun numero peint`() {
         val c = controleur()
         ouvrir(c, fixture("A1-tournee-depart"))
         c.versArbres("P001")
         c.choisirEssence(Essences.toutes.first())
         c.choisirMb(Note(1))
         c.enregistrerArbre()
-        c.choisirSecond(Note(1))
-        c.enregistrerArbre()
         assertFalse(c.etat.arbre.complet)
         assertTrue(c.etat.tournee!!.placette("P001")!!.arbres.isEmpty())
         assertTrue(journal.saisies.isEmpty())
+        c.choisirSecond(Note(1))
+        assertTrue(c.etat.arbre.complet, "essence et deux notes suffisent")
+        c.enregistrerArbre()
+        assertEquals(1, c.etat.tournee!!.placette("P001")!!.arbres.size)
     }
 
     @Test

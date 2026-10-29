@@ -380,7 +380,7 @@ class EchangeEcritureTest {
         val v = PasserelleEchange.rendre(travail, depart1, racine, "operateur-A", "exemple", File(tmp, "r.zip"))
 
         assertEquals("accepte", v.statut, v.toString())
-        assertEquals(emptySet(), v.motifs)
+        assertEquals(emptySet<String>(), v.motifs)
     }
 
     // ---------------------------------------------------------------------------------------------------------
