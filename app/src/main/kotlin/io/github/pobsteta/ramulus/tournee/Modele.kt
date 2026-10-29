@@ -41,6 +41,8 @@ data class ArbreLu(
     val mb: Int,
     val second: Int,
     val classe: Classe?,
+    /** Noms cités par la colonne `photos` (`photos/<uuid>_<n>.jpg`). */
+    val photos: List<String> = emptyList(),
 )
 
 data class PlacetteLue(
@@ -113,6 +115,7 @@ object LectureTournee {
                         mb = entier(n, "mb") ?: 0,
                         second = entier(n, "second") ?: 0,
                         classe = texte(n, "classe")?.let { runCatching { Classe.lire(it) }.getOrNull() },
+                        photos = photosCitees(n),
                     )
                 }.sortedBy { it.rang },
             )
@@ -128,6 +131,12 @@ object LectureTournee {
 
     private fun lignes(tables: JsonObject, nom: String): List<JsonObject> =
         tables.getAsJsonObject(nom)?.getAsJsonArray("lignes")?.map { it.asJsonObject } ?: emptyList()
+
+    /** Les noms de la colonne `photos` (tableau d'objets `{nom, sha256}` dans l'instantané). */
+    private fun photosCitees(note: JsonObject): List<String> =
+        (valeur(note, "photos") as? com.google.gson.JsonArray)
+            ?.mapNotNull { (it as? JsonObject)?.let { o -> texte(o, "nom") } }
+            ?: emptyList()
 
     private fun valeur(o: JsonObject, cle: String): JsonElement? = o[cle]?.takeUnless { it.isJsonNull }
     private fun texte(o: JsonObject, cle: String): String? = valeur(o, cle)?.asString
