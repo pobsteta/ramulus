@@ -11,3 +11,6 @@ local.properties
 *.jks
 .idea/
 __pycache__/
+
+# Police de l'icône (OFL-1.1), téléchargée par app/icone/generer_icone.py, non versionnée
+app/icone/*.ttf

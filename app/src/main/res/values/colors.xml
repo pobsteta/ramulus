@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Vert de Marculus (thème commun Néméton) -->
-    <color name="fond_icone">#FF374742</color>
+    <!-- Fond de l'icône : blanc, comme Surculus (Marculus : même fond) -->
+    <color name="ic_launcher_background">#FFFFFF</color>
 </resources>
