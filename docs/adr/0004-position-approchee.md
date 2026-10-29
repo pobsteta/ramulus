@@ -85,7 +85,9 @@ Rien de ce qui précède n'est effacé ; ceci le corrige.
   tombe : le **rang**, attribué par l'application, suffit à rattacher un arbre.
 - **Le rang** : le premier arbre noté d'une placette porte le rang 1, puis chaque arbre enregistré fait passer au
   suivant, jusqu'à `nb_arbres`. L'opérateur ne le choisit pas. Il peut rouvrir un arbre déjà noté pour le corriger :
-  l'arbre garde son rang, et la correction est signalée au rendu (`doublon_arbre`), jamais faite en silence.
+  l'arbre garde son rang. Provisoire : une correction écrit une nouvelle ligne du même rang, signalée `doublon_arbre` au
+  rendu ; le remplacement de la ligne est l'objet de la mission 015, et la règle de la ligne qui fait foi sera décidée
+  par Pascal.
 - **`repere` reste dans `deperis-v1`, facultatif (NULL permis).** Il désigne un repère physique qui existe déjà sur
   l'arbre (plaque, ancienne marque), jamais demandé à l'opérateur : si la tournée de départ en porte un pour cet arbre,
   Ramulus le recopie dans la notation ; sinon il écrit NULL. La suppression de la colonne avant le gel du format est une

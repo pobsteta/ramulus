@@ -206,7 +206,7 @@ private fun EcranPlacettes(vm: TourneeViewModel, etat: EtatTournee) {
             val statut = p.statut
             val (libelle, couleur) = when (statut) {
                 Statut.NOTEE -> "Notée" to MaterialTheme.colorScheme.primary
-                Statut.EN_COURS -> "${p.arbres.size} sur ${p.nbArbres} arbres" to Ambre
+                Statut.EN_COURS -> "${p.nbRangsNotes} sur ${p.nbArbres} arbres" to Ambre
                 Statut.CENTRE_RELEVE -> "Centre relevé" to Ambre
                 Statut.A_FAIRE -> "À faire" to Color.Gray
             }
@@ -241,7 +241,7 @@ private fun EcranPlacette(vm: TourneeViewModel, etat: EtatTournee, plotId: Strin
         titre = plotId,
         question = when (p.statut) {
             Statut.NOTEE -> "Placette notée"
-            else -> "${p.arbres.size} sur ${p.nbArbres} arbres notés"
+            else -> "${p.nbRangsNotes} sur ${p.nbArbres} arbres notés"
         },
         pied = pied(t, etat.operateur),
         retour = { vm.enArriere { c.retour() } },
@@ -273,11 +273,11 @@ private fun EcranPlacette(vm: TourneeViewModel, etat: EtatTournee, plotId: Strin
             principal = centre != null || t.estContreNotation,
         ) { c.versArbres(plotId) }
         if (!p.estNotee) {
-            GrosBouton("Clore la placette", enabled = p.arbres.isNotEmpty(), principal = p.arbres.size >= p.nbArbres) {
+            GrosBouton("Clore la placette", enabled = p.arbres.isNotEmpty(), principal = p.complete) {
                 vm.enArriere { c.cloturerPlacette(plotId) }
             }
-            if (p.arbres.isNotEmpty() && p.arbres.size < p.nbArbres) {
-                AVerifier(listOf("${p.arbres.size} sur ${p.nbArbres} arbres notés : vous pouvez clore quand même."))
+            if (p.arbres.isNotEmpty() && !p.complete) {
+                AVerifier(listOf("${p.nbRangsNotes} sur ${p.nbArbres} arbres notés : vous pouvez clore quand même."))
             }
             if (!t.estContreNotation && centre == null && p.arbres.isNotEmpty()) AVerifier(listOf("Aucun centre relevé."))
         }
@@ -325,10 +325,15 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
         pied = pied(t, etat.operateur),
         retour = { vm.enArriere { c.retour() } },
     ) {
-        Text(
+        val formulaire = !p.complete || a.rouvert
+        if (!formulaire) {
+            Text("Placette complète : ${p.nbRangsNotes} arbres sur ${p.nbArbres}", style = MaterialTheme.typography.titleLarge)
+            if (!p.estNotee) GrosBouton("Clore la placette", principal = true) { vm.enArriere { c.cloturerPlacette(plotId) } }
+        } else Text(
             "Arbre ${a.rang} sur ${p.nbArbres} — continuez le tour depuis le nord, sens horaire",
             style = MaterialTheme.typography.titleLarge,
         )
+        if (formulaire) Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Box {
             OutlinedButton(onClick = { menu = true }, Modifier.fillMaxWidth().heightIn(min = 64.dp)) {
                 Text(a.essence?.nom ?: "Choisir l'essence", fontSize = 20.sp)
@@ -380,10 +385,11 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
         AVerifier(c.avertissementsArbre() + etat.avertissements)
         Erreur(etat.erreur)
         GrosBouton(if (p.arbres.any { it.rang == a.rang }) "Enregistrer la correction" else "Enregistrer l'arbre", enabled = a.complet && !p.estNotee) { vm.enArriere { c.enregistrerArbre() } }
+        }
 
         if (p.arbres.isNotEmpty()) {
             Text("Déjà notés (touchez un arbre pour le corriger)", style = MaterialTheme.typography.titleMedium)
-            for (n in p.arbres) {
+            for (n in p.arbresRetenus) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -395,14 +401,14 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
                         contentAlignment = Alignment.Center,
                     ) { Text(n.classe?.name ?: "?", color = Color.White, fontWeight = FontWeight.Bold) }
                     Column {
-                        Text("${n.essence} · MB ${n.mb} · ${n.second}")
+                        Text("${n.essence} · MB ${n.mb} · ${n.second}" + if (n.rang in p.rangsCorriges) " · corrigé" else "")
                         if (n.photos.size < regime.min) Text("photo manquante", color = Ambre, fontSize = 14.sp)
                     }
                 }
             }
         }
-        if (!p.estNotee && p.arbres.isNotEmpty()) {
-            GrosBouton("Clore la placette", principal = p.arbres.size >= p.nbArbres) { vm.enArriere { c.cloturerPlacette(plotId) } }
+        if (!p.estNotee && p.arbres.isNotEmpty() && formulaire) {
+            GrosBouton("Clore la placette", principal = p.complete) { vm.enArriere { c.cloturerPlacette(plotId) } }
         }
     }
 }

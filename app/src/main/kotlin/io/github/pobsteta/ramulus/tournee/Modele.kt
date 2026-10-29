@@ -68,6 +68,23 @@ data class PlacetteLue(
             else -> Statut.A_FAIRE
         }
 
+    /**
+     * Les arbres distincts : la **dernière** ligne de chaque rang (une correction écrit une nouvelle ligne du même rang ;
+     * la règle de la ligne qui fait foi sera décidée par Pascal, mission 015). Triés par rang.
+     */
+    val arbresRetenus: List<ArbreLu>
+        get() = arbres.groupBy { it.rang }.toSortedMap().map { (_, lignes) -> lignes.last() }
+
+    /** Nombre de rangs distincts notés : ce que « 3 sur 4 » compte, jamais le nombre de lignes. */
+    val nbRangsNotes: Int get() = arbres.map { it.rang }.toSet().size
+
+    /** Rangs qui portent plus d'une ligne : la dernière remplace les autres, et le rendu le signale. */
+    val rangsCorriges: Set<Int>
+        get() = arbres.groupBy { it.rang }.filterValues { it.size > 1 }.keys
+
+    /** Tous les rangs de 1 à `nbArbres` ont une note. */
+    val complete: Boolean get() = (1..nbArbres).all { r -> arbres.any { it.rang == r } }
+
     /** Premier rang du tour d'horizon qui n'a pas encore de note, ou le dernier rang si tout est noté. */
     val prochainRang: Int get() = (1..nbArbres).firstOrNull { r -> arbres.none { it.rang == r } } ?: nbArbres
 

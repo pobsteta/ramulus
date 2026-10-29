@@ -46,6 +46,8 @@ data class PhotoEnAttente(val fichier: String, val signalements: List<Signalemen
 /** L'arbre que l'opérateur est en train de noter. La classe n'est jamais saisie : elle sort de l'abaque. */
 data class ArbreEnCours(
     val rang: Int = 1,
+    /** Arbre déjà noté, rouvert pour correction : seul cas où l'on écrit un rang déjà noté. */
+    val rouvert: Boolean = false,
     val essence: EssenceDeperis? = null,
     val mb: Note? = null,
     val second: Note? = null,
@@ -378,7 +380,7 @@ class ControleurTournee(
         if (p.estNotee) return
         val lu = p.arbres.lastOrNull { it.rang == rang } ?: return
         val essence = Essences.toutes.firstOrNull { it.nom == lu.essence }
-        maj { copy(arbre = ArbreEnCours(rang = lu.rang, essence = essence, mb = Note(lu.mb), second = Note(lu.second)), erreur = null) }
+        maj { copy(arbre = ArbreEnCours(rang = lu.rang, rouvert = true, essence = essence, mb = Note(lu.mb), second = Note(lu.second)), erreur = null) }
     }
 
     /** Avertissements de l'arbre en cours : fiche manquante (SA2), rang déjà noté. Aucun ne bloque. */
@@ -417,6 +419,7 @@ class ControleurTournee(
         val p = t.placette(ecran.plotId) ?: return
         val op = etat.operateur ?: return
         val a = etat.arbre
+        if (p.complete && !a.rouvert) return // placette complète : pas de rang à noter, seulement des corrections voulues
         val essence = a.essence ?: return
         val mb = a.mb ?: return
         val second = a.second ?: return
@@ -501,7 +504,7 @@ class ControleurTournee(
         }
         val valeur = JsonObject().apply {
             addProperty("plot_id", plotId)
-            addProperty("nb_arbres_notes", p.arbres.size)
+            addProperty("nb_arbres_notes", p.nbRangsNotes)
         }
         ecrireJournal(t, uuids.tirer(horloge().toEpochMilli()), TypeLigne.PLACETTE_NOTEE, valeur, op, finDePlacette = true)
         recharger(t.code)
