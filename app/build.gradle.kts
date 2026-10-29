@@ -145,6 +145,11 @@ dependencies {
     // Lecture et écriture de deperis.gpkg (EchangeDeperis, mission 004) : sqlite-jdbc arrive avec :core, ses natifs
     // par la tâche extraireNativesSqlite.
     implementation(project(":core"))
+    implementation(project(":data"))
+    // Les écrans lisent les résultats JSON de l'échange (EchangeDeperis) ; Room n'est vu que par la fabrique du journal.
+    implementation(libs.gson)
+    implementation(libs.room.runtime)
+
     nativesSqlite("org.xerial:sqlite-jdbc:${libs.versions.sqliteJdbc.get()}:natives-android")
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
@@ -163,6 +168,9 @@ dependencies {
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
     debugImplementation(libs.compose.ui.tooling)
+
+    testImplementation(kotlin("test-junit"))
+    testImplementation(libs.junit4)
 }
 
 // Les natifs doivent être là avant toute fusion de ressources JNI.

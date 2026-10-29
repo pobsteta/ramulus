@@ -5,6 +5,8 @@
          arrière-plan, jamais envoyée. Caméra et stockage arrivent avec leurs missions. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Rendu du .zip dans Documents/Ramulus/ : avant Android 10 seulement (mission 006) ; ensuite MediaStore, sans autorisation. -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
     <application
