@@ -122,6 +122,7 @@ internal object Controle {
         for (ligne in lignes(inst, "notations")) {
             val uuid = ligne["uuid"]?.toString()
             for (champ in listOf("rang", "repere")) {
+                if (ligne[champ] == null || ligne[champ].isJsonNull) continue // repère facultatif : deux NULL ne sont pas le même arbre
                 val k = Triple(ligne["plot_id"], champ, ligne[champ])
                 if (k in arbres && arbres[k] != uuid) {
                     ajouter("doublon_arbre", "notations : ${k.first} $champ ${k.third} noté deux fois (${arbres[k]}, $uuid)")

@@ -15,7 +15,7 @@ la mission 002 (Q1 à Q13, cités ci-dessous) et décisions de Pascal du 2026-10
    contre-notation de 15 jours dans les exemples, **provisoire** ; `user_version` de 10200 à 10499.
 2. Dans un fichier N+1, une valeur nouvelle d'une colonne connue est **refusée** (voir « Version »).
 3. Le « même arbre » du signalement `doublon_arbre` : même `plot_id` et même `rang`, **ou** même `plot_id` et même
-   `repere`.
+   `repere` (depuis le 2026-10-29, seulement si les deux `repere` sont non NULL : on ne peint plus les arbres).
 4. **Tous les textes en Unicode NFC**, vérifiés par le contrôle de référence (`texte_non_nfc`, cas R12).
 5. **Conflit de fusion traité comme Surculus** (`sursync-v1.md`, l. 63) : les deux versions sont écartées, le conflit
    est signalé (`uuid_contenu_different`), le reste de l'union est gardé (voir « Paquet rendu », cas S3). Cette
@@ -140,7 +140,7 @@ ne relève pas de nouveau centre (Q12), et un centre modifié est refusé (`plan
 | `uuid` | TEXT | UUID v7 (RFC 9562) en minuscules, unique ; union sur l'`uuid` (ADR 0005) |
 | `plot_id` | TEXT | présent dans `placettes` |
 | `rang` | INTEGER | position dans le tour d'horizon depuis le nord, sens horaire ; de 1 à `nb_arbres` (ADR 0004) |
-| `repere` | TEXT | numéro peint sur l'arbre ; texte, « 12b » permis (Q10) |
+| `repere` | TEXT | repère physique déjà présent sur l'arbre (plaque, ancienne marque), recopié de la tournée de départ s'il y figure ; sinon NULL ; Ramulus ne le demande jamais à l'opérateur ; texte, « 12b » permis (Q10) |
 | `essence` | TEXT | l'une des 19 essences de [`essences.csv`](../referentiels/deperis/essences.csv), nom exact (Q11, spec § 4) |
 | `type` | TEXT | `FEUILLU` ou `RESINEUX`, celui de l'essence dans `essences.csv` |
 | `mb` | INTEGER | 0 à 5 |
@@ -159,8 +159,8 @@ ne relève pas de nouveau centre (Q12), et un centre modifié est refusé (`plan
 Les six colonnes de l'IA sont **toutes vides ou toutes remplies** (`ia_incomplete`) ; vides en tranche 1 (spec § 4).
 
 `notations` n'existe que dans une tournée de première notation ; `contre_notations` que dans une tournée de
-contre-notation. Deux notations du même arbre (même `plot_id` et même `rang`, ou même `plot_id` et même `repere` : Pascal,
-2026-10-28) dans `notations` sont **signalées** avant de rendre (`doublon_arbre`, ADR 0003 § 5). Le même rang ou le
+contre-notation. Deux notations du même arbre (même `plot_id` et même `rang`, ou même `plot_id` et même `repere` si les deux `repere` sont non NULL : Pascal,
+2026-10-28 et 2026-10-29) dans `notations` sont **signalées** avant de rendre (`doublon_arbre`, ADR 0003 § 5). Le même rang ou le
 même repère sur deux placettes différentes n'est pas un doublon.
 
 ## Tournée de contre-notation

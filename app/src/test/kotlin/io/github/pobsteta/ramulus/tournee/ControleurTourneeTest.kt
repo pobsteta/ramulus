@@ -60,6 +60,20 @@ private class ExportFactice(val dossier: File) : ExportRendu {
 /** L'échange réel, dont on peut forcer un refus d'écriture ou un verdict de rendu. */
 private class EchangeTruque : Echange by EchangeReel {
     var refuserNotation: EchangeRefuse? = null
+    /** Un repère physique que la copie de départ porterait pour l'arbre de rang 2 de P001. */
+    var repereDepart: String? = null
+    override fun instantane(gpkg: File): String {
+        val brut = EchangeReel.instantane(gpkg)
+        val r = repereDepart
+        if (r == null || gpkg.invariantSeparatorsPath.contains("/depart/").not()) return brut
+        val racine = JsonParser.parseString(brut).asJsonObject
+        val ligne = com.google.gson.JsonObject().apply {
+            addProperty("uuid", "depart-2"); addProperty("plot_id", "P001"); addProperty("rang", 2); addProperty("repere", r)
+            addProperty("essence", "Hêtre"); addProperty("mb", 1); addProperty("second", 1)
+        }
+        racine.getAsJsonObject("tables").getAsJsonObject("notations").getAsJsonArray("lignes").add(ligne)
+        return racine.toString()
+    }
     var rendu: ((File) -> String)? = null
     override fun enregistrerNotation(gpkg: File, notation: String): String {
         refuserNotation?.let { throw it }
@@ -102,11 +116,10 @@ class ControleurTourneeTest {
         precisionM = 4.5, nbMesures = 10, dateReleve = maintenant, dispersionM = 1.0,
     )
 
-    private fun noter(c: ControleurTournee, essence: String, mb: Int, second: Int, repere: String) {
+    private fun noter(c: ControleurTournee, essence: String, mb: Int, second: Int) {
         c.choisirEssence(Essences.toutes.first { it.nom == essence })
         c.choisirMb(Note(mb))
         c.choisirSecond(Note(second))
-        c.changerRepere(repere)
         c.enregistrerArbre()
     }
 
@@ -153,7 +166,7 @@ class ControleurTourneeTest {
         c.choisirPlacette("P001")
         c.enregistrerCentre("P001", centreProche(t.placette("P001")!!), null)
         c.versArbres("P001")
-        noter(c, "Chêne sessile", 2, 1, "12")
+        noter(c, "Chêne sessile", 2, 1)
         c.cloturerPlacette("P001")
         c.rendre()
         assertContentEquals(avant, depart.readBytes(), "la copie de départ n'a pas bougé")
@@ -189,7 +202,7 @@ class ControleurTourneeTest {
         val notes = listOf(0 to 0, 3 to 2, 5 to 5, 1 to 4)
         for ((i, e) in essences.withIndex()) {
             assertEquals(i + 1, c.etat.arbre.rang, "les arbres se notent dans l'ordre du tour d'horizon")
-            noter(c, e, notes[i].first, notes[i].second, "A${i + 1}")
+            noter(c, e, notes[i].first, notes[i].second)
             assertNull(c.etat.erreur)
         }
         val p = c.etat.tournee!!.placette("P001")!!
@@ -241,8 +254,8 @@ class ControleurTourneeTest {
         val c = controleur()
         ouvrir(c, fixture("A1-tournee-depart"))
         c.versArbres("P001")
-        noter(c, "Chêne sessile", 1, 2, "1")
-        noter(c, "Épicéa commun", 1, 2, "2")
+        noter(c, "Chêne sessile", 1, 2)
+        noter(c, "Épicéa commun", 1, 2)
         val criteres = JsonParser.parseString(EchangeDeperis.instantane(File(tmp, "tournees/EXEMPLE-2027-01/travail/deperis.gpkg")))
             .asJsonObject.getAsJsonObject("tables").getAsJsonObject("notations").getAsJsonArray("lignes").map { it.asJsonObject["critere"].asString }
         assertEquals(listOf("MR", "MA"), criteres)
@@ -274,7 +287,7 @@ class ControleurTourneeTest {
         ouvrir(c, fixture("A1-tournee-depart"))
         c.versArbres("P001")
         echange.refuserNotation = EchangeRefuse(listOf("note_hors_bornes"), "mb = 7")
-        noter(c, "Hêtre", 1, 1, "1")
+        noter(c, "Hêtre", 1, 1)
         assertTrue(c.etat.erreur!!.contains("0 et 5"), c.etat.erreur)
         assertTrue(journal.saisies.isEmpty())
         assertTrue(c.etat.tournee!!.placette("P001")!!.arbres.isEmpty())
@@ -286,22 +299,61 @@ class ControleurTourneeTest {
         ouvrir(c, fixture("A1-tournee-depart"))
         c.versArbres("P001")
         journal.echoue = true
-        noter(c, "Hêtre", 1, 1, "1")
+        noter(c, "Hêtre", 1, 1)
         assertEquals(1, c.etat.tournee!!.placette("P001")!!.arbres.size)
         assertTrue(c.etat.avertissements.any { it.contains("Journal non écrit") })
     }
 
     @Test
-    fun `un rang ou un numero deja note est signale sans bloquer`() {
+    fun `un arbre rouvert garde son rang et sa correction est signalee sans bloquer`() {
         val c = controleur()
         ouvrir(c, fixture("A1-tournee-depart"))
         c.versArbres("P001")
-        noter(c, "Hêtre", 1, 1, "7")
-        c.changerRang(-1)
-        c.changerRepere("7")
+        noter(c, "Hêtre", 1, 1)
+        noter(c, "Hêtre", 2, 2)
+        assertEquals(3, c.etat.arbre.rang)
+        c.rouvrirArbre(1)
+        assertEquals(1, c.etat.arbre.rang, "l'arbre rouvert garde son rang")
+        assertEquals(Note(1), c.etat.arbre.mb)
         val avert = c.avertissementsArbre()
         assertTrue(avert.any { it.contains("rang 1") }, avert.toString())
-        assertTrue(avert.any { it.contains("numéro 7") }, avert.toString())
+        c.choisirMb(Note(3))
+        c.enregistrerArbre()
+        assertNull(c.etat.erreur)
+        assertEquals(3, c.etat.arbre.rang, "après la correction, on reprend au premier rang sans note")
+        val rangs = c.etat.tournee!!.placette("P001")!!.arbres.map { it.rang }
+        assertEquals(listOf(1, 1, 2), rangs)
+    }
+
+    @Test
+    fun `un repere physique de la tournee de depart est recopie, sinon NULL`() {
+        echange.repereDepart = "PL-7"
+        val c = controleur()
+        ouvrir(c, fixture("A1-tournee-depart"))
+        c.versArbres("P001")
+        noter(c, "Hêtre", 1, 1)
+        noter(c, "Hêtre", 2, 2)
+        noter(c, "Hêtre", 3, 3)
+        val par = c.etat.tournee!!.placette("P001")!!.arbres.associate { it.rang to it.repere }
+        assertEquals(null, par[1])
+        assertEquals("PL-7", par[2], "le repère du départ est recopié dans la notation du même rang")
+        assertEquals(null, par[3])
+    }
+
+    @Test
+    fun `une placette de quatre arbres se note sans aucun numero peint, rangs 1 a 4 et repere NULL`() {
+        val c = controleur()
+        ouvrir(c, fixture("A1-tournee-depart"))
+        c.versArbres("P001")
+        for (i in 1..4) {
+            assertEquals(i, c.etat.arbre.rang)
+            noter(c, "Hêtre", i % 6, 1)
+            assertNull(c.etat.erreur)
+        }
+        val p = c.etat.tournee!!.placette("P001")!!
+        assertEquals(listOf(1, 2, 3, 4), p.arbres.map { it.rang })
+        assertTrue(p.arbres.all { it.repere == null }, "aucun numéro peint n'est écrit")
+        assertTrue(journal.saisies.none { "repere" in it.valeur }, "le journal ne porte pas de numéro peint")
     }
 
     // --- Rendu ---------------------------------------------------------------------------------------------------
@@ -355,7 +407,7 @@ class ControleurTourneeTest {
         assertTrue(journal.saisies.isEmpty(), "aucun second centre")
 
         c.versArbres("P002")
-        noter(c, "Épicéa commun", 2, 3, "9")
+        noter(c, "Épicéa commun", 2, 3)
         assertEquals(listOf(TypeLigne.CONTRE_NOTATION), journal.saisies.map { it.type })
         assertEquals(1, c.etat.tournee!!.placette("P002")!!.arbres.size)
         val tables = JsonParser.parseString(EchangeDeperis.instantane(File(tmp, "tournees/EXEMPLE-2027-01-CN/travail/deperis.gpkg")))
@@ -401,7 +453,7 @@ class ControleurTourneeTest {
         assertTrue(c.avertissementSaison("P001")!!.contains("janvier"))
         // La note reste possible, avec la date du jour.
         c.versArbres("P001")
-        noter(c, "Hêtre", 1, 1, "1")
+        noter(c, "Hêtre", 1, 1)
         assertEquals(1, c.etat.tournee!!.placette("P001")!!.arbres.size)
     }
 
@@ -429,7 +481,7 @@ class ControleurTourneeTest {
         c.versArbres("P001")
         c.choisirEssence(charme)
         assertTrue(c.avertissementsArbre().any { it.contains("fiche d'été") }, c.avertissementsArbre().toString())
-        c.choisirMb(Note(1)); c.choisirSecond(Note(1)); c.changerRepere("3")
+        c.choisirMb(Note(1)); c.choisirSecond(Note(1))
         c.enregistrerArbre()
         assertNull(c.etat.erreur)
         assertTrue(journal.saisies.single().valeur.contains("\"saison\":\"ETE\""), journal.saisies.single().valeur)

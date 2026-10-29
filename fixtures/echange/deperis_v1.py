@@ -550,6 +550,8 @@ def controler(paquet: Paquet, depart: Paquet | None = None, schema: dict | None 
     arbres: dict[tuple, str] = {}
     for ligne in _lignes(inst, "notations"):
         for cle in (("rang", ligne.get("rang")), ("repere", ligne.get("repere"))):
+            if cle[1] is None:  # repère facultatif : deux NULL ne sont pas le même arbre
+                continue
             k = (ligne.get("plot_id"),) + cle
             if k in arbres and arbres[k] != ligne.get("uuid"):
                 ajouter("doublon_arbre", f"notations : {k[0]} {k[1]} {k[2]} noté deux fois "

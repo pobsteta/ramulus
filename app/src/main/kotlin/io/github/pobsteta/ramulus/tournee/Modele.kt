@@ -36,7 +36,8 @@ data class CentreLu(val x: Double, val y: Double, val precisionM: Double?, val o
 data class ArbreLu(
     val uuid: String,
     val rang: Int,
-    val repere: String,
+    /** Numéro peint, facultatif : Ramulus ne l'écrit plus, mais lit celui d'un fichier qui en porte un. */
+    val repere: String?,
     val essence: String,
     val mb: Int,
     val second: Int,
@@ -108,7 +109,7 @@ object LectureTournee {
                     ArbreLu(
                         uuid = texte(n, "uuid") ?: "",
                         rang = entier(n, "rang") ?: 0,
-                        repere = texte(n, "repere") ?: "",
+                        repere = texte(n, "repere")?.ifBlank { null },
                         essence = texte(n, "essence") ?: "",
                         mb = entier(n, "mb") ?: 0,
                         second = entier(n, "second") ?: 0,

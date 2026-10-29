@@ -244,7 +244,7 @@ private fun EcranPlacette(vm: TourneeViewModel, etat: EtatTournee, plotId: Strin
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text("Règle de choix", style = MaterialTheme.typography.labelLarge)
-            Text(p.regleChoix ?: "Kraft 1 à 3, tour d'horizon depuis le nord, sens horaire", fontSize = 18.sp)
+            Text(p.regleChoix ?: REGLE_CHOIX_PAR_DEFAUT, fontSize = 18.sp)
         }
         if (saison != null) AVerifier(listOf(saison))
         Erreur(etat.erreur)
@@ -302,27 +302,17 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
     val a = etat.arbre
     val contexte = LocalContext.current
     var menu by remember { mutableStateOf(false) }
-    // Le texte vit ici pendant la frappe ; il repart à vide quand l'arbre est enregistré.
-    var repere by remember(a.rang, p.arbres.size) { mutableStateOf(a.repere) }
 
     Page(
         titre = "$plotId · arbre ${a.rang} sur ${p.nbArbres}",
-        question = "Tour d'horizon depuis le nord, sens horaire",
+        question = p.regleChoix ?: REGLE_CHOIX_PAR_DEFAUT,
         pied = pied(t, etat.operateur),
         retour = { vm.enArriere { c.retour() } },
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(onClick = { c.changerRang(-1) }, Modifier.size(64.dp)) { Text("−", fontSize = 24.sp) }
-            OutlinedTextField(
-                value = repere,
-                onValueChange = { repere = it; c.changerRepere(it) },
-                label = { Text("Numéro peint") },
-                singleLine = true,
-                modifier = Modifier.weight(1f),
-                textStyle = MaterialTheme.typography.titleLarge,
-            )
-            OutlinedButton(onClick = { c.changerRang(1) }, Modifier.size(64.dp)) { Text("+", fontSize = 24.sp) }
-        }
+        Text(
+            "Arbre ${a.rang} sur ${p.nbArbres} — continuez le tour depuis le nord, sens horaire",
+            style = MaterialTheme.typography.titleLarge,
+        )
         Box {
             OutlinedButton(onClick = { menu = true }, Modifier.fillMaxWidth().heightIn(min = 64.dp)) {
                 Text(a.essence?.nom ?: "Choisir l'essence", fontSize = 20.sp)
@@ -347,18 +337,22 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
         }
         AVerifier(c.avertissementsArbre() + etat.avertissements)
         Erreur(etat.erreur)
-        GrosBouton("Enregistrer l'arbre", enabled = a.complet && !p.estNotee) { vm.enArriere { c.enregistrerArbre() } }
+        GrosBouton(if (p.arbres.any { it.rang == a.rang }) "Enregistrer la correction" else "Enregistrer l'arbre", enabled = a.complet && !p.estNotee) { vm.enArriere { c.enregistrerArbre() } }
 
         if (p.arbres.isNotEmpty()) {
-            Text("Déjà notés", style = MaterialTheme.typography.titleMedium)
+            Text("Déjà notés (touchez un arbre pour le corriger)", style = MaterialTheme.typography.titleMedium)
             for (n in p.arbres) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(enabled = !p.estNotee) { c.rouvrirArbre(n.rang) },
+                ) {
                     Text("${n.rang}", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.size(24.dp))
                     Box(
                         Modifier.size(36.dp).background(n.classe?.let(::couleurClasse) ?: Color.Gray, RoundedCornerShape(8.dp)),
                         contentAlignment = Alignment.Center,
                     ) { Text(n.classe?.name ?: "?", color = Color.White, fontWeight = FontWeight.Bold) }
-                    Text("n° ${n.repere} · ${n.essence} · MB ${n.mb} · ${n.second}")
+                    Text("${n.essence} · MB ${n.mb} · ${n.second}")
                 }
             }
         }
