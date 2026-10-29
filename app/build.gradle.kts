@@ -149,6 +149,7 @@ dependencies {
     // Les écrans lisent les résultats JSON de l'échange (EchangeDeperis) ; Room n'est vu que par la fabrique du journal.
     implementation(libs.gson)
     implementation(libs.room.runtime)
+
     nativesSqlite("org.xerial:sqlite-jdbc:${libs.versions.sqliteJdbc.get()}:natives-android")
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 

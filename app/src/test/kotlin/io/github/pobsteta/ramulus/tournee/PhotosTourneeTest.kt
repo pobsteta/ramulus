@@ -25,7 +25,11 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 private class JournalMuet : Journal {
-    override fun saisir(codeTournee: String, objetUuid: String, type: String, valeur: String, operateur: String) {}
+    /** (type, valeur JSON) de chaque saisie. */
+    val saisies = mutableListOf<Pair<String, String>>()
+    override fun saisir(codeTournee: String, objetUuid: String, type: String, valeur: String, operateur: String) {
+        saisies += type to valeur
+    }
     override fun sauvegarderSiDue(codeTournee: String, versionNemeton: String?, finDePlacette: Boolean): String? = null
 }
 
@@ -68,6 +72,34 @@ class PhotosTourneeTest {
         return propre.copyOfRange(0, 2) + segment + propre.copyOfRange(2, propre.size)
     }
 
+    private val journal = JournalMuet()
+
+    @Test
+    fun `chaque photo gardee ajoute une ligne photo au journal avec l'uuid de la note, le nom et le SHA-256`() {
+        val c = ouvrir("P001")
+        saisir(c, "12")
+        c.ajouterPhoto(jpeg(1), emptyList())
+        c.ajouterPhoto(jpeg(2), emptyList())
+        c.enregistrerArbre()
+        val arbre = c.etat.tournee!!.placette("P001")!!.arbres.single()
+        val lignes = journal.saisies.filter { it.first == "photo" }.map { JsonParser.parseString(it.second).asJsonObject }
+        assertEquals(2, lignes.size)
+        lignes.forEachIndexed { i, l ->
+            assertEquals(arbre.uuid, l["note_uuid"].asString)
+            assertEquals("photos/${arbre.uuid}_${i + 1}.jpg", l["nom"].asString)
+            assertEquals(Empreinte.sha256(File(racinePhotos, "${arbre.uuid}_${i + 1}.jpg").readBytes()), l["sha256"].asString)
+        }
+        assertEquals(listOf("notation", "photo", "photo"), journal.saisies.map { it.first }.filter { it == "notation" || it == "photo" })
+    }
+
+    @Test
+    fun `sans photo le journal n'a pas de ligne photo`() {
+        val c = ouvrir()
+        saisir(c, "12")
+        c.enregistrerArbre()
+        assertTrue(journal.saisies.none { it.first == "photo" })
+    }
+
     private var refus = false
     private val echange = object : Echange by EchangeReel {
         override fun enregistrerNotation(gpkg: File, notation: String): String {
@@ -77,7 +109,7 @@ class PhotosTourneeTest {
     }
 
     private fun controleur() = ControleurTournee(
-        racine = File(tmp, "tournees"), echange = echange, journal = JournalMuet(), stock = StockFixe(),
+        racine = File(tmp, "tournees"), echange = echange, journal = journal, stock = StockFixe(),
         export = ExportCopie(File(tmp, "documents").also { it.mkdirs() }), versionRamulus = "test", horloge = { maintenant },
     ).also { it.demarrer() }
 

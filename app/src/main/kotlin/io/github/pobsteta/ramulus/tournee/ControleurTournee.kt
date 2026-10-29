@@ -213,7 +213,9 @@ class ControleurTournee(
 
     fun versArbres(plotId: String) {
         val p = etat.tournee?.placette(plotId) ?: return
-        // Un nouvel arbre commence : les photos laissées en attente par un arbre abandonné ne servent plus.
+        // Un nouvel arbre commence : les photos laissées en attente par un arbre abandonné ne servent plus. Choix accepté
+        // (orchestrateur, 2026-10-29) : une prise de vue interrompue par la mort du processus est perdue, car l'arbre en
+        // cours (ArbreEnCours) n'est pas non plus conservé ; l'opérateur la refait.
         etat.tournee?.let { enAttente(it.code).deleteRecursively() }
         maj { copy(ecran = Ecran.Arbres(plotId), erreur = null, arbre = ArbreEnCours(rang = p.prochainRang, essence = derniereEssence)) }
     }
@@ -266,7 +268,7 @@ class ControleurTournee(
 
     /**
      * Donne aux photos en attente leur nom définitif `photos/<uuid>_<n>.jpg` et leur empreinte. Un `.nomedia` dans
-     * `racinePhotos/` (les photos sont déjà privées à l'application) empêche toute galerie de les indexer. Rend la colonne `photos` et les fichiers écrits
+     * `racinePhotos/photos/` empêche toute galerie de les indexer. Rend la colonne `photos` et les fichiers écrits
      * (à défaire si l'écriture de la note est refusée).
      */
     private fun nommerLesPhotos(code: String, uuidNote: String, attente: List<PhotoEnAttente>): Pair<List<PhotoGardee>, List<File>> {
@@ -458,6 +460,15 @@ class ControleurTournee(
         }
         val type = if (t.estContreNotation) TypeLigne.CONTRE_NOTATION else TypeLigne.NOTATION
         ecrireJournal(t, uuid, type, valeur, op, finDePlacette = false)
+        // Une photo = un objet du journal (ADR 0005, plan 005 Q3) : uuid de la note, nom et SHA-256 du fichier gardé.
+        gardees.forEach { g ->
+            val photo = JsonObject().apply {
+                addProperty("note_uuid", uuid)
+                addProperty("nom", g.nom)
+                addProperty("sha256", g.sha256)
+            }
+            ecrireJournal(t, uuids.tirer(horloge().toEpochMilli()), TypeLigne.PHOTO, photo, op, finDePlacette = false)
+        }
         recharger(t.code)
         val apres = etat.tournee?.placette(p.plotId)
         maj { copy(arbre = ArbreEnCours(rang = apres?.prochainRang ?: a.rang, essence = essence), erreur = null) }
