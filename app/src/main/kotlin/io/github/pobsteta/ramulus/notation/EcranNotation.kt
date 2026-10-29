@@ -143,7 +143,7 @@ private fun ChoixEssence(session: SessionNotation, changer: (SessionNotation) ->
 }
 
 @Composable
-private fun LigneNotes(titre: String, choisie: Note?, choisir: (Note) -> Unit) {
+internal fun LigneNotes(titre: String, choisie: Note?, choisir: (Note) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(titre, style = MaterialTheme.typography.titleMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -170,7 +170,7 @@ private fun LigneNotes(titre: String, choisie: Note?, choisir: (Note) -> Unit) {
 }
 
 @Composable
-private fun ClasseEnCours(classe: Classe?) {
+internal fun ClasseEnCours(classe: Classe?) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
         Box(
             Modifier

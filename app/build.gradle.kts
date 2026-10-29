@@ -46,6 +46,10 @@ kotlin {
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":data"))
+    // Les écrans lisent les résultats JSON de l'échange (EchangeDeperis) ; Room n'est vu que par la fabrique du journal.
+    implementation(libs.gson)
+    implementation(libs.room.runtime)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
@@ -58,4 +62,7 @@ dependencies {
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
     debugImplementation(libs.compose.ui.tooling)
+
+    testImplementation(kotlin("test-junit"))
+    testImplementation(libs.junit4)
 }
