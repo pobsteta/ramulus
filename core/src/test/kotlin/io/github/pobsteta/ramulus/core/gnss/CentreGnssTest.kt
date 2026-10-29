@@ -8,8 +8,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class CentreGnssTest {
-    // Références : EPSG:4326 -> EPSG:2154 par PROJ (pyproj 3.6.1, always_xy). Paris : 652 469 / 6 862 035 est aussi
-    // la valeur publiée par l'IGN pour Paris ; l'origine (3° E, 46,5° N) est la définition de Lambert-93.
+    // Références : EPSG:4326 -> EPSG:2154 par PROJ (pyproj 3.6.1, always_xy). PROJ fait foi ; l'origine (3° E, 46,5° N) est la définition de Lambert-93.
     private data class Ref(val nom: String, val lat: Double, val lon: Double, val x: Double, val y: Double)
 
     private val references = listOf(

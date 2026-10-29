@@ -50,7 +50,9 @@ data class EmpriseDegres(
 }
 
 /**
- * WGS 84 → Lambert-93 (conique conforme à deux parallèles sur GRS80), algorithmes IGN ALG0003/ALG0004/ALG0054.
+ * WGS 84 → Lambert-93 (conique conforme à deux parallèles sur GRS80), note IGN NTG_71 : latitude isométrique (ALG0001) et projection
+ * (ALG0003) ; les autres numéros d'algorithmes cités auparavant (ALG0004, ALG0054) sont non vérifiés et retirés.
+ * Le résultat fait foi par comparaison avec PROJ (voir CentreGnssTest).
  * Paramètres IGN de Lambert-93 : parallèles d'échelle 44° et 49° N, origine 46,5° N et 3° E, X0 = 700 000 m,
  * Y0 = 6 600 000 m. RGF93 et WGS 84 sont pris pour le même datum (quelques centimètres, sous ce que mesure un téléphone).
  */

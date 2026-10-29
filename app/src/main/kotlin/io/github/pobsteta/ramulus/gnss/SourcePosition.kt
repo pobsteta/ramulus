@@ -1,5 +1,9 @@
 /*
  * Ramulus — notation de l'état des houppiers (protocole DEPERIS).
+ * Copyright (C) 2026 Pascal Obstétar
+ *
+ * Ce fichier est un logiciel libre : vous pouvez le redistribuer et/ou le modifier selon
+ * les termes de la licence publique générale GNU (GPL), version 3 ou ultérieure (voir LICENSE).
  *
  * Origine : Surculus (https://github.com/pobsteta/surculus), fichier
  *           app/src/main/kotlin/io/github/pobsteta/surculus/gnss/SourcePosition.kt, lu au commit 3c01f4b
