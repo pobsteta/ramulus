@@ -3,7 +3,7 @@
 ## Mission
 
 **En une phrase (quoi, et pourquoi) :** donner à Ramulus l'écran d'ouverture commun aux applications de terrain de
-Pascal (bandeau vert avec la bascule kanban, menu hamburger avec Paramètres et À propos, recherche des tournées,
+Pascal (bandeau vert avec la bascule kanban, menu « ⋮ » avec Paramètres et À propos (cap du 2026-10-29), recherche des tournées,
 liste des tournées à faire et terminées), pour que l'opérateur passe d'une application à l'autre sans réapprendre.
 
 **Redite par l'agent :** _à compléter par l'agent avant d'agir — s'il n'y arrive pas, il s'arrête._
@@ -125,7 +125,7 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
 ## Terrain
 
 - **Échantillon que Pascal vérifiera :**
-  - ouvrir Ramulus et voir le bandeau vert, ☰ et la bascule kanban ;
+  - ouvrir Ramulus et voir le bandeau vert, le « ⋮ » et la bascule kanban, avec ses tournées et son nom ;
   - chercher « EXEMPLE » ;
   - ouvrir À propos, puis Paramètres et passer en thème Sombre ;
   - comparer côte à côte avec Surculus et Marculus sur le même téléphone.
