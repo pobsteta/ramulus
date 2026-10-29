@@ -26,7 +26,7 @@ object EchangeReel : Echange {
 
 /** Le journal en ajout seul (mission 005) et sa sauvegarde, vus de l'écran. Bloquant : hors du fil principal. */
 interface Journal {
-    /** Ajoute une saisie (`notation`, `contre_notation`, `centre`, `placette_notee`). */
+    /** Ajoute une saisie (`notation`, `contre_notation`, `photo`, `centre`, `placette_notee`). */
     fun saisir(codeTournee: String, objetUuid: String, type: String, valeur: String, operateur: String)
 
     /** Sauvegarde `.ramsync` si c'est dû (cadence de 005) ; rend le nom écrit ou `null`. */
