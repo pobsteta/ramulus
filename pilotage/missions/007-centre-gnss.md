@@ -87,3 +87,21 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
 ## Comment saura-t-on que ça marche ?
 
 Sur le téléphone, le centre relevé tombe à quelques mètres du piquet, et `centres` du `.zip` rendu le porte.
+
+## Remarques du relecteur et arbitrages de l'orchestrateur — aller-retour 1/3 (2026-10-29, commit fa0fe2e)
+
+Relecteur : **prêt**. La conversion est identique à PROJ, l'écart signalé sans blocage, un point hors de France est
+refusé, et aucune position ne part au réseau. Retouches avant la fusion, et arbitrages de l'orchestrateur par
+délégation de Pascal du 2026-10-28 :
+
+1. **Position simulée (`isMock`).** Elle reste écartée, puisque la seule source de cette mission est `telephone`.
+   L'écran **le dit** : « Position simulée écartée (récepteur externe non pris en charge pour l'instant) ».
+2. **Position approximative seule.** Si seule l'approximative est accordée, ou si la demande n'est plus affichée par
+   Android, l'écran dit « Position précise requise » et ouvre les réglages de l'application.
+3. **`CentreGnssTest.kt`.** Retirer la phrase « est aussi la valeur publiée par l'IGN pour Paris », qui n'a pas de
+   source : PROJ fait foi.
+4. **`SourcePosition.kt`.** Remettre la mention de copyright et de licence GPL v3 de l'en-tête de Surculus.
+5. **KDoc de `Lambert93`.** Vérifier la citation ALG0004 de la note IGN NTG_71. La conversion directe s'appuie sur
+   ALG0001 (latitude isométrique) et ALG0003 (projection) ; ALG0004 serait la conversion inverse. Corriger seulement
+   après vérification, et sinon écrire « non vérifié ».
+6. **Ce qui ne change pas :** une seule mesure hors de France invalide le relevé (conforme à « refusée »).
