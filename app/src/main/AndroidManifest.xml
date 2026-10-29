@@ -8,6 +8,9 @@
     <!-- Rendu du .zip dans Documents/Ramulus/ : avant Android 10 seulement (mission 006) ; ensuite MediaStore, sans autorisation. -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <!-- Photo du houppier dans Ramulus (CameraX, mission 008). Demandée au premier usage, jamais en arrière-plan. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
         android:allowBackup="false"
