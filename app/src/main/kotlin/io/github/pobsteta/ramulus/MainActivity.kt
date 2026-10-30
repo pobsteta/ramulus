@@ -1,12 +1,18 @@
 package io.github.pobsteta.ramulus
 
 import android.os.Bundle
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import io.github.pobsteta.ramulus.accueil.MagasinPrefs
+import io.github.pobsteta.ramulus.accueil.ReglagesRamulus
 import io.github.pobsteta.ramulus.data.journal.HorlogesAndroid
 import io.github.pobsteta.ramulus.data.journal.JournalRepository
 import io.github.pobsteta.ramulus.data.journal.RamulusDatabase
@@ -23,6 +29,9 @@ import io.github.pobsteta.ramulus.ui.theme.RamulusTheme
 import java.io.File
 
 class MainActivity : ComponentActivity() {
+    // Thème, GNSS, date de la dernière sauvegarde : gardés sur le téléphone seulement.
+    private val reglages by lazy { ReglagesRamulus(MagasinPrefs(applicationContext)) }
+
     private val vm: TourneeViewModel by viewModels {
         viewModelFactory {
             initializer {
@@ -36,7 +45,7 @@ class MainActivity : ComponentActivity() {
                     ControleurTournee(
                         racine = File(ctx.filesDir, "tournees"),
                         echange = EchangeReel,
-                        journal = JournalAndroid(journal, sauvegarde),
+                        journal = JournalAndroid(journal, sauvegarde, surSauvegarde = { reglages.noterSauvegarde(it) }),
                         stock = StockOperateurPrefs(ctx),
                         export = ExportDocuments(ctx),
                         versionRamulus = version,
@@ -49,9 +58,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Le contrôleur et les réglages naissent ici, sur le fil principal, avant la composition : leur état n'est
+        // jamais créé dans le snapshot de la composition (il démarre sur un autre fil dès sa création).
+        val controle = vm
+        val reglagesLus = reglages
         setContent {
-            RamulusTheme {
-                AppRamulus(vm)
+            RamulusTheme(reglagesLus.choixTheme) {
+                // Une Surface donne à tout l'écran la couleur de fond et la couleur du texte du thème (onBackground) :
+                // sans elle le texte posé hors Scaffold reste noir, illisible en Sombre.
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    AppRamulus(controle, reglagesLus)
+                }
             }
         }
     }

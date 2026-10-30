@@ -1,8 +1,7 @@
 package io.github.pobsteta.ramulus.tournee
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -33,6 +32,7 @@ import java.time.temporal.ChronoUnit
 sealed interface Ecran {
     data object Operateur : Ecran
     data object Accueil : Ecran
+    data object Parametres : Ecran
     data object Placettes : Ecran
     data class Placette(val plotId: String) : Ecran
     data class Centre(val plotId: String) : Ecran
@@ -58,7 +58,7 @@ data class ArbreEnCours(
 }
 
 /** Une tournée déjà copiée sur l'appareil, à reprendre. */
-data class TourneeEnCours(val code: String, val nature: String, val nbPlacettes: Int, val nbNotees: Int)
+data class TourneeEnCours(val code: String, val nature: String, val nbPlacettes: Int, val nbNotees: Int, val rendue: Boolean = false)
 
 /** Ce que le rendu a donné : verdict, motifs en clair, nom du `.zip` déposé (absent si refusé). */
 data class ResultatRendu(
@@ -102,8 +102,19 @@ class ControleurTournee(
     private val uuids: UuidV7 = UuidV7(),
     private val zone: ZoneId = ZoneId.of("Europe/Paris"),
 ) {
-    var etat by mutableStateOf(EtatTournee())
-        private set
+    // L'état vit dans un StateFlow, pas dans un State de Compose : il s'écrit depuis le fil de travail (demarrer(), les
+    // gestes) et se lit depuis l'écran (collectAsState) sans dépendre du snapshot où le contrôleur est né.
+    private val flux = MutableStateFlow(EtatTournee())
+
+    /** L'état, à collecter par l'écran. */
+    val etats: StateFlow<EtatTournee> get() = flux
+
+    val etat: EtatTournee get() = flux.value
+
+    private companion object {
+        /** Fichier posé dans le dossier de la tournée une fois le `.zip` rendu et déposé. */
+        const val MARQUE_RENDUE = "rendue"
+    }
 
     private var derniereEssence: EssenceDeperis? = null
 
@@ -117,7 +128,7 @@ class ControleurTournee(
 
     @Synchronized
     private fun maj(f: EtatTournee.() -> EtatTournee) {
-        etat = etat.f()
+        flux.value = flux.value.f()
     }
 
     /** Un échec inattendu d'un geste : dit en clair, sans planter l'application. */
@@ -196,7 +207,7 @@ class ControleurTournee(
             if (!g.exists()) return@mapNotNull null
             runCatching {
                 val t = LectureTournee.depuis(echange.instantane(g))
-                TourneeEnCours(t.code, t.nature, t.placettes.size, t.nbNotees)
+                TourneeEnCours(t.code, t.nature, t.placettes.size, t.nbNotees, rendue = File(d, MARQUE_RENDUE).exists())
             }.getOrNull()
         }
 
@@ -305,9 +316,23 @@ class ControleurTournee(
             is Ecran.Placette -> Ecran.Placettes
             Ecran.Rendu -> Ecran.Placettes
             Ecran.Placettes -> Ecran.Accueil
+            Ecran.Parametres -> Ecran.Accueil
             else -> e
         }
         maj { copy(ecran = suivant, erreur = null, enCours = if (suivant == Ecran.Accueil) tourneesEnCours() else enCours) }
+    }
+
+    fun versParametres() = maj { copy(ecran = Ecran.Parametres, erreur = null) }
+
+    /** Change le nom de l'opérateur depuis Paramètres, sans quitter l'écran ; un nom vide est refusé en clair. */
+    fun renommerOperateur(nom: String) {
+        val propre = Normalizer.normalize(nom.trim(), Normalizer.Form.NFC)
+        if (propre.isEmpty()) {
+            maj { copy(erreur = "Entrez votre nom.") }
+            return
+        }
+        stock.ecrire(propre)
+        maj { copy(operateur = propre, erreur = null) }
     }
 
     fun versRendu() = maj { copy(ecran = Ecran.Rendu, erreur = null, rendu = null) }
@@ -533,6 +558,8 @@ class ControleurTournee(
                 return
             }
             val nom = export.exporter(sortie, "${t.code}.zip")
+            // La tournée est rendue : l'accueil la range dans « Terminées » (et le kanban en « Réalisée »).
+            runCatching { File(dossier(t.code), MARQUE_RENDUE).writeText(nom) }
             runCatching { journal.sauvegarderSiDue(t.code, t.versionNemeton, finDePlacette = true) }
             maj { copy(rendu = ResultatRendu(statut, motifs, msgs, nom), ecran = Ecran.Rendu, erreur = null) }
         } catch (e: Exception) {
@@ -542,7 +569,12 @@ class ControleurTournee(
 
     // --- Outils ---------------------------------------------------------------------------------------------------
 
+    /**
+     * Relit la tournée après une écriture (centre, notation, clôture de placette). Une écriture modifie la tournée : la
+     * marque « rendue » tombe, la tournée revient dans « À faire » jusqu'au prochain rendu (arbitrage du 2026-10-29).
+     */
     private fun recharger(code: String) {
+        File(dossier(code), MARQUE_RENDUE).delete()
         val lue = LectureTournee.depuis(echange.instantane(travail(code)))
         maj { copy(tournee = lue) }
     }

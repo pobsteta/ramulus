@@ -35,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,9 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import io.github.pobsteta.ramulus.accueil.EcranAccueil
+import io.github.pobsteta.ramulus.accueil.EcranParametres
+import io.github.pobsteta.ramulus.accueil.ReglagesRamulus
 import io.github.pobsteta.ramulus.core.deperis.Essences
 import io.github.pobsteta.ramulus.gnss.ReleverLeCentre
 import io.github.pobsteta.ramulus.notation.ClasseEnCours
@@ -70,19 +74,47 @@ import java.util.Locale
 
 private val Ambre = Color(0xFF8F7208)
 
+/** Ce que l'écran montre. Toujours quelque chose : jamais d'écran vide (écart de 006 au premier lancement). */
+enum class Vue { NOM, ACCUEIL, PARAMETRES, PLACETTES, PLACETTE, CENTRE, ARBRES, RENDU }
+
+/**
+ * La vue à montrer pour un état. Avant que le nom de l'opérateur soit lu, c'est l'accueil (liste vide, bandeau, menu) ;
+ * une tournée ou une placette introuvable ramène à la vue au-dessus, jamais à du vide.
+ */
+fun vueDe(etat: EtatTournee): Vue {
+    val t = etat.tournee
+    return when (val e = etat.ecran) {
+        Ecran.Operateur -> Vue.NOM
+        Ecran.Accueil -> Vue.ACCUEIL
+        Ecran.Parametres -> Vue.PARAMETRES
+        Ecran.Placettes -> if (t != null) Vue.PLACETTES else Vue.ACCUEIL
+        Ecran.Rendu -> if (t != null) Vue.RENDU else Vue.ACCUEIL
+        is Ecran.Placette -> if (t?.placette(e.plotId) != null) Vue.PLACETTE else if (t != null) Vue.PLACETTES else Vue.ACCUEIL
+        is Ecran.Centre -> if (t?.placette(e.plotId) != null) Vue.CENTRE else if (t != null) Vue.PLACETTES else Vue.ACCUEIL
+        is Ecran.Arbres -> if (t?.placette(e.plotId) != null) Vue.ARBRES else if (t != null) Vue.PLACETTES else Vue.ACCUEIL
+    }
+}
+
 @Composable
-fun AppRamulus(vm: TourneeViewModel) {
+fun AppRamulus(vm: TourneeViewModel, reglages: ReglagesRamulus) {
     val c = vm.controleur
-    val etat = c.etat
+    val etat by c.etats.collectAsState()
     BackHandler(enabled = etat.ecran !in listOf(Ecran.Accueil, Ecran.Operateur)) { vm.enArriere { c.retour() } }
-    when (val e = etat.ecran) {
-        Ecran.Operateur -> EcranOperateur(etat) { nom -> vm.enArriere { c.definirOperateur(nom) } }
-        Ecran.Accueil -> if (etat.operateur != null) EcranAccueil(vm, etat)
-        Ecran.Placettes -> EcranPlacettes(vm, etat)
-        is Ecran.Placette -> EcranPlacette(vm, etat, e.plotId)
-        is Ecran.Centre -> EcranCentre(vm, etat, e.plotId)
-        is Ecran.Arbres -> EcranArbres(vm, etat, e.plotId)
-        Ecran.Rendu -> EcranRendu(vm, etat)
+    val plotId = when (val e = etat.ecran) {
+        is Ecran.Placette -> e.plotId
+        is Ecran.Centre -> e.plotId
+        is Ecran.Arbres -> e.plotId
+        else -> ""
+    }
+    when (vueDe(etat)) {
+        Vue.NOM -> EcranOperateur(etat) { nom -> vm.enArriere { c.definirOperateur(nom) } }
+        Vue.ACCUEIL -> EcranAccueil(vm, etat, reglages)
+        Vue.PARAMETRES -> EcranParametres(vm, etat, reglages)
+        Vue.PLACETTES -> EcranPlacettes(vm, etat)
+        Vue.PLACETTE -> EcranPlacette(vm, etat, plotId)
+        Vue.CENTRE -> EcranCentre(vm, etat, plotId, reglages)
+        Vue.ARBRES -> EcranArbres(vm, etat, plotId)
+        Vue.RENDU -> EcranRendu(vm, etat)
     }
 }
 
@@ -157,34 +189,6 @@ private fun EcranOperateur(etat: EtatTournee, valider: (String) -> Unit) {
         )
         Erreur(etat.erreur)
         GrosBouton("Valider", enabled = nom.isNotBlank()) { valider(nom) }
-    }
-}
-
-// --- 2. Quelle tournée ? ----------------------------------------------------------------------------------------
-
-@Composable
-private fun EcranAccueil(vm: TourneeViewModel, etat: EtatTournee) {
-    val contexte = LocalContext.current
-    val choisir = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-        if (uri != null) {
-            vm.enArriere {
-                val flux = contexte.contentResolver.openInputStream(uri) ?: error("fichier illisible")
-                vm.controleur.ouvrirTournee(flux)
-            }
-        }
-    }
-    Page("Ramulus", "Quelle tournée noter ?", pied = "Opérateur : ${etat.operateur}") {
-        GrosBouton("Ouvrir une tournée") { choisir.launch(arrayOf("*/*")) }
-        Erreur(etat.erreur)
-        if (etat.enCours.isNotEmpty()) {
-            Text("En cours sur ce téléphone", style = MaterialTheme.typography.titleMedium)
-            for (t in etat.enCours) {
-                GrosBouton(
-                    "${t.code}\n${t.nbNotees} sur ${t.nbPlacettes} placettes notées" + if (t.nature == TourneeLue.NATURE_CONTRE_NOTATION) " · contre-notation" else "",
-                    principal = false,
-                ) { vm.enArriere { vm.controleur.reprendre(t.code) } }
-            }
-        }
     }
 }
 
@@ -290,13 +294,14 @@ private fun EcranPlacette(vm: TourneeViewModel, etat: EtatTournee, plotId: Strin
 // --- 5. Où est le centre ? --------------------------------------------------------------------------------------
 
 @Composable
-private fun EcranCentre(vm: TourneeViewModel, etat: EtatTournee, plotId: String) {
+private fun EcranCentre(vm: TourneeViewModel, etat: EtatTournee, plotId: String, reglages: ReglagesRamulus) {
     val t = etat.tournee ?: return
     val p = t.placette(plotId) ?: return
     Page(plotId, pied = pied(t, etat.operateur), retour = { vm.enArriere { vm.controleur.retour() } }) {
         Erreur(etat.erreur)
         ReleverLeCentre(
             prevu = p.prevu,
+            reglages = reglages,
             surCentre = { centre, ecart -> vm.enArriere { vm.controleur.enregistrerCentre(plotId, centre, ecart) } },
         )
     }

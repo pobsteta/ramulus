@@ -15,6 +15,8 @@ import java.io.IOException
 class JournalAndroid(
     private val journal: JournalRepository,
     private val sauvegarde: SauvegardeRepository,
+    /** Appelé avec l'instant de chaque `.ramsync` écrit : Paramètres en montre la dernière date. */
+    private val surSauvegarde: (java.time.Instant) -> Unit = {},
 ) : Journal {
     override fun saisir(codeTournee: String, objetUuid: String, type: String, valeur: String, operateur: String) {
         journal.saisir(codeTournee, objetUuid, type, valeur, operateur)
@@ -22,6 +24,7 @@ class JournalAndroid(
 
     override fun sauvegarderSiDue(codeTournee: String, versionNemeton: String?, finDePlacette: Boolean): String? =
         sauvegarde.sauvegarderSiDue(codeTournee, versionNemeton, finDePlacette)
+            ?.also { surSauvegarde(java.time.Instant.now()) }
 }
 
 /** Le nom de l'opérateur, dans les préférences privées de l'application (il ne quitte pas l'appareil). */

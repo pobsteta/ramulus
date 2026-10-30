@@ -104,10 +104,12 @@ class ControleurTourneeTest {
         tmp.deleteRecursively()
     }
 
-    private fun controleur() = ControleurTournee(
+    private fun controleurSansDemarrer() = ControleurTournee(
         racine = File(tmp, "tournees"), echange = echange, journal = journal, stock = stock, export = export,
         versionRamulus = "test", horloge = { maintenant },
-    ).also { it.demarrer() }
+    )
+
+    private fun controleur() = controleurSansDemarrer().also { it.demarrer() }
 
     private fun ouvrir(c: ControleurTournee, gpkg: File) = c.ouvrirTournee(gpkg.inputStream())
 
@@ -530,5 +532,125 @@ class ControleurTourneeTest {
         c.enregistrerArbre()
         assertNull(c.etat.erreur)
         assertTrue(journal.saisies.single().valeur.contains("\"saison\":\"ETE\""), journal.saisies.single().valeur)
+    }
+
+    // --- Accueil (mission 019) -------------------------------------------------------------------------------------
+
+    @Test
+    fun `une tournee rendue passe dans Terminees, une tournee refusee ou jamais rendue reste a faire`() {
+        val c = controleur()
+        ouvrir(c, fixture("A1-tournee-depart"))
+        c.retour()
+        assertFalse(c.etat.enCours.single().rendue)
+        ouvrir(c, fixture("A1-tournee-depart"))
+        echange.rendu = { """{"verdict":"refuse","motifs":["classe_differente_abaque"],"messages":["x"]}""" }
+        c.rendre()
+        c.retour(); c.retour()
+        assertFalse(c.etat.enCours.single().rendue, "un rendu refusé ne termine pas la tournée")
+        echange.rendu = { sortie -> sortie.writeText("zip"); """{"verdict":"ok","motifs":[],"messages":[]}""" }
+        c.versRendu(); c.rendre()
+        c.retour(); c.retour()
+        assertEquals(Ecran.Accueil, c.etat.ecran)
+        assertTrue(c.etat.enCours.single().rendue)
+        assertTrue(controleur().etat.enCours.single().rendue, "la marque survit au redémarrage")
+    }
+
+    @Test
+    fun `Parametres s'ouvre et ramene a l'accueil, le nom se change sans quitter l'ecran`() {
+        val c = controleur()
+        c.versParametres()
+        assertEquals(Ecran.Parametres, c.etat.ecran)
+        c.renommerOperateur("   ")
+        assertNotNull(c.etat.erreur)
+        assertEquals("operateur-A", stock.nom)
+        c.renommerOperateur(" Claire Martin ")
+        assertEquals(Ecran.Parametres, c.etat.ecran)
+        assertEquals("Claire Martin", c.etat.operateur)
+        assertEquals("Claire Martin", stock.nom)
+        c.retour()
+        assertEquals(Ecran.Accueil, c.etat.ecran)
+    }
+
+    @Test
+    fun `l'ecran initial n'est jamais vide, avant comme apres la lecture du nom`() {
+        // Avant demarrer() : l'état par défaut montre l'accueil (bandeau, menu), pas du vide.
+        assertEquals(Vue.ACCUEIL, vueDe(EtatTournee()))
+        stock.nom = null
+        assertEquals(Vue.NOM, vueDe(controleur().etat))
+        stock.nom = "operateur-A"
+        assertEquals(Vue.ACCUEIL, vueDe(controleur().etat))
+    }
+
+    @Test
+    fun `toute combinaison d'ecran et de tournee donne une vue, jamais du vide`() {
+        val c = controleur()
+        ouvrir(c, fixture("A1-tournee-depart"))
+        val t = c.etat.tournee!!
+        val plot = t.placettes.first().plotId
+        val ecrans = listOf(
+            Ecran.Operateur, Ecran.Accueil, Ecran.Parametres, Ecran.Placettes, Ecran.Rendu,
+            Ecran.Placette(plot), Ecran.Centre(plot), Ecran.Arbres(plot), Ecran.Placette("inconnue"), Ecran.Arbres("inconnue"),
+        )
+        for (e in ecrans) {
+            assertNotNull(vueDe(EtatTournee(ecran = e, tournee = t)), "avec tournée : $e")
+            // Sans tournée, les écrans de tournée retombent sur l'accueil.
+            val sans = vueDe(EtatTournee(ecran = e, tournee = null))
+            assertTrue(sans == Vue.NOM || sans == Vue.ACCUEIL || sans == Vue.PARAMETRES, "sans tournée : $e -> $sans")
+        }
+        assertEquals(Vue.PLACETTES, vueDe(EtatTournee(ecran = Ecran.Placette("inconnue"), tournee = t)))
+        assertEquals(Vue.PLACETTE, vueDe(EtatTournee(ecran = Ecran.Placette(plot), tournee = t)))
+    }
+
+    @Test
+    fun `une ecriture faite depuis un autre fil se lit dans etats`() {
+        // Vérifie seulement ceci : demarrer() et renommerOperateur(), écrits depuis un autre fil, se lisent dans etat et
+        // dans le flux etats, même si le contrôleur est né dans un snapshot mutable. Ce test passait déjà avec l'ancien
+        // mutableStateOf : il ne prouve pas le défaut du téléphone. Cette preuve est l'essai sur l'appareil, inscrit
+        // au journal.
+        val composition = androidx.compose.runtime.snapshots.Snapshot.takeMutableSnapshot()
+        val c = composition.enter { controleurSansDemarrer() }
+        val fil = Thread { c.demarrer() }
+        fil.start(); fil.join()
+        composition.apply().check()
+        composition.dispose()
+        assertEquals("operateur-A", c.etat.operateur)
+        assertEquals(Ecran.Accueil, c.etat.ecran)
+        // Et l'état lu dans un snapshot ouvert avant l'écriture ne l'empêche pas d'être vu ensuite.
+        val lecteur = androidx.compose.runtime.snapshots.Snapshot.takeSnapshot()
+        val fil2 = Thread { c.renommerOperateur("Claire") }
+        fil2.start(); fil2.join()
+        lecteur.dispose()
+        assertEquals("Claire", c.etat.operateur)
+        assertEquals("Claire", c.etats.value.operateur, "le flux que l'écran collecte porte le même état")
+    }
+
+    @Test
+    fun `toute ecriture apres le rendu retire la marque rendue et la tournee revient dans A faire`() {
+        val c = controleur()
+        ouvrir(c, fixture("A1-tournee-depart"))
+        echange.rendu = { sortie -> sortie.writeText("zip"); """{"verdict":"ok","motifs":[],"messages":[]}""" }
+        c.rendre()
+        fun rendue() = File(tmp, "tournees/EXEMPLE-2027-01/rendue").exists()
+        assertTrue(rendue())
+        // Un centre relevé après le rendu modifie la tournée.
+        c.choisirPlacette("P001")
+        c.enregistrerCentre("P001", centreProche(c.etat.tournee!!.placette("P001")!!), EcartAuPointPrevu(3.6, false))
+        assertFalse(rendue(), "le centre a retiré la marque")
+        c.retour(); c.retour(); c.retour()
+        assertFalse(c.etat.enCours.single().rendue)
+        // Rendu de nouveau, puis une notation : même effet.
+        c.reprendre("EXEMPLE-2027-01"); c.rendre()
+        assertTrue(rendue())
+        // Cas inverse : naviguer sans rien écrire ne retire pas la marque.
+        c.reprendre("EXEMPLE-2027-01"); c.choisirPlacette("P001"); c.versArbres("P001"); c.retour()
+        assertTrue(rendue(), "reprendre, choisir, ouvrir les arbres et revenir n'écrivent rien")
+        c.choisirPlacette("P001"); c.versArbres("P001")
+        noter(c, "Chêne sessile", 2, 1)
+        assertFalse(rendue(), "la notation a retiré la marque")
+        // Et la clôture.
+        c.rendre()
+        assertTrue(rendue())
+        c.cloturerPlacette("P001")
+        assertFalse(rendue(), "la clôture a retiré la marque")
     }
 }

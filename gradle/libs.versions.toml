@@ -9,6 +9,8 @@
 # Mission 013 (natifs Android) : desugar_jdk_libs 2.1.5 (Google Maven, release du 2026-10-17, exigé par sqlite-jdbc
 # sur Android), androidx.test.ext:junit 1.3.0 et androidx.test:runner 1.7.0 (essai de fumée), repris de Surculus
 # gradle/libs.versions.toml au commit 3c01f4b (l. 11, 12, 28-30, 70-72), qui en donne les sources.
+# Mission 019 (accueil commun) : terrain-style bb2b519 (tag v0.7.1 de pobsteta/terrain, construit par JitPack), repris de
+# Surculus gradle/libs.versions.toml au commit b73c493 (l. 16, 38, 77) ; icônes Material (bascule liste/kanban, menu ⋮).
 
 [versions]
 agp = "9.4.1"
@@ -30,6 +32,7 @@ camerax = "1.6.2"
 desugarJdkLibs = "2.1.5"
 androidxTestExtJunit = "1.3.0"
 androidxTestRunner = "1.7.0"
+terrainStyle = "bb2b519"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -69,3 +72,6 @@ camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "
 desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
+compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
+compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+terrain-style = { group = "com.github.pobsteta.terrain", name = "terrain-style", version.ref = "terrainStyle" }
