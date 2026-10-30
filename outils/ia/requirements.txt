@@ -1,0 +1,7 @@
+# Outils de l'amorce IA (mission 026). Environnement virtuel hors dépôt : ~/dev/donnees-ramulus/venv
+# Versions installées et utilisées le 2026-10-30.
+numpy==2.5.4
+pymupdf==2.0          # AGPL-3.0 : outil local, non distribué dans l'APK
+pillow==13.0.0
+ai-edge-litert==2.3.0 # Apache-2.0 : même moteur que l'application (LiteRT)
+pytest==9.2.0

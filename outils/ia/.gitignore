@@ -1,0 +1,11 @@
+# Garde : aucune photo du DSF, aucun poids de modèle, aucun vecteur dans le dépôt (mission 026, ADR 0007).
+*.jpg
+*.jpeg
+*.png
+*.jp2
+*.pdf
+*.tflite
+*.npz
+*.f32
+__pycache__/
+.pytest_cache/
