@@ -163,6 +163,12 @@ contre-notation. Deux notations du même arbre (même `plot_id` et même `rang`,
 2026-10-28 et 2026-10-29) dans `notations` sont **signalées** avant de rendre (`doublon_arbre`, ADR 0003 § 5). Le même rang ou le
 même repère sur deux placettes différentes n'est pas un doublon.
 
+**Précision du 2026-10-30 (mission 015).** Une correction faite dans Ramulus ne produit plus de `doublon_arbre` : elle
+**remplace** la note dans la copie de travail (nouvel `uuid`, même `plot_id`, même `rang` ; l'ancienne est retirée, le
+journal garde les deux). Il en va de même d'un centre relevé de nouveau : au plus un centre par placette. Le signalement
+`doublon_arbre` désigne donc un vrai doublon, par exemple deux lignes du même rang après l'union des paquets de deux
+opérateurs. Ni la version du format, ni ses colonnes, ni ses motifs ne changent.
+
 ## Tournée de contre-notation
 
 Nemeton l'écrit pour le second opérateur, à part (ADR 0003 § 4) : `nature = contre_notation`, un autre

@@ -30,7 +30,8 @@ data class TourneeLue(
 
 enum class Statut { A_FAIRE, CENTRE_RELEVE, EN_COURS, NOTEE }
 
-data class CentreLu(val x: Double, val y: Double, val precisionM: Double?, val operateur: String?)
+/** Le centre d'une placette dans la copie de travail (au plus un : relever de nouveau le remplace, mission 015). X = est, Y = nord, EPSG:2154. */
+data class CentreLu(val x: Double, val y: Double, val precisionM: Double?, val operateur: String?, val uuid: String? = null)
 
 /** Un arbre déjà noté, tel que le fichier le porte (la classe vient de l'abaque, calculée par l'échange). */
 data class ArbreLu(
@@ -69,8 +70,9 @@ data class PlacetteLue(
         }
 
     /**
-     * Les arbres distincts : la **dernière** ligne de chaque rang (une correction écrit une nouvelle ligne du même rang ;
-     * la règle de la ligne qui fait foi sera décidée par Pascal, mission 015). Triés par rang.
+     * Les arbres distincts, triés par rang. Une correction **remplace** la ligne (Pascal, 2026-10-30, mission 015) : un
+     * rang n'a qu'une ligne. S'il en a plusieurs (vrai doublon, par exemple venu de l'union de deux opérateurs), la
+     * dernière est montrée et le rendu le signale (`doublon_arbre`).
      */
     val arbresRetenus: List<ArbreLu>
         get() = arbres.groupBy { it.rang }.toSortedMap().map { (_, lignes) -> lignes.last() }
@@ -78,7 +80,7 @@ data class PlacetteLue(
     /** Nombre de rangs distincts notés : ce que « 3 sur 4 » compte, jamais le nombre de lignes. */
     val nbRangsNotes: Int get() = arbres.map { it.rang }.toSet().size
 
-    /** Rangs qui portent plus d'une ligne : la dernière remplace les autres, et le rendu le signale. */
+    /** Rangs qui portent plus d'une ligne : un vrai doublon, jamais une correction (mission 015) ; le rendu le signale. */
     val rangsCorriges: Set<Int>
         get() = arbres.groupBy { it.rang }.filterValues { it.size > 1 }.keys
 
@@ -112,7 +114,7 @@ object LectureTournee {
             val geom = p.getAsJsonObject("geom")
             val centre = centres.lastOrNull { texte(it, "plot_id") == id }?.let { c ->
                 val g = c.getAsJsonObject("geom")
-                CentreLu(g["x"].asDouble, g["y"].asDouble, nombre(c, "precision_m"), texte(c, "operateur"))
+                CentreLu(g["x"].asDouble, g["y"].asDouble, nombre(c, "precision_m"), texte(c, "operateur"), texte(c, "uuid"))
             }
             PlacetteLue(
                 plotId = id,

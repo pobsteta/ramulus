@@ -98,6 +98,27 @@ Rien de ce qui précède n'est effacé ; ceci le corrige.
   d'horizon (même nord, même sens, même règle de choix), non plus sur une marque sur l'arbre. Si un arbre disparaît ou
   si la règle de choix change, les rangs se décalent. C'est le prix de ne rien peindre ; Pascal l'assume.
 
+## Ajout du 2026-10-30 (Pascal, mission 015) — corriger, c'est remplacer
+
+Rien de ce qui précède n'est effacé ; ceci remplace le « Provisoire » de la rubrique du 2026-10-29.
+
+- **Décision de Pascal (2026-10-30, « je valide tes réponses », sur la recommandation de l'orchestrateur) :** une
+  correction **remplace** la ligne ; elle n'ajoute pas une seconde ligne « dont la plus récente ferait foi ».
+- **Note d'arbre.** Enregistrer de nouveau un arbre rouvert écrit une note de **nouvel `uuid`**, même `plot_id`, même
+  `rang`, et retire l'ancienne de la copie de travail, dans une seule transaction. Le journal ajoute une ligne `notation`
+  (ou `contre_notation`) dont `remplace_uuid` est la ligne du journal de l'ancienne note ; rien n'y est effacé.
+- **Photos.** Chaque vue de l'ancienne note passe à la nouvelle **sous le même numéro** (`photos/<nouvel uuid>_<n>.jpg`,
+  même SHA-256), sauf si l'opérateur la reprend : la photo reprise prend ce numéro, l'ancienne sort du paquet (gardée
+  sur l'appareil). Chaque vue de la nouvelle note a sa ligne `photo` au journal, rattachée à la nouvelle note, avec
+  `remplace_uuid` = la ligne de la vue de même numéro : un `.ramsync` restauré garde le lien photo ↔ note.
+- **Centre.** Relever de nouveau remplace l'ancien de la même façon : au plus un centre par placette.
+- **Placette close.** Une placette « notee » se corrige (arbre ou centre) de la même façon, et reste close
+  (arbitrage de l'orchestrateur, par délégation de Pascal, 2026-10-30).
+- **`doublon_arbre`** reste un contrôle du rendu ; il signale un vrai doublon (deux lignes du même rang dans un paquet,
+  par exemple après l'union de deux opérateurs), jamais une correction.
+- **Ce que ça coûte :** la copie de travail ne garde pas l'historique des notes ; il est dans le journal seul (et dans
+  son `.ramsync`). Une correction concurrente reste un conflit, signalé, jamais résolu (ADR 0005, l. 33).
+
 ## Sources
 
 - Note DGAL/SDQSPV/2018-433 du DSF, « Quantifier l'état de santé de la forêt, méthode simplifiée » :

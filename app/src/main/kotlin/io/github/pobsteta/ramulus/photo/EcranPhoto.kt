@@ -74,7 +74,7 @@ fun EcranPhoto(vm: TourneeViewModel, plotId: String, fini: () -> Unit) {
     var enCours by remember { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Photo du houppier · ${arbre.photos.size} sur ${if (regime.max == 1) "1" else "${regime.min} à ${regime.max}"}", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text("Photo du houppier · ${arbre.nbPhotos} sur ${if (regime.max == 1) "1" else "${regime.min} à ${regime.max}"}", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         for (l in rappelDeConvention(regime)) Text(l, style = MaterialTheme.typography.bodyMedium)
 
         if (!autorisee) {
@@ -147,9 +147,9 @@ fun EcranPhoto(vm: TourneeViewModel, plotId: String, fini: () -> Unit) {
                         },
                     )
                 },
-                enabled = !enCours && arbre.photos.size < regime.max,
+                enabled = !enCours && (arbre.vueAReprendre != null || arbre.nbPhotos < regime.max),
                 modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
-            ) { Text(if (arbre.photos.size >= regime.max) "Nombre de vues atteint" else "Prendre la photo", fontSize = 22.sp) }
+            ) { Text(if (arbre.vueAReprendre == null && arbre.nbPhotos >= regime.max) "Nombre de vues atteint" else "Prendre la photo", fontSize = 22.sp) }
         }
         OutlinedButton(onClick = fini, Modifier.fillMaxWidth().heightIn(min = 64.dp)) { Text("Terminé", fontSize = 20.sp) }
     }
