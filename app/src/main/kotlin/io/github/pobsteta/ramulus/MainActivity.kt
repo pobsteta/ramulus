@@ -4,7 +4,11 @@ import android.os.Bundle
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -63,6 +67,18 @@ class MainActivity : ComponentActivity() {
         val controle = vm
         val reglagesLus = reglages
         setContent {
+            // Plein écran : faux par défaut, gardé sur le téléphone ; appliqué à chaque lancement et tout de suite au
+            // changement ; les barres reviennent un instant au glissement (comme Surculus, mission 044).
+            val pleinEcran = reglagesLus.pleinEcran
+            LaunchedEffect(pleinEcran) {
+                val controleur = WindowCompat.getInsetsController(window, window.decorView)
+                if (pleinEcran) {
+                    controleur.hide(WindowInsetsCompat.Type.systemBars())
+                    controleur.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                } else {
+                    controleur.show(WindowInsetsCompat.Type.systemBars())
+                }
+            }
             RamulusTheme(reglagesLus.choixTheme) {
                 // Une Surface donne à tout l'écran la couleur de fond et la couleur du texte du thème (onBackground) :
                 // sans elle le texte posé hors Scaffold reste noir, illisible en Sombre.

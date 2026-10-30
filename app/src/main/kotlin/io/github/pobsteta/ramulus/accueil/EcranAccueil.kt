@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.filled.ViewColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,6 +44,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -65,7 +68,8 @@ fun TourneeEnCours.enLigne(): LigneAccueil = LigneAccueil(code, nature, nbPlacet
 
 /**
  * L'écran d'ouverture, le même que Surculus et Marculus : bandeau vert (titre, bascule liste/kanban, menu ⋮), zone de
- * recherche, puis la liste « À faire » et « Terminées » ou les cinq colonnes du kanban. Structure reprise de Surculus
+ * recherche avec la puce « Terminées (n) » à sa droite (la liste montre les tournées à faire, ou les terminées si
+ * la puce est cochée), ou les cinq colonnes du kanban. Structure reprise de Surculus
  * (`tournee/EcranTournees.kt`, commit b73c493) ; la recherche filtre sur le code de la tournée.
  * Il n'est jamais vide : sans tournée, il dit comment en ouvrir une.
  */
@@ -74,6 +78,7 @@ fun EcranAccueil(vm: TourneeViewModel, etat: EtatTournee, reglages: ReglagesRamu
     val ctx = LocalContext.current
     var recherche by rememberSaveable { mutableStateOf("") }
     var modeColonnes by rememberSaveable { mutableStateOf(false) }
+    var voirTerminees by rememberSaveable { mutableStateOf(false) }
     var aPropos by rememberSaveable { mutableStateOf(false) }
     val statuts = remember { StatutsKanban(MagasinPrefs(ctx)) }
     var versionStatuts by remember { mutableStateOf(0) }
@@ -109,23 +114,41 @@ fun EcranAccueil(vm: TourneeViewModel, etat: EtatTournee, reglages: ReglagesRamu
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            OutlinedTextField(
-                value = recherche,
-                onValueChange = { recherche = it },
-                label = { Text("Chercher une tournée") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            etat.erreur?.let { Text(it, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold) }
-
             val toutes = etat.enCours.map { it.enLigne() }
             val trouvees = filtrer(toutes, recherche)
+            val liste = repartirListe(trouvees)
+            val affichees = listeAffichee(liste, voirTerminees)
+            // Zone de recherche et puce « Terminées (n) » sur une même ligne (Surculus mission 041, Groma).
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = recherche,
+                    onValueChange = { recherche = it },
+                    label = { Text("Chercher une tournée") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f),
+                )
+                // En colonnes, toutes les tournées sont réparties : pas de puce.
+                if (!modeColonnes) FilterChip(
+                    selected = voirTerminees,
+                    onClick = { voirTerminees = !voirTerminees },
+                    label = { Text(textePuceTerminees(toutes.count { it.rendue }), style = MaterialTheme.typography.labelLarge) },
+                    leadingIcon = if (voirTerminees) ({ Text("✓", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold) }) else null,
+                )
+            }
+            etat.erreur?.let { Text(it, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold) }
+
+            if (!modeColonnes) texteAutreListe(recherche, autreListe(liste, voirTerminees).size, voirTerminees)?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             when {
                 toutes.isEmpty() -> Text(
                     "Aucune tournée sur ce téléphone. Menu ⋮, puis « Ouvrir une tournée ».",
                     style = MaterialTheme.typography.bodyLarge,
                 )
-                trouvees.isEmpty() -> Text("Aucune tournée trouvée.", style = MaterialTheme.typography.bodyLarge)
+                modeColonnes && trouvees.isEmpty() ->
+                    Text(MessageVide.AUCUNE_TROUVEE.texte, style = MaterialTheme.typography.bodyLarge)
+                !modeColonnes && affichees.isEmpty() ->
+                    Text(messageVide(recherche, voirTerminees).texte, style = MaterialTheme.typography.bodyLarge)
                 modeColonnes -> {
                     val rafraichi = versionStatuts // relu pour recomposer après un dépôt
                     VueKanban(
@@ -138,7 +161,7 @@ fun EcranAccueil(vm: TourneeViewModel, etat: EtatTournee, reglages: ReglagesRamu
                         modifier = Modifier.weight(1f),
                     )
                 }
-                else -> ListeDesTournees(repartirListe(trouvees), Modifier.weight(1f)) { vm.enArriere { vm.controleur.reprendre(it.code) } }
+                else -> ListeDesTournees(affichees, Modifier.weight(1f)) { vm.enArriere { vm.controleur.reprendre(it.code) } }
             }
             Text(
                 "Opérateur : ${etat.operateur ?: "à saisir"}",
@@ -150,28 +173,10 @@ fun EcranAccueil(vm: TourneeViewModel, etat: EtatTournee, reglages: ReglagesRamu
 }
 
 @Composable
-private fun ListeDesTournees(liste: ListeAccueil, modifier: Modifier, onOuvrir: (LigneAccueil) -> Unit) {
+private fun ListeDesTournees(lignes: List<LigneAccueil>, modifier: Modifier, onOuvrir: (LigneAccueil) -> Unit) {
     LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        if (liste.aFaire.isNotEmpty()) {
-            item { EnTete("À faire (${liste.aFaire.size})") }
-            items(liste.aFaire, key = { "a-" + it.code }) { LigneDeTournee(it) { onOuvrir(it) } }
-        }
-        if (liste.terminees.isNotEmpty()) {
-            item { EnTete("Terminées (${liste.terminees.size})") }
-            items(liste.terminees, key = { "t-" + it.code }) { LigneDeTournee(it) { onOuvrir(it) } }
-        }
+        items(lignes, key = { it.code }) { LigneDeTournee(it) { onOuvrir(it) } }
     }
-}
-
-@Composable
-private fun EnTete(texte: String) {
-    Text(
-        texte,
-        style = MaterialTheme.typography.titleSmall,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 8.dp),
-    )
 }
 
 /** Le code en grand, puis la nature et l'avancement. Toute la ligne est la cible (gants, une main). */

@@ -52,6 +52,41 @@ fun repartirListe(lignes: List<LigneAccueil>): ListeAccueil {
     return ListeAccueil(aFaire, terminees)
 }
 
+/** Ce que dit la liste quand elle est vide (comme Surculus `messageVide`). */
+enum class MessageVide(val texte: String) {
+    AUCUNE_TROUVEE("Aucune tournée trouvée."),
+    AUCUNE_TERMINEE("Aucune tournée terminée."),
+    AUCUNE_A_FAIRE("Aucune tournée à faire."),
+}
+
+/** Recherche non vide : rien ne correspond. Sinon, c'est la liste de la puce choisie qui est vide. */
+fun messageVide(recherche: String, voirTerminees: Boolean): MessageVide = when {
+    recherche.isNotBlank() -> MessageVide.AUCUNE_TROUVEE
+    voirTerminees -> MessageVide.AUCUNE_TERMINEE
+    else -> MessageVide.AUCUNE_A_FAIRE
+}
+
+/** La liste montrée : les terminées si la puce est cochée, sinon celles à faire. */
+fun listeAffichee(liste: ListeAccueil, voirTerminees: Boolean): List<LigneAccueil> =
+    if (voirTerminees) liste.terminees else liste.aFaire
+
+/** L'autre liste, celle que la puce ne montre pas. */
+fun autreListe(liste: ListeAccueil, voirTerminees: Boolean): List<LigneAccueil> =
+    if (voirTerminees) liste.aFaire else liste.terminees
+
+/**
+ * La recherche dit ce qu'elle trouve dans l'autre liste : « 1 tournée terminée correspond », « 2 tournées à faire
+ * correspondent ». `null` si rien (ou pas de recherche).
+ */
+fun texteAutreListe(recherche: String, nb: Int, voirTerminees: Boolean): String? {
+    if (recherche.isBlank() || nb <= 0) return null
+    val nom = if (voirTerminees) "à faire" else if (nb > 1) "terminées" else "terminée"
+    return if (nb > 1) "$nb tournées $nom correspondent" else "1 tournée $nom correspond"
+}
+
+/** Le texte de la puce : « Terminées (n) », n étant le nombre de tournées rendues sur le téléphone. */
+fun textePuceTerminees(nb: Int): String = "Terminées ($nb)"
+
 /**
  * Les cinq colonnes du kanban, celles de Marculus et de Surculus (`EtatKanban`). L'ordre déclaré est l'ordre des colonnes
  * **et** l'ordre de comparaison, comme dans Surculus.

@@ -52,6 +52,10 @@ class ReglagesRamulus(private val magasin: MagasinReglages) {
     var seuilEcartM: Int by mutableStateOf(magasin.lireEntier(CLE_SEUIL, SEUIL_PAR_DEFAUT_M).coerceIn(SEUIL_MIN_M, SEUIL_MAX_M))
         private set
 
+    /** Plein écran : faux par défaut, gardé sur le téléphone (comme Surculus, mission 044). */
+    var pleinEcran: Boolean by mutableStateOf(magasin.lireEntier(CLE_PLEIN_ECRAN, 0) == 1)
+        private set
+
     private var derniereMs: Long? by mutableStateOf(magasin.lireLong(CLE_SAUVEGARDE))
 
     /** Instant de la dernière sauvegarde `.ramsync` écrite, ou `null` s'il n'y en a pas encore. */
@@ -60,6 +64,11 @@ class ReglagesRamulus(private val magasin: MagasinReglages) {
     fun definirTheme(choix: ChoixTheme) {
         choixTheme = choix
         magasin.ecrireTexte(CLE_THEME, choix.name)
+    }
+
+    fun definirPleinEcran(actif: Boolean) {
+        pleinEcran = actif
+        magasin.ecrireEntier(CLE_PLEIN_ECRAN, if (actif) 1 else 0)
     }
 
     fun definirNbMesures(n: Int) {
@@ -85,6 +94,7 @@ class ReglagesRamulus(private val magasin: MagasinReglages) {
 
     companion object {
         const val CLE_THEME = "theme"
+        const val CLE_PLEIN_ECRAN = "plein_ecran"
         const val CLE_MESURES = "gnss_mesures"
         const val CLE_SEUIL = "gnss_seuil_m"
         const val CLE_SAUVEGARDE = "derniere_sauvegarde_ms"
