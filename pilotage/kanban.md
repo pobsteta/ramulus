@@ -15,7 +15,7 @@
 
 ## Planifié
 
-- **017** `afficheur` · finitions des écrans et réserves de 008 (PV1 en dur, mémoire de capture, état de
+- **017** `afficheur` · [fiche](missions/017-finitions-ecrans.md) · finitions des écrans et réserves de 008 (PV1 en dur, mémoire de capture, état de
   `EcranPhoto`, couleurs fixes `Ambre` et `Color.Gray`) · après 015 (mêmes fichiers) · depuis le cycle 4.
 - **021** (à ficher) · mineurs de l'échange (004, 007, 013, 006) · depuis le cycle 4.
 - **009** (à ficher) · rendu complet : fusion des opérateurs, mesure du temps de saisie · depuis le cycle 2.
