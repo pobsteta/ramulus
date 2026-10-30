@@ -82,6 +82,25 @@ object EchangeDeperis {
     @JvmStatic
     fun enregistrerNotation(gpkg: File, notation: String): String = Ecriture.enregistrerNotation(gpkg, notation)
 
+    /**
+     * Corrige une note dans la copie de travail (mission 015) : la note `ancienUuid` est **retirée** et la nouvelle
+     * ajoutée, dans une seule transaction, à la table de la nature de la tournée. La nouvelle porte un nouvel `uuid`, le
+     * même `plot_id` et le même `rang`. Ainsi une correction ne laisse qu'une ligne par arbre et ne fabrique pas de
+     * `doublon_arbre`. Mêmes refus que [enregistrerNotation], plus `uuid_duplique` (même `uuid`) et
+     * `rattachement_invalide` (note absente, autre placette, autre rang). Rend la ligne écrite, classe comprise.
+     */
+    @JvmStatic
+    fun remplacerNotation(gpkg: File, ancienUuid: String, notation: String): String =
+        Ecriture.remplacerNotation(gpkg, ancienUuid, notation)
+
+    /**
+     * Relever de nouveau un centre (mission 015) : les centres déjà écrits pour ce `plot_id` sont retirés de la copie de
+     * travail et le nouveau est ajouté, dans une seule transaction ; il reste au plus un centre par placette. Mêmes refus
+     * que [enregistrerCentre]. Rend les `uuid` retirés, en texte JSON d'un tableau (`[]` pour un premier relevé).
+     */
+    @JvmStatic
+    fun remplacerCentre(gpkg: File, centre: String): String = Ecriture.remplacerCentre(gpkg, centre)
+
     /** `placettes.etat` = « notee » ; rien d'autre n'est modifié dans `placettes`. */
     @JvmStatic
     fun cloturerPlacette(gpkg: File, plotId: String) = Ecriture.cloturerPlacette(gpkg, plotId)

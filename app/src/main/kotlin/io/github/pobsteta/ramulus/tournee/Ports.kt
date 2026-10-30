@@ -1,6 +1,7 @@
 package io.github.pobsteta.ramulus.tournee
 
 import io.github.pobsteta.ramulus.core.echange.EchangeDeperis
+import io.github.pobsteta.ramulus.core.journal.LigneJournal
 import java.io.File
 
 /** L'échange `deperis-v1` (mission 004), vu de l'écran. Les résultats sont les textes JSON de [EchangeDeperis]. */
@@ -11,6 +12,13 @@ interface Echange {
     fun enregistrerNotation(gpkg: File, notation: String): String
     fun cloturerPlacette(gpkg: File, plotId: String)
     fun rendre(gpkg: File, depart: File, racinePhotos: File, operateur: String, versionRamulus: String, sortie: File): String
+
+    /** Corrige une note : l'ancienne est retirée de la copie de travail, la nouvelle ajoutée (mission 015). */
+    fun remplacerNotation(gpkg: File, ancienUuid: String, notation: String): String =
+        EchangeDeperis.remplacerNotation(gpkg, ancienUuid, notation)
+
+    /** Relève de nouveau un centre : les centres de la placette sont retirés, le nouveau ajouté ; rend les `uuid` retirés. */
+    fun remplacerCentre(gpkg: File, centre: String): String = EchangeDeperis.remplacerCentre(gpkg, centre)
 }
 
 /** Seule porte vers le GeoPackage : [EchangeDeperis]. */
@@ -28,6 +36,18 @@ object EchangeReel : Echange {
 interface Journal {
     /** Ajoute une saisie (`notation`, `contre_notation`, `photo`, `centre`, `placette_notee`). */
     fun saisir(codeTournee: String, objetUuid: String, type: String, valeur: String, operateur: String)
+
+    /**
+     * Ajoute une saisie qui **remplace** la ligne `remplaceUuid` du journal (une correction, mission 015 ; une
+     * `annulation`). Le journal reste en ajout seul : la ligne remplacée n'est ni modifiée ni effacée. Sans
+     * `remplaceUuid`, c'est une saisie ordinaire. Un journal qui ne sait pas remplacer garde la saisie, sans le lien.
+     */
+    fun saisir(codeTournee: String, objetUuid: String, type: String, valeur: String, operateur: String, remplaceUuid: String?) {
+        saisir(codeTournee, objetUuid, type, valeur, operateur)
+    }
+
+    /** Les lignes de la tournée, dans l'ordre total : pour retrouver la ligne qu'une correction remplace. */
+    fun lignes(codeTournee: String): List<LigneJournal> = emptyList()
 
     /** Sauvegarde `.ramsync` si c'est dû (cadence de 005) ; rend le nom écrit ou `null`. */
     fun sauvegarderSiDue(codeTournee: String, versionNemeton: String?, finDePlacette: Boolean): String?

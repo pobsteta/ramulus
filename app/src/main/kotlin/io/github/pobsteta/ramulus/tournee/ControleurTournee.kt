@@ -13,6 +13,7 @@ import io.github.pobsteta.ramulus.core.deperis.Note
 import io.github.pobsteta.ramulus.core.echange.EchangeRefuse
 import io.github.pobsteta.ramulus.core.gnss.CentreReleve
 import io.github.pobsteta.ramulus.core.gnss.EcartAuPointPrevu
+import io.github.pobsteta.ramulus.core.journal.LigneJournal
 import io.github.pobsteta.ramulus.core.journal.TypeLigne
 import io.github.pobsteta.ramulus.core.journal.UuidV7
 import io.github.pobsteta.ramulus.core.photo.Empreinte
@@ -41,7 +42,12 @@ sealed interface Ecran {
 }
 
 /** Une photo prise pour l'arbre en cours, pas encore nommée : elle prend son nom `<uuid>_<n>.jpg` à l'enregistrement de l'arbre. */
-data class PhotoEnAttente(val fichier: String, val signalements: List<SignalementImage>)
+data class PhotoEnAttente(
+    val fichier: String,
+    val signalements: List<SignalementImage>,
+    /** Arbre rouvert : le numéro (à partir de 1) de la vue de la note corrigée que cette photo reprend, sinon `null`. */
+    val reprendVue: Int? = null,
+)
 
 /** L'arbre que l'opérateur est en train de noter. La classe n'est jamais saisie : elle sort de l'abaque. */
 data class ArbreEnCours(
@@ -51,8 +57,26 @@ data class ArbreEnCours(
     val essence: EssenceDeperis? = null,
     val mb: Note? = null,
     val second: Note? = null,
+    /** Photos nouvelles, prises pour cet arbre (vues ajoutées, ou reprises d'une vue de la note corrigée). */
     val photos: List<PhotoEnAttente> = emptyList(),
+    /** `uuid` de la note que l'enregistrement remplacera (arbre rouvert, mission 015). */
+    val remplace: String? = null,
+    /**
+     * Photos de la note corrigée, citées `photos/<ancien uuid>_<n>.jpg`, dans l'ordre de leur numéro. Chacune passe à la
+     * nouvelle note sous le même numéro (renommée, même SHA-256), sauf si l'opérateur la reprend : la photo reprise
+     * prend alors ce numéro (arbitrage du 2026-10-30).
+     */
+    val photosAnciennes: List<String> = emptyList(),
+    /** Vue de la note corrigée que la prochaine photo reprendra (numéro à partir de 1), ou `null`. */
+    val vueAReprendre: Int? = null,
 ) {
+    /** Combien de vues portera la note : celles de la note corrigée (gardées ou reprises), puis les ajoutées. */
+    val nbPhotos: Int get() = photosAnciennes.size + photos.count { it.reprendVue == null }
+
+    /** Les photos de la note corrigée qui passent telles quelles à la nouvelle. */
+    val photosGardees: List<String>
+        get() = photosAnciennes.filterIndexed { i, _ -> photos.none { it.reprendVue == i + 1 } }
+
     val classe: Classe? get() = if (mb != null && second != null) Abaque.classe(mb, second) else null
     val complet: Boolean get() = essence != null && mb != null && second != null
 }
@@ -125,6 +149,11 @@ class ControleurTournee(
     private fun photos(code: String) = File(dossier(code), "photos")
     private fun dossierPhotos(code: String) = File(photos(code), NomsPhotos.DOSSIER)
     private fun enAttente(code: String) = File(dossier(code), "photos-en-attente")
+    /**
+     * Les photos qu'une correction a reprises : hors de `photos/` (le rendu, R10c, y tient tout fichier pour une photo à
+     * citer), mais gardées sur l'appareil plutôt qu'effacées.
+     */
+    private fun remplacees(code: String) = File(dossier(code), "photos-remplacees")
 
     @Synchronized
     private fun maj(f: EtatTournee.() -> EtatTournee) {
@@ -247,7 +276,8 @@ class ControleurTournee(
         val ecran = etat.ecran as? Ecran.Arbres ?: return false
         val t = etat.tournee ?: return false
         val regime = regimePhotos(ecran.plotId)
-        if (etat.arbre.photos.size >= regime.max) {
+        val reprise = etat.arbre.vueAReprendre
+        if (reprise == null && etat.arbre.nbPhotos >= regime.max) {
             maj { copy(erreur = "Au plus ${regime.max} photo${if (regime.max > 1) "s" else ""} pour cet arbre.") }
             return false
         }
@@ -260,7 +290,12 @@ class ControleurTournee(
             val dossierAttente = enAttente(t.code).also { it.mkdirs() }
             val nom = "${uuids.tirer(horloge().toEpochMilli())}.jpg"
             File(dossierAttente, nom).writeBytes(octets)
-            maj { copy(arbre = arbre.copy(photos = arbre.photos + PhotoEnAttente(nom, signalements)), erreur = null) }
+            // Une vue reprise deux fois : la dernière prise la reprend, la précédente ne sert plus.
+            etat.arbre.photos.filter { reprise != null && it.reprendVue == reprise }.forEach { File(dossierAttente, it.fichier).delete() }
+            maj {
+                val gardees = arbre.photos.filterNot { reprise != null && it.reprendVue == reprise }
+                copy(arbre = arbre.copy(photos = gardees + PhotoEnAttente(nom, signalements, reprise), vueAReprendre = null), erreur = null)
+            }
             true
         } catch (e: Exception) {
             maj { copy(erreur = "Photo non gardée : ${e.message ?: e.javaClass.simpleName}") }
@@ -276,25 +311,51 @@ class ControleurTournee(
         maj { copy(arbre = arbre.copy(photos = arbre.photos.filterIndexed { i, _ -> i != index })) }
     }
 
+    /**
+     * L'opérateur reprend la vue `numero` (à partir de 1) de l'arbre rouvert : la prochaine photo prise la remplace, sous
+     * le même numéro (arbitrage du 2026-10-30). L'ancienne sort de `photos/` à l'enregistrement de la correction
+     * (gardée dans `photos-remplacees/`), pas avant ; retirer la photo reprise rend l'ancienne.
+     */
+    fun reprendrePhoto(numero: Int) {
+        if (numero !in 1..etat.arbre.photosAnciennes.size) return
+        maj { copy(arbre = arbre.copy(vueAReprendre = numero), erreur = null) }
+    }
+
+    /** La prochaine photo est une vue ajoutée, pas une reprise (l'opérateur a renoncé à reprendre une vue). */
+    fun nouvelleVue() = maj { copy(arbre = arbre.copy(vueAReprendre = null)) }
+
+    /** Le fichier d'une photo gardée de la note corrigée (pour l'aperçu). */
+    fun fichierGarde(nom: String): File? = etat.tournee?.let { File(photos(it.code), nom) }
+
     /** Le fichier d'une photo en attente (pour l'aperçu). */
     fun fichierEnAttente(photo: PhotoEnAttente): File? = etat.tournee?.let { File(enAttente(it.code), photo.fichier) }
 
     /**
-     * Donne aux photos en attente leur nom définitif `photos/<uuid>_<n>.jpg` et leur empreinte. Un `.nomedia` dans
-     * `racinePhotos/photos/` empêche toute galerie de les indexer. Rend la colonne `photos` et les fichiers écrits
-     * (à défaire si l'écriture de la note est refusée).
+     * Les fichiers de la future note, dans l'ordre de leur numéro : pour chaque vue de la note corrigée, sa reprise ou
+     * l'ancienne photo ; puis les vues ajoutées. Le second terme est le nom de la vue de la note corrigée à ce numéro.
      */
-    private fun nommerLesPhotos(code: String, uuidNote: String, attente: List<PhotoEnAttente>): Pair<List<PhotoGardee>, List<File>> {
-        if (attente.isEmpty()) return emptyList<PhotoGardee>() to emptyList()
+    private fun sourcesDesPhotos(code: String, a: ArbreEnCours): List<Pair<File, String?>> =
+        a.photosAnciennes.mapIndexed { i, ancien ->
+            val reprise = a.photos.lastOrNull { it.reprendVue == i + 1 }
+            (if (reprise != null) File(enAttente(code), reprise.fichier) else File(photos(code), ancien)) to ancien
+        } + a.photos.filter { it.reprendVue == null }.map { File(enAttente(code), it.fichier) to null }
+
+    /**
+     * Donne aux photos leur nom définitif `photos/<uuid>_<n>.jpg` et leur empreinte, dans l'ordre de `sources` (copiées ;
+     * l'original d'une photo gardée reste jusqu'à ce que la note soit écrite). Un `.nomedia` au-dessus de
+     * `racinePhotos/photos/` empêche toute galerie de les indexer. Rend la colonne `photos` et les fichiers écrits (à
+     * défaire si l'écriture de la note est refusée).
+     */
+    private fun nommerLesPhotos(code: String, uuidNote: String, sources: List<File>): Pair<List<PhotoGardee>, List<File>> {
+        if (sources.isEmpty()) return emptyList<PhotoGardee>() to emptyList()
         val cible = dossierPhotos(code).also { it.mkdirs() }
         // Au-dessus de photos/ et non dedans : le rendu (R10c) tient tout fichier de photos/ pour une photo à citer.
         File(photos(code), ".nomedia").takeUnless { it.exists() }?.writeBytes(ByteArray(0))
         val gardees = mutableListOf<PhotoGardee>()
         val ecrits = mutableListOf<File>()
         try {
-            attente.forEachIndexed { i, p ->
+            sources.forEachIndexed { i, source ->
                 val n = i + 1
-                val source = File(enAttente(code), p.fichier)
                 val fichier = File(cible, NomsPhotos.fichier(uuidNote, n))
                 source.copyTo(fichier, overwrite = false)
                 ecrits += fichier
@@ -339,7 +400,11 @@ class ControleurTournee(
 
     // --- Le centre ------------------------------------------------------------------------------------------------
 
-    /** Enregistre le centre relevé dans la copie de travail, puis au journal. Sans écriture si l'échange refuse. */
+    /**
+     * Enregistre le centre relevé dans la copie de travail, puis au journal. Sans écriture si l'échange refuse.
+     * Relever de nouveau **remplace** le centre (mission 015) : l'ancien est retiré de la copie de travail, le journal
+     * ajoute une ligne `centre` dont `remplace_uuid` désigne la ligne de l'ancien ; il reste un centre par placette.
+     */
     fun enregistrerCentre(plotId: String, centre: CentreReleve, ecart: EcartAuPointPrevu?) {
         val t = etat.tournee ?: return
         val op = etat.operateur ?: return
@@ -359,8 +424,8 @@ class ControleurTournee(
                 addProperty("y", centre.position.yMetres)
             })
         }
-        try {
-            echange.enregistrerCentre(travail(t.code), ligne.toString())
+        val retires = try {
+            JsonParser.parseString(echange.remplacerCentre(travail(t.code), ligne.toString())).asJsonArray.map { it.asString }
         } catch (e: Exception) {
             maj { copy(erreur = refusDEcriture(e)) }
             return
@@ -374,7 +439,8 @@ class ControleurTournee(
             addProperty("source", centre.source)
             ecart?.let { addProperty("ecart_m", it.metres) }
         }
-        ecrireJournal(t, uuid, TypeLigne.CENTRE, valeur, op, finDePlacette = false)
+        val remplace = retires.asReversed().firstNotNullOfOrNull { ligneDuJournal(t.code, it, TypeLigne.CENTRE) }
+        ecrireJournal(t, uuid, TypeLigne.CENTRE, valeur, op, finDePlacette = false, remplaceUuid = remplace?.uuid)
         recharger(t.code)
         maj { copy(ecran = Ecran.Placette(plotId), erreur = null) }
     }
@@ -395,17 +461,28 @@ class ControleurTournee(
     fun choisirSecond(n: Note) = maj { copy(arbre = arbre.copy(second = n)) }
 
     /**
-     * Rouvre un arbre déjà noté pour le corriger : il garde son rang (attribué par l'application, jamais choisi) et ses
-     * notes reviennent à l'écran. L'enregistrer de nouveau écrit une nouvelle ligne du même rang ; le contrôle du rendu
-     * la signale (`doublon_arbre`) pour que la correction soit vue, jamais en silence.
+     * Rouvre un arbre déjà noté pour le corriger : il garde son rang (attribué par l'application, jamais choisi), ses
+     * notes reviennent à l'écran et ses photos sont gardées. L'enregistrer de nouveau **remplace** la note (Pascal,
+     * 2026-10-30, mission 015) : une note de nouvel `uuid`, même placette, même rang ; l'ancienne quitte la copie de
+     * travail, le journal garde les deux. Une placette déjà close (« notee ») se corrige de la même façon
+     * (arbitrage du 2026-10-30) ; elle reste close.
      */
     fun rouvrirArbre(rang: Int) {
         val e = etat.ecran as? Ecran.Arbres ?: return
         val p = etat.tournee?.placette(e.plotId) ?: return
-        if (p.estNotee) return
         val lu = p.arbres.lastOrNull { it.rang == rang } ?: return
         val essence = Essences.toutes.firstOrNull { it.nom == lu.essence }
-        maj { copy(arbre = ArbreEnCours(rang = lu.rang, rouvert = true, essence = essence, mb = Note(lu.mb), second = Note(lu.second)), erreur = null) }
+        // Les photos prises pour l'arbre abandonné ne servent plus.
+        etat.tournee?.let { t -> etat.arbre.photos.forEach { ph -> File(enAttente(t.code), ph.fichier).delete() } }
+        maj {
+            copy(
+                arbre = ArbreEnCours(
+                    rang = lu.rang, rouvert = true, essence = essence, mb = Note(lu.mb), second = Note(lu.second),
+                    remplace = lu.uuid.ifBlank { null }, photosAnciennes = lu.photos,
+                ),
+                erreur = null,
+            )
+        }
     }
 
     /** Avertissements de l'arbre en cours : fiche manquante (SA2), rang déjà noté. Aucun ne bloque. */
@@ -415,8 +492,15 @@ class ControleurTournee(
         val a = etat.arbre
         return buildList {
             a.essence?.let { Avertissements.ficheManquante(it, p.saison)?.let(::add) }
-            if (a.complet) photoManquante(p, a.photos.size)?.let(::add)
-            if (p.arbres.any { it.rang == a.rang }) add("Le rang ${a.rang} est déjà noté.")
+            if (a.complet) photoManquante(p, a.nbPhotos)?.let(::add)
+            a.photosGardees.forEach { nom ->
+                if (fichierGarde(nom)?.isFile != true) add("Vue ${a.photosAnciennes.indexOf(nom) + 1} absente de l'appareil : reprenez-la.")
+            }
+            if (a.remplace != null) {
+                add("Correction du rang ${a.rang} : la note enregistrée sera remplacée.")
+            } else if (p.arbres.any { it.rang == a.rang }) {
+                add("Le rang ${a.rang} est déjà noté.")
+            }
         }
     }
 
@@ -437,6 +521,13 @@ class ControleurTournee(
      * Enregistre l'arbre en cours : classe calculée par l'abaque par l'échange (jamais saisie), puis journal, puis
      * l'arbre suivant du tour d'horizon. Sans effet tant qu'une note ou l'essence manque. Le rang vient de l'application ; le numéro peint
      * (`repere`) n'existe plus : la colonne reste NULL (Pascal, 2026-10-29).
+     *
+     * Un arbre rouvert **remplace** sa note (mission 015) : nouvel `uuid`, même rang ; l'ancienne note quitte la copie
+     * de travail. Chaque vue n de l'ancienne note passe à la nouvelle sous le même numéro
+     * (`photos/<nouvel uuid>_<n>.jpg`) : l'ancienne photo, même SHA-256, ou celle qui la reprend (l'ancienne va alors
+     * dans `photos-remplacees/`). Le journal ajoute la notation avec `remplace_uuid` = la ligne de l'ancienne note, et
+     * une ligne `photo` par vue, rattachée à la nouvelle note, avec `remplace_uuid` = la ligne de la vue de même numéro
+     * de l'ancienne : la projection du journal (et donc un `.ramsync` restauré) garde le lien photo ↔ note.
      */
     fun enregistrerArbre() {
         val ecran = etat.ecran as? Ecran.Arbres ?: return
@@ -445,6 +536,7 @@ class ControleurTournee(
         val op = etat.operateur ?: return
         val a = etat.arbre
         if (p.complete && !a.rouvert) return // placette complète : pas de rang à noter, seulement des corrections voulues
+        if (p.estNotee && !a.rouvert) return // placette close : seulement des corrections
         val essence = a.essence ?: return
         val mb = a.mb ?: return
         val second = a.second ?: return
@@ -468,21 +560,35 @@ class ControleurTournee(
             addProperty("date_notation", iso(maintenant))
             addProperty("operateur", op)
         }
+        val ancienne = a.remplace?.let { u -> p.arbres.firstOrNull { it.uuid == u } }
+        if (a.remplace != null && ancienne == null) {
+            maj { copy(erreur = "La note à corriger n'est plus dans la tournée : rouvrez l'arbre.") }
+            return
+        }
+        val sources = sourcesDesPhotos(t.code, a)
         val (gardees, ecrits) = try {
-            nommerLesPhotos(t.code, uuid, a.photos)
+            nommerLesPhotos(t.code, uuid, sources.map { it.first })
         } catch (e: Exception) {
             maj { copy(erreur = "Photos non gardées : ${e.message ?: e.javaClass.simpleName}. L'arbre n'est pas enregistré.") }
             return
         }
         ligne.add("photos", NomsPhotos.colonne(gardees))
         try {
-            echange.enregistrerNotation(travail(t.code), ligne.toString())
+            if (ancienne != null) {
+                echange.remplacerNotation(travail(t.code), ancienne.uuid, ligne.toString())
+            } else {
+                echange.enregistrerNotation(travail(t.code), ligne.toString())
+            }
         } catch (e: Exception) {
             ecrits.forEach { it.delete() }
             maj { copy(erreur = refusDEcriture(e)) }
             return
         }
         a.photos.forEach { File(enAttente(t.code), it.fichier).delete() }
+        if (ancienne != null) {
+            val gardeesTelles = a.photosGardees
+            rangerLesPhotosRemplacees(t.code, gardeesTelles, ancienne.photos - gardeesTelles.toSet())
+        }
         // Le journal ne porte ni classe ni proposition de l'IA : MB et MR/MA seulement (plan 005, Q9).
         val valeur = JsonObject().apply {
             addProperty("plot_id", p.plotId)
@@ -494,15 +600,21 @@ class ControleurTournee(
             addProperty("saison", saison.name)
         }
         val type = if (t.estContreNotation) TypeLigne.CONTRE_NOTATION else TypeLigne.NOTATION
-        ecrireJournal(t, uuid, type, valeur, op, finDePlacette = false)
+        val lignesAnciennes = if (ancienne != null) lignesDuJournal(t.code) else emptyList()
+        val remplaceNote = ancienne?.let { an -> lignesAnciennes.lastOrNull { it.objetUuid == an.uuid && it.type == type } }
+        ecrireJournal(t, uuid, type, valeur, op, finDePlacette = false, remplaceUuid = remplaceNote?.uuid)
         // Une photo = un objet du journal (ADR 0005, plan 005 Q3) : uuid de la note, nom et SHA-256 du fichier gardé.
-        gardees.forEach { g ->
+        // Une vue d'une note corrigée (gardée ou reprise) remplace la ligne de la vue de même numéro de l'ancienne note.
+        gardees.forEachIndexed { i, g ->
             val photo = JsonObject().apply {
                 addProperty("note_uuid", uuid)
                 addProperty("nom", g.nom)
                 addProperty("sha256", g.sha256)
             }
-            ecrireJournal(t, uuids.tirer(horloge().toEpochMilli()), TypeLigne.PHOTO, photo, op, finDePlacette = false)
+            val origine = ancienne?.let { an ->
+                sources[i].second?.let { nom -> lignesAnciennes.lastOrNull { it.type == TypeLigne.PHOTO && photoDe(it, an.uuid, nom) } }
+            }
+            ecrireJournal(t, uuids.tirer(horloge().toEpochMilli()), TypeLigne.PHOTO, photo, op, finDePlacette = false, remplaceUuid = origine?.uuid)
         }
         recharger(t.code)
         val apres = etat.tournee?.placette(p.plotId)
@@ -514,6 +626,41 @@ class ControleurTournee(
         LectureTournee.depuis(echange.instantane(depart(t.code))).placette(plotId)?.arbres
             ?.firstOrNull { it.rang == rang && !it.repere.isNullOrBlank() }?.repere
     }.getOrNull()
+
+    /**
+     * Après l'écriture d'une correction : les photos gardées existent sous leur nouveau nom, leur original part ; les
+     * photos remplacées par une reprise sortent de `photos/` vers `photos-remplacees/` (rien n'est perdu, et le rendu reste conforme à R10c).
+     */
+    private fun rangerLesPhotosRemplacees(code: String, gardees: List<String>, reprises: List<String>) {
+        gardees.forEach { File(photos(code), it).delete() }
+        if (reprises.isEmpty()) return
+        val archive = remplacees(code).also { it.mkdirs() }
+        reprises.forEach { nom ->
+            val f = File(photos(code), nom)
+            if (!f.exists()) return@forEach
+            val cible = File(archive, f.name)
+            if (!f.renameTo(cible)) {
+                f.copyTo(cible, overwrite = true)
+                f.delete()
+            }
+        }
+    }
+
+    /** Vrai si la ligne du journal est la photo `nom` de la note `noteUuid`. */
+    private fun photoDe(l: LigneJournal, noteUuid: String, nom: String): Boolean {
+        val texte = l.valeur ?: return false
+        return runCatching {
+            val v = JsonParser.parseString(texte).asJsonObject
+            v["note_uuid"]?.asString == noteUuid && v["nom"]?.asString == nom
+        }.getOrDefault(false)
+    }
+
+    /** Les lignes du journal de la tournée ; vide si le journal ne se lit pas (la correction s'écrit quand même). */
+    private fun lignesDuJournal(code: String): List<LigneJournal> = runCatching { journal.lignes(code) }.getOrDefault(emptyList())
+
+    /** La dernière ligne du journal qui a saisi l'objet `objetUuid` avec ce `type`, ou `null`. */
+    private fun ligneDuJournal(code: String, objetUuid: String, type: String): LigneJournal? =
+        lignesDuJournal(code).lastOrNull { it.objetUuid == objetUuid && it.type == type }
 
     // --- Clore, rendre --------------------------------------------------------------------------------------------
 
@@ -583,9 +730,21 @@ class ControleurTournee(
      * Le journal suit l'écriture dans le GeoPackage. S'il échoue, la saisie reste dans le fichier et l'opérateur le
      * lit : on ne perd pas une note pour une ligne de journal.
      */
-    private fun ecrireJournal(t: TourneeLue, objetUuid: String, type: String, valeur: JsonObject, op: String, finDePlacette: Boolean) {
+    private fun ecrireJournal(
+        t: TourneeLue,
+        objetUuid: String,
+        type: String,
+        valeur: JsonObject,
+        op: String,
+        finDePlacette: Boolean,
+        remplaceUuid: String? = null,
+    ) {
         try {
-            journal.saisir(t.code, objetUuid, type, valeur.toString(), op)
+            if (remplaceUuid == null) {
+                journal.saisir(t.code, objetUuid, type, valeur.toString(), op)
+            } else {
+                journal.saisir(t.code, objetUuid, type, valeur.toString(), op, remplaceUuid)
+            }
         } catch (e: Exception) {
             maj { copy(avertissements = avertissements + "Journal non écrit : ${e.message ?: e.javaClass.simpleName}") }
             return

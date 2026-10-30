@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import io.github.pobsteta.ramulus.core.journal.LigneJournal
 import io.github.pobsteta.ramulus.data.journal.JournalRepository
 import io.github.pobsteta.ramulus.data.sauvegarde.Destination
 import io.github.pobsteta.ramulus.data.sauvegarde.SauvegardeRepository
@@ -21,6 +22,12 @@ class JournalAndroid(
     override fun saisir(codeTournee: String, objetUuid: String, type: String, valeur: String, operateur: String) {
         journal.saisir(codeTournee, objetUuid, type, valeur, operateur)
     }
+
+    override fun saisir(codeTournee: String, objetUuid: String, type: String, valeur: String, operateur: String, remplaceUuid: String?) {
+        journal.saisir(codeTournee, objetUuid, type, valeur, operateur, remplaceUuid = remplaceUuid)
+    }
+
+    override fun lignes(codeTournee: String): List<LigneJournal> = journal.lignes(codeTournee)
 
     override fun sauvegarderSiDue(codeTournee: String, versionNemeton: String?, finDePlacette: Boolean): String? =
         sauvegarde.sauvegarderSiDue(codeTournee, versionNemeton, finDePlacette)

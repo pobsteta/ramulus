@@ -1,6 +1,7 @@
 package io.github.pobsteta.ramulus.core.echange
 
 import com.google.gson.JsonArray
+import com.google.gson.JsonElement
 import com.google.gson.JsonNull
 import com.google.gson.JsonObject
 import io.github.pobsteta.ramulus.core.deperis.Abaque
@@ -136,6 +137,20 @@ internal object Ecriture {
     }
 
     fun enregistrerCentre(gpkg: File, centreJson: String) {
+        ecrireCentre(gpkg, centreJson, remplacer = false)
+    }
+
+    /**
+     * Relever de nouveau le centre d'une placette (mission 015) : dans une seule transaction, les centres déjà écrits
+     * pour ce `plot_id` sont retirés de la copie de travail et le nouveau est ajouté. Il reste au plus un centre par
+     * placette. Rend les `uuid` retirés (texte JSON d'un tableau, vide si la placette n'avait pas de centre).
+     */
+    fun remplacerCentre(gpkg: File, centreJson: String): String {
+        val retires = ecrireCentre(gpkg, centreJson, remplacer = true)
+        return JsonOutils.gson.toJson(JsonArray().also { a -> retires.forEach { a.add(it) } })
+    }
+
+    private fun ecrireCentre(gpkg: File, centreJson: String, remplacer: Boolean): List<String> {
         val centre = lireObjet(centreJson, "centre")
         val inconnus = centre.keySet() - COLONNES_CENTRE.toSet()
         if (inconnus.isNotEmpty()) throw EchangeRefuse(listOf("structure"), "centre : colonnes inconnues $inconnus")
@@ -143,18 +158,52 @@ internal object Ecriture {
         if (geom !is JsonObject || !JsonOutils.estNombre(geom["x"]) || !JsonOutils.estNombre(geom["y"])) {
             throw EchangeRefuse(listOf("structure"), "centre : geom attendu sous la forme {\"x\": est, \"y\": nord} en EPSG:2154")
         }
-        ecrireControle(gpkg) { cnx ->
+        return ecrireControle(gpkg) { cnx ->
             if (natureDeLaTournee(cnx) == "contre_notation") {
                 throw EchangeRefuse(listOf("plan_modifie"), "centres : dans une contre-notation, le centre du premier opérateur est en lecture (Q12)")
             }
             val ligne = JsonObject().also { o -> COLONNES_CENTRE.forEach { o.add(it, centre[it] ?: JsonNull.INSTANCE) } }
+            val retires = if (remplacer) retirerCentres(cnx, ligne["plot_id"]) else emptyList()
             val srsId = Gpkg.srsIdDe(cnx, "centres")
             inserer(cnx, "centres", COLONNES_CENTRE, listOf(ligne), srsId)
-            Gpkg.toucherContenu(cnx, "centres", geom["x"].asDouble, geom["y"].asDouble)
+            if (retires.isEmpty()) {
+                Gpkg.toucherContenu(cnx, "centres", geom["x"].asDouble, geom["y"].asDouble)
+            } else {
+                // Un point retiré a pu porter l'emprise : elle se recalcule sur les centres qui restent.
+                recalculerEmprise(cnx, "centres")
+                Gpkg.toucherContenu(cnx, "centres")
+            }
+            retires
         }
     }
 
-    fun enregistrerNotation(gpkg: File, notationJson: String): String {
+    /** Retire les centres de la placette `plotId` et rend leurs `uuid`, dans l'ordre des `fid`. */
+    private fun retirerCentres(cnx: Connection, plotId: JsonElement?): List<String> {
+        if (!JsonOutils.estTexte(plotId)) return emptyList() // le contrôle refusera la ligne (rattachement)
+        val pid = plotId!!.asString
+        val uuids = ArrayList<String>()
+        cnx.prepareStatement("SELECT uuid FROM centres WHERE plot_id = ? ORDER BY fid").use { ps ->
+            ps.setString(1, pid)
+            ps.executeQuery().use { rs -> while (rs.next()) rs.getString(1)?.let { uuids += it } }
+        }
+        cnx.prepareStatement("DELETE FROM centres WHERE plot_id = ?").use { ps ->
+            ps.setString(1, pid)
+            ps.executeUpdate()
+        }
+        return uuids
+    }
+
+    fun enregistrerNotation(gpkg: File, notationJson: String): String = ecrireNotation(gpkg, notationJson, null)
+
+    /**
+     * Corriger une note (mission 015) : dans une seule transaction, la note `ancienUuid` est retirée de la copie de
+     * travail et la nouvelle est ajoutée. La nouvelle porte un autre `uuid` (`uuid_duplique` sinon), le même `plot_id`
+     * et le même `rang` (`rattachement_invalide` sinon, comme une note à corriger introuvable). Rend la ligne écrite.
+     */
+    fun remplacerNotation(gpkg: File, ancienUuid: String, notationJson: String): String =
+        ecrireNotation(gpkg, notationJson, JsonOutils.nfc(ancienUuid))
+
+    private fun ecrireNotation(gpkg: File, notationJson: String, remplace: String?): String {
         val note = lireObjet(notationJson, "notation")
         // La classe ne se saisit pas, juste ou fausse : elle est calculée par l'abaque (ADR 0001, spec § 4 ; Pascal, T2).
         // Absente, `null`, `""` ou faite de blancs : la classe compte comme absente et se calcule, sans refus (Pascal, Q4 de 010).
@@ -180,6 +229,7 @@ internal object Ecriture {
         return ecrireControle(gpkg) { cnx ->
             val table = if (natureDeLaTournee(cnx) == "premiere") "notations" else "contre_notations"
             if (table !in Gpkg.tables(cnx)) throw EchangeRefuse(listOf("structure"), "$table : table absente (Ramulus n'en crée aucune, Q13)")
+            if (remplace != null) retirerNote(cnx, table, remplace, note)
             val ligne = JsonObject()
             for (col in COLONNES_NOTE.take(8) + "classe" + COLONNES_NOTE.drop(8)) {
                 ligne.add(
@@ -198,6 +248,29 @@ internal object Ecriture {
             cnx.createStatement().use { st -> st.executeQuery("SELECT last_insert_rowid()").use { rs -> rs.next(); enregistree.addProperty("fid", rs.getLong(1)) } }
             ligne.entrySet().forEach { (k, v) -> enregistree.add(k, v) }
             JsonOutils.gson.toJson(enregistree)
+        }
+    }
+
+    /** Retire de `table` la note `ancien`, que `nouvelle` corrige : même placette, même rang, autre `uuid`. */
+    private fun retirerNote(cnx: Connection, table: String, ancien: String, nouvelle: JsonObject) {
+        if (JsonOutils.estTexte(nouvelle["uuid"]) && nouvelle["uuid"].asString == ancien) {
+            throw EchangeRefuse(listOf("uuid_duplique"), "$table : une correction porte un nouvel uuid, pas celui de la note $ancien")
+        }
+        val (plot, rang) = cnx.prepareStatement("SELECT plot_id, rang FROM ${Gpkg.citer(table)} WHERE uuid = ?").use { ps ->
+            ps.setString(1, ancien)
+            ps.executeQuery().use { rs ->
+                if (!rs.next()) throw EchangeRefuse(listOf("rattachement_invalide"), "$table : note $ancien à corriger absente")
+                rs.getString(1) to rs.getObject(2)?.toString()
+            }
+        }
+        val plotNouveau = nouvelle["plot_id"]?.takeIf { JsonOutils.estTexte(it) }?.asString
+        val rangNouveau = nouvelle["rang"]?.takeIf { JsonOutils.estEntier(it) }?.asLong?.toString()
+        if (plotNouveau != plot || rangNouveau != rang) {
+            throw EchangeRefuse(listOf("rattachement_invalide"), "$table : la correction de $ancien ($plot, rang $rang) garde sa placette et son rang")
+        }
+        cnx.prepareStatement("DELETE FROM ${Gpkg.citer(table)} WHERE uuid = ?").use { ps ->
+            ps.setString(1, ancien)
+            ps.executeUpdate()
         }
     }
 

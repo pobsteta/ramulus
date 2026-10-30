@@ -266,9 +266,12 @@ private fun EcranPlacette(vm: TourneeViewModel, etat: EtatTournee, plotId: Strin
                 style = MaterialTheme.typography.bodyMedium,
             )
         } else {
+            if (centre != null) {
+                Text("Centre relevé · ±${centre.precisionM?.let { un(it) } ?: "?"} m", style = MaterialTheme.typography.bodyMedium)
+            }
+            // Relever de nouveau remplace le centre (mission 015) : il en reste un par placette.
             GrosBouton(
-                if (centre != null) "Centre relevé · ±${centre.precisionM?.let { un(it) } ?: "?"} m" else "Relever le centre",
-                enabled = centre == null && !p.estNotee,
+                if (centre != null) "Relever de nouveau" else "Relever le centre",
                 principal = centre == null,
             ) { c.versCentre(plotId) }
         }
@@ -299,6 +302,7 @@ private fun EcranCentre(vm: TourneeViewModel, etat: EtatTournee, plotId: String,
     val p = t.placette(plotId) ?: return
     Page(plotId, pied = pied(t, etat.operateur), retour = { vm.enArriere { vm.controleur.retour() } }) {
         Erreur(etat.erreur)
+        if (p.centre != null) Text("Un centre est déjà relevé : le nouveau le remplacera.", style = MaterialTheme.typography.bodyMedium)
         ReleverLeCentre(
             prevu = p.prevu,
             reglages = reglages,
@@ -330,9 +334,10 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
         pied = pied(t, etat.operateur),
         retour = { vm.enArriere { c.retour() } },
     ) {
-        val formulaire = !p.complete || a.rouvert
+        // Une placette close ne reçoit plus d'arbre, mais ses arbres se corrigent (arbitrage du 2026-10-30).
+        val formulaire = (!p.complete && !p.estNotee) || a.rouvert
         if (!formulaire) {
-            Text("Placette complète : ${p.nbRangsNotes} arbres sur ${p.nbArbres}", style = MaterialTheme.typography.titleLarge)
+            Text((if (p.estNotee) "Placette close" else "Placette complète") + " : ${p.nbRangsNotes} arbres sur ${p.nbArbres}", style = MaterialTheme.typography.titleLarge)
             if (!p.estNotee) GrosBouton("Clore la placette", principal = true) { vm.enArriere { c.cloturerPlacette(plotId) } }
         } else Text(
             "Arbre ${a.rang} sur ${p.nbArbres} — continuez le tour depuis le nord, sens horaire",
@@ -362,10 +367,37 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
             ClasseEnCours(a.classe)
         }
         // La note d'abord, la photo après (brief) ; elle n'est jamais obligatoire pour enregistrer l'arbre.
-        if (a.complet && !p.estNotee) {
+        if (a.complet && (!p.estNotee || a.rouvert)) {
             Text("Photo du houppier", style = MaterialTheme.typography.titleMedium)
             for (l in rappelDeConvention(regime)) Text(l, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-            a.photos.forEachIndexed { i, photo ->
+            // Arbre rouvert : chaque vue de la note corrigée passe à la nouvelle sous le même numéro, sauf si
+            // l'opérateur la reprend : la photo reprise prend alors ce numéro (arbitrage du 2026-10-30).
+            a.photosAnciennes.forEachIndexed { i, nom ->
+                val reprise = a.photos.indexOfLast { it.reprendVue == i + 1 }
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    val fichier = if (reprise >= 0) c.fichierEnAttente(a.photos[reprise]) else c.fichierGarde(nom)
+                    val miniature = remember(fichier?.path) {
+                        fichier?.let { f ->
+                            BitmapFactory.decodeFile(f.path, BitmapFactory.Options().apply { inSampleSize = 8 })?.asImageBitmap()
+                        }
+                    }
+                    if (miniature != null) Image(miniature, contentDescription = "Vue ${i + 1}", modifier = Modifier.size(64.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Vue ${i + 1} · " + if (reprise >= 0) "reprise" else "gardée", fontWeight = FontWeight.Bold)
+                        if (reprise >= 0) for (sg in a.photos[reprise].signalements) Text(PriseDeVue.enClair(sg), color = Ambre, fontSize = 14.sp)
+                    }
+                    if (reprise >= 0) {
+                        TextButton(onClick = { vm.enArriere { c.retirerPhoto(reprise) } }, Modifier.heightIn(min = 48.dp)) { Text("Garder l'ancienne") }
+                    } else {
+                        TextButton(onClick = { c.reprendrePhoto(i + 1); photographie = true }, Modifier.heightIn(min = 48.dp)) { Text("Reprendre") }
+                    }
+                }
+            }
+            var numero = a.photosAnciennes.size
+            a.photos.forEachIndexed { i0, photo ->
+                if (photo.reprendVue != null) return@forEachIndexed
+                numero += 1
+                val i = numero - 1
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     val fichier = c.fichierEnAttente(photo)
                     val miniature = remember(photo.fichier) {
@@ -378,18 +410,18 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
                         Text("Vue ${i + 1}", fontWeight = FontWeight.Bold)
                         for (sg in photo.signalements) Text(PriseDeVue.enClair(sg), color = Ambre, fontSize = 14.sp)
                     }
-                    TextButton(onClick = { vm.enArriere { c.retirerPhoto(i) } }, Modifier.heightIn(min = 48.dp)) { Text("Retirer") }
+                    TextButton(onClick = { vm.enArriere { c.retirerPhoto(i0) } }, Modifier.heightIn(min = 48.dp)) { Text("Retirer") }
                 }
             }
             GrosBouton(
-                if (a.photos.isEmpty()) "Photographier le houppier" else "Photographier une autre vue",
-                enabled = a.photos.size < regime.max,
-                principal = a.photos.size < regime.min,
-            ) { photographie = true }
+                if (a.nbPhotos == 0) "Photographier le houppier" else "Photographier une autre vue",
+                enabled = a.nbPhotos < regime.max,
+                principal = a.nbPhotos < regime.min,
+            ) { c.nouvelleVue(); photographie = true }
         }
         AVerifier(c.avertissementsArbre() + etat.avertissements)
         Erreur(etat.erreur)
-        GrosBouton(if (p.arbres.any { it.rang == a.rang }) "Enregistrer la correction" else "Enregistrer l'arbre", enabled = a.complet && !p.estNotee) { vm.enArriere { c.enregistrerArbre() } }
+        GrosBouton(if (p.arbres.any { it.rang == a.rang }) "Enregistrer la correction" else "Enregistrer l'arbre", enabled = a.complet && (!p.estNotee || a.rouvert)) { vm.enArriere { c.enregistrerArbre() } }
         }
 
         if (p.arbres.isNotEmpty()) {
@@ -398,7 +430,7 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(enabled = !p.estNotee) { c.rouvrirArbre(n.rang) },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { c.rouvrirArbre(n.rang) },
                 ) {
                     Text("${n.rang}", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.size(24.dp))
                     Box(
@@ -406,7 +438,7 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
                         contentAlignment = Alignment.Center,
                     ) { Text(n.classe?.name ?: "?", color = Color.White, fontWeight = FontWeight.Bold) }
                     Column {
-                        Text("${n.essence} · MB ${n.mb} · ${n.second}" + if (n.rang in p.rangsCorriges) " · corrigé" else "")
+                        Text("${n.essence} · MB ${n.mb} · ${n.second}" + if (n.rang in p.rangsCorriges) " · en double" else "")
                         if (n.photos.size < regime.min) Text("photo manquante", color = Ambre, fontSize = 14.sp)
                     }
                 }
