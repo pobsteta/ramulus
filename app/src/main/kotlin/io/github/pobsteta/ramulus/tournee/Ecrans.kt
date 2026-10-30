@@ -64,6 +64,7 @@ import io.github.pobsteta.ramulus.photo.PriseDeVue
 import io.github.pobsteta.ramulus.core.photo.RegimePhotos
 import io.github.pobsteta.ramulus.photo.fourchetteDeVues
 import io.github.pobsteta.ramulus.photo.rappelDeConvention
+import io.github.pobsteta.ramulus.ui.theme.couleurAVerifier
 import io.github.pobsteta.ramulus.ui.theme.couleurClasse
 import java.util.Locale
 
@@ -167,7 +168,7 @@ private fun Erreur(texte: String?) {
 
 @Composable
 private fun AVerifier(lignes: List<String>) {
-    for (l in lignes) Text(l, color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.SemiBold)
+    for (l in lignes) Text(l, color = couleurAVerifier(), fontWeight = FontWeight.SemiBold)
 }
 
 private fun pied(t: TourneeLue, operateur: String?): String =
@@ -210,8 +211,8 @@ private fun EcranPlacettes(vm: TourneeViewModel, etat: EtatTournee) {
             val statut = p.statut
             val (libelle, couleur) = when (statut) {
                 Statut.NOTEE -> "Notée" to MaterialTheme.colorScheme.primary
-                Statut.EN_COURS -> "${p.nbRangsNotes} sur ${p.nbArbres} arbres" to MaterialTheme.colorScheme.tertiary
-                Statut.CENTRE_RELEVE -> "Centre relevé" to MaterialTheme.colorScheme.tertiary
+                Statut.EN_COURS -> "${p.nbRangsNotes} sur ${p.nbArbres} arbres" to couleurAVerifier()
+                Statut.CENTRE_RELEVE -> "Centre relevé" to couleurAVerifier()
                 Statut.A_FAIRE -> "À faire" to MaterialTheme.colorScheme.onSurfaceVariant
             }
             Row(
@@ -384,7 +385,7 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
                     if (miniature != null) Image(miniature, contentDescription = "Vue ${i + 1}", modifier = Modifier.size(64.dp))
                     Column(Modifier.weight(1f)) {
                         Text("Vue ${i + 1} · " + if (reprise >= 0) "reprise" else "gardée", fontWeight = FontWeight.Bold)
-                        if (reprise >= 0) for (sg in a.photos[reprise].signalements) Text(PriseDeVue.enClair(sg), color = MaterialTheme.colorScheme.tertiary, fontSize = 14.sp)
+                        if (reprise >= 0) for (sg in a.photos[reprise].signalements) Text(PriseDeVue.enClair(sg), color = couleurAVerifier(), fontSize = 14.sp)
                     }
                     if (reprise >= 0) {
                         TextButton(onClick = { vm.enArriere { c.retirerPhoto(reprise) } }, Modifier.heightIn(min = 48.dp)) { Text("Garder l'ancienne") }
@@ -408,7 +409,7 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
                     if (miniature != null) Image(miniature, contentDescription = "Vue ${i + 1}", modifier = Modifier.size(64.dp))
                     Column(Modifier.weight(1f)) {
                         Text("Vue ${i + 1}", fontWeight = FontWeight.Bold)
-                        for (sg in photo.signalements) Text(PriseDeVue.enClair(sg), color = MaterialTheme.colorScheme.tertiary, fontSize = 14.sp)
+                        for (sg in photo.signalements) Text(PriseDeVue.enClair(sg), color = couleurAVerifier(), fontSize = 14.sp)
                     }
                     TextButton(onClick = { vm.enArriere { c.retirerPhoto(i0) } }, Modifier.heightIn(min = 48.dp)) { Text("Retirer") }
                 }
@@ -439,7 +440,7 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
                     ) { Text(n.classe?.name ?: "?", color = if (n.classe == null) MaterialTheme.colorScheme.onSurfaceVariant else Color.White, fontWeight = FontWeight.Bold) }
                     Column {
                         Text("${n.essence} · MB ${n.mb} · ${n.second}" + if (n.rang in p.rangsCorriges) " · en double" else "")
-                        if (n.photos.size < regime.min) Text("photo manquante", color = MaterialTheme.colorScheme.tertiary, fontSize = 14.sp)
+                        if (n.photos.size < regime.min) Text("photo manquante", color = couleurAVerifier(), fontSize = 14.sp)
                     }
                 }
             }

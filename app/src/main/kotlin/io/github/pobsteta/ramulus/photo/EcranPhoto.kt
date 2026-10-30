@@ -1,6 +1,7 @@
 package io.github.pobsteta.ramulus.photo
 
 import android.Manifest
+import android.app.Activity
 import android.content.pm.PackageManager
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -41,7 +42,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import io.github.pobsteta.ramulus.core.photo.RegimePhotos
 import io.github.pobsteta.ramulus.tournee.TourneeViewModel
-import java.util.concurrent.Executors
+import io.github.pobsteta.ramulus.ui.theme.couleurAVerifier
 
 /** Le rappel de convention de prise de vue (ADR 0006), montré à l'écran de prise de vue. */
 fun rappelDeConvention(regime: RegimePhotos): List<String> = buildList {
@@ -74,6 +75,12 @@ fun EcranPhoto(vm: TourneeViewModel, plotId: String, fini: () -> Unit) {
     val message = capturee.message
     val enCours = capturee.enCours
     val principal = ContextCompat.getMainExecutor(contexte)
+    // Entrée : aucune capture n'est en vol pour ce nouvel écran (rotation, retour d'arrière-plan). Sortie définitive de
+    // l'écran (pas une rotation) : l'état repart à zéro, le message d'échec ne suit pas l'arbre suivant.
+    DisposableEffect(Unit) {
+        suivi.entree()
+        onDispose { if ((contexte as? Activity)?.isChangingConfigurations != true) suivi.quitte() }
+    }
 
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Photo du houppier · ${arbre.nbPhotos} sur ${fourchetteDeVues(regime)}", fontSize = 24.sp, fontWeight = FontWeight.Bold)
@@ -91,7 +98,7 @@ fun EcranPhoto(vm: TourneeViewModel, plotId: String, fini: () -> Unit) {
                     .setFlashMode(ImageCapture.FLASH_MODE_OFF)
                     .build()
             }
-            val executeur = remember { Executors.newSingleThreadExecutor { r -> Thread(r, "ramulus-photo").apply { isDaemon = true } } }
+            val executeur = vm.executeurPhoto
             val vue = remember { PreviewView(contexte).apply { scaleType = PreviewView.ScaleType.FIT_CENTER } }
             val proprietaire = LocalLifecycleOwner.current
             DisposableEffect(proprietaire) {
@@ -105,12 +112,11 @@ fun EcranPhoto(vm: TourneeViewModel, plotId: String, fini: () -> Unit) {
                         f.unbindAll()
                         f.bindToLifecycle(proprietaire, CameraSelector.DEFAULT_BACK_CAMERA, apercu, capture)
                     } catch (e: Exception) {
-                        suivi.echoue("Caméra indisponible : ${e.message ?: e.javaClass.simpleName}")
+                        suivi.signale("Caméra indisponible : ${e.message ?: e.javaClass.simpleName}")
                     }
                 }, ContextCompat.getMainExecutor(contexte))
                 onDispose {
                     fournisseur?.unbindAll()
-                    executeur.shutdown()
                 }
             }
             Box(Modifier.weight(1f).fillMaxWidth()) {
@@ -119,14 +125,14 @@ fun EcranPhoto(vm: TourneeViewModel, plotId: String, fini: () -> Unit) {
 
             val derniere = arbre.photos.lastOrNull()
             if (derniere != null) {
-                for (s in derniere.signalements) Text(PriseDeVue.enClair(s), color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
+                for (s in derniere.signalements) Text(PriseDeVue.enClair(s), color = couleurAVerifier(), fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
             }
             if (message != null) Text(message, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
             if (etatCourant.erreur != null) Text(etatCourant.erreur!!, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
 
             Button(
                 onClick = {
-                    suivi.commence()
+                    val tour = suivi.commence()
                     capture.takePicture(
                         executeur,
                         object : ImageCapture.OnImageCapturedCallback() {
@@ -139,14 +145,14 @@ fun EcranPhoto(vm: TourneeViewModel, plotId: String, fini: () -> Unit) {
                                 } catch (e: Throwable) {
                                     "Photo non gardée : ${e.message ?: e.javaClass.simpleName}"
                                 }
-                                principal.execute { if (verdict == null) suivi.reussit() else suivi.echoue(verdict) }
+                                principal.execute { if (verdict == null) suivi.reussit(tour) else suivi.echoue(tour, verdict) }
                             }
 
                             override fun onError(exception: ImageCaptureException) {
                                 val interrompue = exception.imageCaptureError == ImageCapture.ERROR_CAMERA_CLOSED
                                 principal.execute {
-                                    if (interrompue) suivi.interrompue()
-                                    else suivi.echoue("Prise de vue impossible : ${exception.message ?: "erreur de la caméra"}")
+                                    if (interrompue) suivi.interrompue(tour)
+                                    else suivi.echoue(tour, "Prise de vue impossible : ${exception.message ?: "erreur de la caméra"}")
                                 }
                             }
                         },

@@ -2,6 +2,7 @@ package io.github.pobsteta.ramulus.tournee
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -17,6 +18,7 @@ import io.github.pobsteta.ramulus.core.journal.LigneJournal
 import io.github.pobsteta.ramulus.core.journal.TypeLigne
 import io.github.pobsteta.ramulus.core.journal.UuidV7
 import io.github.pobsteta.ramulus.core.photo.Empreinte
+import io.github.pobsteta.ramulus.photo.fourchetteDeVues
 import io.github.pobsteta.ramulus.core.photo.JpegSansExif
 import io.github.pobsteta.ramulus.core.photo.NomsPhotos
 import io.github.pobsteta.ramulus.core.photo.PhotoGardee
@@ -157,7 +159,7 @@ class ControleurTournee(
 
     @Synchronized
     private fun maj(f: EtatTournee.() -> EtatTournee) {
-        flux.value = flux.value.f()
+        flux.update { it.f() }
     }
 
     /** Un échec inattendu d'un geste : dit en clair, sans planter l'application. */
@@ -508,7 +510,7 @@ class ControleurTournee(
     private fun photoManquante(p: PlacetteLue, nb: Int): String? {
         val regime = RegimePhotos.de(p.collectePhotos)
         if (nb >= regime.min) return null
-        return if (regime.max == 1) "Photo manquante." else "Photo manquante : $nb sur ${regime.min} à ${regime.max} vues."
+        return if (regime.max == 1) "Photo manquante." else "Photo manquante : $nb sur ${fourchetteDeVues(regime)} vues."
     }
 
     /** Avertissement de saison (SA1) de la placette, d'après la date du jour. */

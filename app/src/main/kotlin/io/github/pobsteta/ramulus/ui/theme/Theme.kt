@@ -63,3 +63,19 @@ fun couleurClasse(c: Classe): Color = when (c) {
     Classe.E -> Color(0xFFA03E24)
     Classe.F -> Color(0xFF7A2A1F)
 }
+
+/**
+ * L'ambre « à vérifier » (convention : vert, rouge, ambre, gris), par le thème et non en dur dans les écrans. Une paire
+ * clair/sombre, choisie lisible (WCAG, contraste calculé) sur `surface` et sur `surfaceVariant` de terrain-style bb2b519 :
+ * - clair 0xFF7A5F00 : 5,76:1 sur surface (0xFFFEF7FF), 4,70:1 sur surfaceVariant (0xFFE7E0EC) ;
+ * - sombre 0xFFF0B400 : 9,95:1 sur surface (0xFF141218), 5,00:1 sur surfaceVariant (0xFF49454F).
+ * (`tertiary` du thème est mauve/rose : il ne convient pas.)
+ */
+val AmbreAVerifierClair: Color = Color(0xFF7A5F00)
+val AmbreAVerifierSombre: Color = Color(0xFFF0B400)
+
+fun ambreAVerifier(sombre: Boolean): Color = if (sombre) AmbreAVerifierSombre else AmbreAVerifierClair
+
+/** L'ambre du thème en cours (clair ou sombre, selon le choix de Paramètres et non seulement le système). */
+@Composable
+fun couleurAVerifier(): Color = ambreAVerifier(sombre = MaterialTheme.colorScheme.surface == SchemaSombre.surface)

@@ -12,6 +12,9 @@ class TourneeViewModel(val controleur: ControleurTournee) : ViewModel() {
     /** L'état de la capture photo, gardé ici pour traverser la rotation (mission 017). */
     val capture = io.github.pobsteta.ramulus.photo.SuiviCapture()
 
+    /** Le fil de la caméra : tenu ici et non par l'écran, pour que CameraX puisse rendre son verdict après une rotation. */
+    val executeurPhoto = Executors.newSingleThreadExecutor { r -> Thread(r, "ramulus-photo").apply { isDaemon = true } }
+
     private val travail = Executors.newSingleThreadExecutor { r -> Thread(r, "ramulus-tournee").apply { isDaemon = true } }
 
     init {
@@ -31,5 +34,6 @@ class TourneeViewModel(val controleur: ControleurTournee) : ViewModel() {
 
     override fun onCleared() {
         travail.shutdown()
+        executeurPhoto.shutdown()
     }
 }
