@@ -1,7 +1,7 @@
 # ADR 0007 — IA embarquée amorcée sur les photos du DSF, qui apprend sur l'appareil des notes validées
 
 - **Date :** 2026-10-30
-- **Statut :** proposée ; décision de principe de Pascal (2026-10-30), à soumettre au `contradicteur`
+- **Statut :** acceptée par Pascal (2026-10-30), après critique du `contradicteur` (journal du 2026-10-30)
 - **Proposée par :** Claude (orchestrateur), à partir des mots de Pascal
 - **Tranchée par :** Pascal (principe) ; les points ouverts ci-dessous restent à trancher
 - **Modifie :** ADR 0002 (le calendrier : une proposition dès maintenant, sans attendre deux campagnes). L'ADR 0002
@@ -62,3 +62,45 @@ opérateurs ; la proposition s'affiche après la note de l'opérateur (ADR 0001)
 | **N** | IA distante (Claude) et IA au bureau, proposées le 2026-10-30, non retenues par Pascal | — | — |
 | **C** | Calcul sur le téléphone à chaque arbre ; mémoire locale qui grossit | batterie, stockage | à mesurer |
 | **É** | Le modèle appris sur un téléphone pourrait servir aux autres | non prévu ici | — |
+
+## Ajout du 2026-10-30 : décisions de Pascal après la critique du `contradicteur`
+
+Le texte ci-dessus est gardé ; cet ajout le complète et le précise.
+
+- **Droits (Pascal, « Comme prévu »)** : l'amorce se fait sur les photos des fiches DSF, avec une tête par plus proches
+  voisins, sans demande préalable au DSF. Les mentions légales du ministère réservent les photos (« Toutes les photos,
+  illustrations et vidéos diffusées sur ce site sont la propriété du ministère » ; etalab-2.0 couvre les textes) :
+  **Pascal assume ce risque**. Les photos ne sont jamais commitées ; seuls les vecteurs et les notes entrent dans l'APK.
+- **Seuil (ADR 0002, fixé avant l'amorce)** : la proposition perd l'étiquette « essai » quand l'IA s'accorde avec
+  l'opérateur au moins autant que deux opérateurs entre eux, mesuré sur les placettes de contre-notation, essence par
+  essence et saison par saison. D'ici là : « essai » partout.
+- **Bilan de peuplement** : calculé sur la **note finale** ; première note et proposition gardées dans les colonnes
+  `ia_*`, pour recalculer sans IA.
+- **Affichage** : après la note, **à chaque arbre**, classe proposée, notes MB et MR/MA, confiance, mention « essai ».
+- **Arbitrages de l'orchestrateur, par délégation** (critique du `contradicteur`) :
+  - le téléphone n'apprend que de la **première note** de l'opérateur, jamais de la note finale ;
+  - les placettes de **contre-notation** ne servent jamais à l'apprentissage ;
+  - la mesure de l'ADR 0002 porte sur l'**amorce figée** ; l'ajustement local est un confort, non mesuré, dit comme tel ;
+  - avant toute intégration, l'amorce est mesurée en **validation croisée par fiche laissée de côté** ; le chiffre est
+    publié à côté des 54 % de l'essai du 2026-10-28, qui venaient d'un autre modèle ;
+  - le **tracé vert** des fiches est masqué ou les photos sont recadrées avant l'extraction des vecteurs ;
+  - les **quatre incohérences connues** des fiches sont exclues de l'amorce (listées, jamais corrigées) ;
+  - le vote ne compare qu'à des arbres de **la même essence** ;
+  - l'**identité du modèle** (`ia_modele`) porte l'empreinte de l'amorce, celle de la mémoire locale et le nombre
+    d'exemples ;
+  - la **mémoire locale** est jetable et reconstructible depuis les notes et les photos présentes, liée à l'empreinte
+    de l'extracteur, et ne sort pas de l'appareil ;
+  - une **fiche modèle** (données d'amorce, droits, mesures, limites par essence et saison) accompagne l'APK.
+
+## Valeurs sacrifiées
+
+- **La sécurité juridique de la diffusion** : assumée par Pascal.
+- **La justesse de la note finale** : un ancrage résiduel reste possible même après la note (Dratsch et al., 2023).
+- **La mesurabilité de ce qui tourne** : chaque téléphone a son modèle ; seule l'amorce figée est mesurée.
+- **L'identité du modèle d'un téléphone à l'autre.**
+
+## Sources
+
+Kälin et al., bioRxiv 441733 v2 ; mentions légales d'agriculture.gouv.fr ; CRPA L321-2 ; CPI L122-5-3 ; Perdomo et
+al., « Performative Prediction », ICML 2020 ; Dratsch et al., Radiology 2023 ; rapport
+`docs/essais/2026-10-30-moyens-ia-embarquee.md`.
