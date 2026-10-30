@@ -3,7 +3,7 @@
 > Cinq colonnes (fiche n° 8). Chaque carte porte l'Homme (qui), la Mission (quoi, quand) et les Moyens (comment,
 > avec quoi), et renvoie à sa fiche dans `pilotage/missions/`. Tenu à jour par l'orchestrateur à chaque fin de cycle.
 >
-> **Dernier cycle : 4** (2026-10-30). Chaque carte qui change de colonne porte « depuis le cycle N ».
+> **Dernier cycle : 5** (2026-10-30). Chaque carte qui change de colonne porte « depuis le cycle N ».
 
 ## Bac à sable
 
@@ -15,16 +15,15 @@
 
 ## Planifié
 
-- **017** `afficheur` · [fiche](missions/017-finitions-ecrans.md) · finitions des écrans et réserves de 008 (PV1 en dur, mémoire de capture, état de
-  `EcranPhoto`, couleurs fixes `Ambre` et `Color.Gray`) · après 015 (mêmes fichiers) · depuis le cycle 4.
-- **021** (à ficher) · mineurs de l'échange (004, 007, 013, 006) · depuis le cycle 4.
+- **Pascal** : trois questions du 2026-10-30 : rangement des photos orphelines après un plantage (R10c) ; confirmation
+  avant d'abandonner l'arbre en cours et ses photos ; stockage des photos, privé ou `Documents/Ramulus/` (ADR 0006) ·
+  depuis le cycle 4.
 - **009** (à ficher) · rendu complet : fusion des opérateurs, mesure du temps de saisie · depuis le cycle 2.
 - **011** (à ficher) · voies de sauvegarde hors appareil, signal du matin, test instrumenté MediaStore et
   `synchronous` sur Android 8 à 10 (Q12, S2) · depuis le cycle 2.
 - **012** (à ficher) · `dataExtractionRules` (Q14) · depuis le cycle 2.
 - **Orchestrateur** : brief vers Nemeton.
 - **`testeur`** : resserrer le test « classe fournie » de 003 sur `classe_saisie`, après 010.
-- **Pascal** : stockage des photos, privé ou `Documents/Ramulus/` (ADR 0006) · depuis le cycle 4.
 - **Pascal** : ouvrir l'issue vers Surculus (citation de Purfürst, brief
   `briefs/vers-surculus/2026-10-28-ramulus-citation-purfurst.md`) ; et le brief sur le trou `INSERT OR REPLACE`.
 - **Pascal** : signaler au DSF les quatre incohérences des fiches (pin d'Alep, pin laricio, deux pins sylvestres) ;
@@ -33,10 +32,10 @@
 
 ## En cours
 
-- **015** `dev` (opus) · corriger un arbre ou un centre par remplacement ·
-  [fiche](missions/015-correction-par-remplacement.md) · depuis le cycle 4.
-- **020** `testeur` (sonnet) · tests d'acceptation de 015, sans lire son code ·
-  [fiche](missions/020-tests-correction-par-remplacement.md) · depuis le cycle 4.
+- **017** `afficheur` (sonnet) · finitions des écrans et réserves de 008 · [fiche](missions/017-finitions-ecrans.md) ·
+  depuis le cycle 5.
+- **021** `dev` (sonnet) · réserves mineures de l'échange (004, 006, 007, 013, 015) ·
+  [fiche](missions/021-mineurs-echange.md) · depuis le cycle 5.
 
 ## En revue
 
@@ -44,6 +43,10 @@ _Rien._
 
 ## Fait
 
+- **022** `afficheur` · plein écran dans Paramètres et puce « Terminées » · PR n° 25, fusionnée par délégation le
+  2026-10-30 · depuis le cycle 5.
+- **015** `dev` (+ **020** `testeur`) · corriger un arbre ou un centre par remplacement · PR n° 24, fusionnée par
+  délégation le 2026-10-30, essai de Pascal sur le téléphone · depuis le cycle 5.
 - **019** `afficheur` · accueil commun (bandeau vert, kanban, menu ⋮, recherche, tournées) · PR n° 22 fusionnée par
   délégation le 2026-10-30, essai à froid sur le SM-S918B · depuis le cycle 4.
 - **018** `dev` · noter sans numéro peint, le rang suffit · PR n° 21 · depuis le cycle 4.

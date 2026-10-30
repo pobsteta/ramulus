@@ -54,7 +54,7 @@ _Rempli par Pascal seul, avant de lire le travail de l'agent._
 
 ## Dépend de / rouge attendu jusqu'à
 
-- **Dépend de :** 015 (mêmes fichiers d'écran). Part de `main` après la fusion de 015.
+- **Dépend de :** 015 (fusionnée, PR n° 24). Part de `main` 0d383f4 (015 et 022 fusionnées).
 - **CI rouge attendue :** aucune.
 
 ## Tests
