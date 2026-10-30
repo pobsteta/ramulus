@@ -10,6 +10,7 @@ import io.github.pobsteta.ramulus.core.echange.EchangeRefuse
 import io.github.pobsteta.ramulus.core.gnss.CentreReleve
 import io.github.pobsteta.ramulus.core.gnss.EcartAuPointPrevu
 import io.github.pobsteta.ramulus.core.gnss.PointLambert93
+import io.github.pobsteta.ramulus.core.journal.LigneJournal
 import io.github.pobsteta.ramulus.core.journal.TypeLigne
 import java.io.File
 import java.nio.file.Files
@@ -26,16 +27,29 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** Une saisie vue par le journal factice. */
-private data class Saisie(val code: String, val objet: String, val type: String, val valeur: String, val operateur: String)
+/** Une saisie vue par le journal factice : `uuid` de la ligne, et la ligne qu'elle remplace. */
+private data class Saisie(
+    val code: String, val objet: String, val type: String, val valeur: String, val operateur: String,
+    val uuid: String = "", val remplace: String? = null,
+)
 
+/** Journal factice en ajout seul : il numérote ses lignes et les rend comme le journal de 005. */
 private class JournalFactice : Journal {
     val saisies = mutableListOf<Saisie>()
     val sauvegardes = mutableListOf<Boolean>()
     var echoue = false
-    override fun saisir(codeTournee: String, objetUuid: String, type: String, valeur: String, operateur: String) {
+    override fun saisir(codeTournee: String, objetUuid: String, type: String, valeur: String, operateur: String) =
+        saisir(codeTournee, objetUuid, type, valeur, operateur, null)
+    override fun saisir(codeTournee: String, objetUuid: String, type: String, valeur: String, operateur: String, remplaceUuid: String?) {
         if (echoue) error("disque plein")
-        saisies += Saisie(codeTournee, objetUuid, type, valeur, operateur)
+        saisies += Saisie(codeTournee, objetUuid, type, valeur, operateur, "ligne-${saisies.size + 1}", remplaceUuid)
+    }
+    override fun lignes(codeTournee: String): List<LigneJournal> = saisies.filter { it.code == codeTournee }.mapIndexed { i, s ->
+        LigneJournal(
+            uuid = s.uuid, objetUuid = s.objet, type = s.type, valeur = s.valeur, remplaceUuid = s.remplace, operateur = s.operateur,
+            appareil = "0000abcd", sequence = i + 1L, saisiLeUtcMs = 0, heureGnssMs = null, monotoneMs = 0, demarrage = 1,
+            ageFixMs = null, codeTournee = s.code,
+        )
     }
     override fun sauvegarderSiDue(codeTournee: String, versionNemeton: String?, finDePlacette: Boolean): String? {
         sauvegardes += finDePlacette
@@ -309,7 +323,7 @@ class ControleurTourneeTest {
     }
 
     @Test
-    fun `un arbre rouvert garde son rang et sa correction est signalee sans bloquer`() {
+    fun `un arbre rouvert garde son rang et sa correction remplace la note`() {
         val c = controleur()
         ouvrir(c, fixture("A1-tournee-depart"))
         c.versArbres("P001")
@@ -326,7 +340,7 @@ class ControleurTourneeTest {
         assertNull(c.etat.erreur)
         assertEquals(3, c.etat.arbre.rang, "après la correction, on reprend au premier rang sans note")
         val rangs = c.etat.tournee!!.placette("P001")!!.arbres.map { it.rang }
-        assertEquals(listOf(1, 1, 2), rangs)
+        assertEquals(listOf(1, 2), rangs, "une ligne par arbre : la correction a remplacé la note")
     }
 
     @Test
@@ -377,12 +391,12 @@ class ControleurTourneeTest {
         c.rouvrirArbre(1); c.choisirMb(Note(4)); c.enregistrerArbre()
         c.rouvrirArbre(1); c.choisirMb(Note(3)); c.enregistrerArbre()
         val p = c.etat.tournee!!.placette("P001")!!
-        assertEquals(4, p.arbres.size, "quatre lignes")
+        assertEquals(2, p.arbres.size, "deux lignes : chaque correction remplace (mission 015)")
         assertEquals(2, p.nbRangsNotes, "deux arbres")
         assertFalse(p.complete)
         assertEquals(listOf(1, 2), p.arbresRetenus.map { it.rang })
-        assertEquals(3, p.arbresRetenus[0].mb, "la dernière ligne du rang 1")
-        assertEquals(setOf(1), p.rangsCorriges)
+        assertEquals(3, p.arbresRetenus[0].mb, "la dernière correction du rang 1")
+        assertEquals(emptySet(), p.rangsCorriges, "une correction n'est pas un doublon")
         c.cloturerPlacette("P001")
         assertTrue(journal.saisies.last().valeur.contains("\"nb_arbres_notes\":2"), journal.saisies.last().valeur)
     }

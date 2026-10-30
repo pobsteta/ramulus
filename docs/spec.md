@@ -45,6 +45,14 @@ le tour d'horizon (depuis le nord, sens horaire), sans saisie. `repere` reste da
 physique déjà sur l'arbre et porté par la tournée de départ y est recopié, sinon NULL (ADR 0004, rubrique du même jour).
 Le § 1 et le tableau ci-dessus restent lus avec cette correction.
 
+**Ajout du 2026-10-30 (Pascal, mission 015).** Corriger, c'est **remplacer**. Rouvrir un arbre noté et l'enregistrer
+de nouveau écrit une note de nouvel `uuid` (même placette, même rang) et retire l'ancienne de la copie de travail ; ses
+photos passent à la nouvelle note sous le même numéro, sauf la vue que l'opérateur reprend. Relever de nouveau un centre
+remplace l'ancien : au plus un centre par placette. Une placette close se corrige de la même façon et reste close. Le
+journal, en ajout seul, garde les deux lignes (la seconde porte `remplace_uuid`). Le paquet rendu porte une ligne par
+arbre et par centre ; `doublon_arbre` n'y signale qu'un vrai doublon (ADR 0004, rubrique du même jour). Ceci remplace
+le « provisoire » du 2026-10-29.
+
 La classe est toujours **recalculée** par l'abaque à l'import par Nemeton : une classe rendue qui ne correspond pas
 aux notes est une erreur.
 
