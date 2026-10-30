@@ -15,9 +15,10 @@
 
 ## Planifié
 
-- **Pascal** : trois questions du 2026-10-30 : rangement des photos orphelines après un plantage (R10c) ; confirmation
-  avant d'abandonner l'arbre en cours et ses photos ; stockage des photos, privé ou `Documents/Ramulus/` (ADR 0006) ·
-  depuis le cycle 4.
+- **023** `dev` · photos sous `Documents/Ramulus/` et rangement des photos orphelines ·
+  [fiche](missions/023-photos-documents-et-orphelines.md) · après 021 · depuis le cycle 5.
+- **024** `afficheur` · confirmation avant d'abandonner l'arbre en cours · [fiche](missions/024-confirmer-abandon-arbre.md)
+  · après 017 · depuis le cycle 5.
 - **009** (à ficher) · rendu complet : fusion des opérateurs, mesure du temps de saisie · depuis le cycle 2.
 - **011** (à ficher) · voies de sauvegarde hors appareil, signal du matin, test instrumenté MediaStore et
   `synchronous` sur Android 8 à 10 (Q12, S2) · depuis le cycle 2.
@@ -83,3 +84,7 @@ _Rien._
   d'exemple `fixtures/echange/A3-rendu/EXEMPLE-2027-01.zip`, qu'il ouvre dans QField. De plus que le cycle 1 : un
   premier objet à confronter au terrain, là où le cycle 1 ne livrait rien d'utilisable. Proposée par l'orchestrateur,
   retenue par Pascal le 2026-10-28.
+- **cycle 5** (2026-10-30) · pour un **correspondant-observateur DSF** : Ramulus installé sur le téléphone, qui note une
+  placette sans numéro peint, photographie les houppiers, corrige un arbre ou un centre et rend une tournée qui s'ouvre
+  dans QField. De plus que le cycle 2 : il produit lui-même son paquet sur le terrain, là où le cycle 2 livrait des
+  règles et un paquet d'exemple fabriqué. Proposée par l'orchestrateur, acceptée par Pascal le 2026-10-30.
