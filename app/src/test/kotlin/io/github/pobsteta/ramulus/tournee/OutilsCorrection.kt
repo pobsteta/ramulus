@@ -7,6 +7,7 @@ import io.github.pobsteta.ramulus.core.deperis.Note
 import io.github.pobsteta.ramulus.core.echange.EchangeDeperis
 import io.github.pobsteta.ramulus.core.gnss.CentreReleve
 import io.github.pobsteta.ramulus.core.gnss.PointLambert93
+import io.github.pobsteta.ramulus.core.journal.LigneJournal
 import io.github.pobsteta.ramulus.core.journal.TypeLigne
 import org.junit.Assume.assumeTrue
 import org.junit.rules.TestRule
@@ -51,39 +52,34 @@ class ActiveeParLaMission015 : TestRule {
     }
 }
 
-/** Une ligne reçue par le journal. [remplaceUuid] : le 6e texte du port, ou `remplace_uuid` dans la valeur JSON. */
-data class LigneVue(
-    val code: String,
-    val objetUuid: String,
-    val type: String,
-    val valeur: String,
-    val operateur: String,
-    val remplaceUuid: String?,
-)
-
 /**
- * Un journal qui note tout ce que le contrôleur lui demande, SANS supposer la forme exacte du port `Journal` après 015
- * (le port de `main` n'a pas de `remplace_uuid`) : c'est un proxy dynamique. Est une « ligne » tout appel à au moins
- * 5 arguments dont le 3e est un type de ligne du journal (`TypeLigne.TOUS`) ; le `remplace_uuid` est le 6e argument
- * texte, ou le champ `remplace_uuid` de la valeur JSON.
+ * Un journal factice qui enregistre de vraies [LigneJournal], chacune avec son propre `uuid` de ligne, et les rend par
+ * `lignes(code)` (port `Journal` de 015 : `saisir` à 5 ou 6 arguments, `remplaceUuid` désignant l'`uuid` de la LIGNE
+ * remplacée, ramsync-v1). C'est un proxy dynamique pour compiler aussi sur `main`, dont le port n'a ni la version à 6
+ * arguments ni `lignes`. Est une saisie tout appel à au moins 5 arguments dont le 3e est un type du journal.
  */
 class JournalEnregistreur {
-    val lignes = mutableListOf<LigneVue>()
+    val lignes = mutableListOf<LigneJournal>()
     val methodesDuPort: List<String> = Journal::class.java.methods.map { it.name }
+    private var sequence = 0L
 
     val journal: Journal = Proxy.newProxyInstance(Journal::class.java.classLoader, arrayOf(Journal::class.java)) { _, m, args ->
         val a = args?.toList().orEmpty()
         if (a.size >= 5 && a[2] in TypeLigne.TOUS) {
-            val valeur = a[3] as String
-            val dansValeur = runCatching {
-                JsonParser.parseString(valeur).asJsonObject["remplace_uuid"]?.takeUnless { it.isJsonNull }?.asString
-            }.getOrNull()
-            lignes += LigneVue(a[0] as String, a[1] as String, a[2] as String, valeur, a[4] as String, (a.getOrNull(5) as? String) ?: dansValeur)
+            sequence++
+            lignes += LigneJournal(
+                uuid = java.util.UUID.randomUUID().toString(), objetUuid = a[1] as String, type = a[2] as String,
+                valeur = a[3] as String, remplaceUuid = a.getOrNull(5) as? String, operateur = a[4] as String,
+                appareil = "00000001", sequence = sequence, saisiLeUtcMs = sequence, heureGnssMs = null,
+                monotoneMs = sequence, demarrage = 1, ageFixMs = null, codeTournee = a[0] as String,
+            )
         }
-        when (m.returnType) {
-            java.lang.Boolean.TYPE -> false
-            Integer.TYPE -> 0
-            java.lang.Long.TYPE -> 0L
+        when {
+            m.name == "lignes" && a.size == 1 -> lignes.filter { it.codeTournee == a[0] }
+            m.returnType == java.lang.Boolean.TYPE -> false
+            m.returnType == Integer.TYPE -> 0
+            m.returnType == java.lang.Long.TYPE -> 0L
+            List::class.java.isAssignableFrom(m.returnType) -> emptyList<Any>()
             else -> null
         }
     } as Journal

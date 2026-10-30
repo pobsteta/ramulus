@@ -22,10 +22,10 @@ import kotlin.test.assertTrue
  * fiche 020 ; la règle 6 (union de deux opérateurs) est dans [DoublonApresUnionTest], verte dès maintenant.
  *
  * ROUGES sur `main` 00d8c24 tant que 015 n'est pas fusionnée : sautés par défaut (voir [ActiveeParLaMission015]) ;
- * `RAMULUS_CORRECTION_EXIGER=1 ./gradlew :app:testFumeeUnitTest --rerun --tests '*CorrectionParRemplacementTest'`
+ * `RAMULUS_CORRECTION_EXIGER=1 ./gradlew :app:testFumeeUnitTest --rerun --tests '*AcceptationCorrection015Test'`
  * pour les voir échouer.
  */
-class CorrectionParRemplacementTest {
+class AcceptationCorrection015Test {
     @get:Rule
     val activation = ActiveeParLaMission015()
 
@@ -120,7 +120,7 @@ class CorrectionParRemplacementTest {
         // Le journal : deux contre_notation, la seconde remplace la première (règle 2 en contre-notation).
         val lignes = banc.journal.deType(TypeLigne.CONTRE_NOTATION)
         assertEquals(2, lignes.size)
-        assertEquals(avant["uuid"].asString, lignes[1].remplaceUuid)
+        assertEquals(lignes[0].uuid, lignes[1].remplaceUuid, "remplace_uuid = uuid de la LIGNE du journal remplacée (ramsync-v1)")
         assertTrue(banc.journal.deType(TypeLigne.NOTATION).isEmpty(), "jamais une première note dans une contre-notation")
     }
 
@@ -135,13 +135,13 @@ class CorrectionParRemplacementTest {
 
         val notations = banc.journal.deType(TypeLigne.NOTATION)
         assertEquals(5, notations.size, "quatre notes d'origine + la correction : toutes gardées")
-        val duRang2 = notations.filter { it.valeur.contains("\"rang\":2") }
+        val duRang2 = notations.filter { it.valeur.orEmpty().contains("\"rang\":2") }
         assertEquals(2, duRang2.size, "deux lignes pour cet arbre")
         val (premiere, seconde) = duRang2
         assertEquals(avant, premiere.objetUuid)
         assertNull(premiere.remplaceUuid, "la première ligne ne remplace rien")
         assertEquals(apres, seconde.objetUuid, "la seconde est celle de la nouvelle note")
-        assertEquals(avant, seconde.remplaceUuid, "remplace_uuid = uuid de la note d'origine")
+        assertEquals(premiere.uuid, seconde.remplaceUuid, "remplace_uuid = uuid de la LIGNE du journal remplacée, pas de la note (ramsync-v1)")
         assertTrue(duRang2.all { it.operateur == "operateur-A" })
     }
 
@@ -216,6 +216,27 @@ class CorrectionParRemplacementTest {
     }
 
     @Test
+    fun `regle 3 - le journal porte une nouvelle ligne photo par vue reportee, qui remplace la ligne photo de meme numero`() {
+        placetteNotee(photosAuRang2 = 2)
+        val ancienUuid = banc.note("P001", 2).uneSeule()["uuid"].asString
+        val anciennes = banc.journal.deType(TypeLigne.PHOTO)
+        assertEquals(2, anciennes.size)
+        banc.corriger(rang = 2, mb = 4)
+        val nouvelUuid = banc.note("P001", 2).first { it["uuid"].asString != ancienUuid }["uuid"].asString
+
+        val toutes = banc.journal.deType(TypeLigne.PHOTO)
+        assertEquals(4, toutes.size, "deux lignes photo d'origine gardées + une nouvelle par vue reportée")
+        assertEquals(anciennes, toutes.take(2), "les lignes photo d'origine sont intactes")
+        val nouvelles = toutes.drop(2)
+        for (n in 1..2) {
+            val ancienne = anciennes.first { it.valeur.orEmpty().contains("${ancienUuid}_$n.jpg") }
+            val nouvelle = nouvelles.first { it.valeur.orEmpty().contains("${nouvelUuid}_$n.jpg") }
+            assertEquals(ancienne.uuid, nouvelle.remplaceUuid, "la vue $n remplace la ligne photo de même numéro")
+            assertTrue(nouvelle.valeur.orEmpty().contains(nouvelUuid), "note_uuid = la nouvelle note")
+        }
+    }
+
+    @Test
     fun `regle 3 - le zip rendu par l'ecran porte les photos sous le nouvel uuid, et seulement elles`() {
         val c = placetteNotee(photosAuRang2 = 2)
         val ancienUuid = banc.note("P001", 2).uneSeule()["uuid"].asString
@@ -267,7 +288,7 @@ class CorrectionParRemplacementTest {
         assertEquals(premier, lignes[0].objetUuid)
         assertNull(lignes[0].remplaceUuid)
         assertEquals(second, lignes[1].objetUuid)
-        assertEquals(premier, lignes[1].remplaceUuid)
+        assertEquals(lignes[0].uuid, lignes[1].remplaceUuid, "remplace_uuid = uuid de la ligne centre remplacée")
     }
 
     @Test
