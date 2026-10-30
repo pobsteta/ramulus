@@ -1,19 +1,74 @@
 package io.github.pobsteta.ramulus
 
 import android.os.Bundle
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import io.github.pobsteta.ramulus.notation.EcranNotation
+import androidx.activity.viewModels
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import io.github.pobsteta.ramulus.accueil.MagasinPrefs
+import io.github.pobsteta.ramulus.accueil.ReglagesRamulus
+import io.github.pobsteta.ramulus.data.journal.HorlogesAndroid
+import io.github.pobsteta.ramulus.data.journal.JournalRepository
+import io.github.pobsteta.ramulus.data.journal.RamulusDatabase
+import io.github.pobsteta.ramulus.data.sauvegarde.Destination
+import io.github.pobsteta.ramulus.data.sauvegarde.SauvegardeRepository
+import io.github.pobsteta.ramulus.tournee.AppRamulus
+import io.github.pobsteta.ramulus.tournee.ControleurTournee
+import io.github.pobsteta.ramulus.tournee.EchangeReel
+import io.github.pobsteta.ramulus.tournee.ExportDocuments
+import io.github.pobsteta.ramulus.tournee.JournalAndroid
+import io.github.pobsteta.ramulus.tournee.StockOperateurPrefs
+import io.github.pobsteta.ramulus.tournee.TourneeViewModel
 import io.github.pobsteta.ramulus.ui.theme.RamulusTheme
+import java.io.File
 
 class MainActivity : ComponentActivity() {
+    // Thème, GNSS, date de la dernière sauvegarde : gardés sur le téléphone seulement.
+    private val reglages by lazy { ReglagesRamulus(MagasinPrefs(applicationContext)) }
+
+    private val vm: TourneeViewModel by viewModels {
+        viewModelFactory {
+            initializer {
+                val ctx = applicationContext
+                val horloges = HorlogesAndroid(ctx)
+                val version = ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName ?: "?"
+                val db = RamulusDatabase.ouvrir(ctx)
+                val journal = JournalRepository(db, horloges)
+                val sauvegarde = SauvegardeRepository(db, journal, Destination.pourCetAppareil(ctx), horloges, version)
+                TourneeViewModel(
+                    ControleurTournee(
+                        racine = File(ctx.filesDir, "tournees"),
+                        echange = EchangeReel,
+                        journal = JournalAndroid(journal, sauvegarde, surSauvegarde = { reglages.noterSauvegarde(it) }),
+                        stock = StockOperateurPrefs(ctx),
+                        export = ExportDocuments(ctx),
+                        versionRamulus = version,
+                    ),
+                )
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Le contrôleur et les réglages naissent ici, sur le fil principal, avant la composition : leur état n'est
+        // jamais créé dans le snapshot de la composition (il démarre sur un autre fil dès sa création).
+        val controle = vm
+        val reglagesLus = reglages
         setContent {
-            RamulusTheme {
-                EcranNotation()
+            RamulusTheme(reglagesLus.choixTheme) {
+                // Une Surface donne à tout l'écran la couleur de fond et la couleur du texte du thème (onBackground) :
+                // sans elle le texte posé hors Scaffold reste noir, illisible en Sombre.
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    AppRamulus(controle, reglagesLus)
+                }
             }
         }
     }

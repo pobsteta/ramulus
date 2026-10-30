@@ -76,6 +76,28 @@ arbres l'année suivante et à la contre-notation.
 - **Règle de choix (K1).** Kraft 1 à 3 par défaut, d'après ICP partie IV, § 4.1 p. 6. Le DSF dit « dominant ou
   codominant » ; cet écart est écrit dans `docs/referentiels/kraft.yaml`.
 
+## Ajout du 2026-10-29 (Pascal, mission 018) — on ne peint pas les arbres
+
+Rien de ce qui précède n'est effacé ; ceci le corrige.
+
+- **Décision de Pascal :** « Non on ne peint pas de numéro, les arbres sont incrémentés automatiquement depuis le nord
+  dans le sens horaire d'une montre, de façon automatique. » Le « numéro à la peinture » de l'arbitrage du 2026-10-28
+  tombe : le **rang**, attribué par l'application, suffit à rattacher un arbre.
+- **Le rang** : le premier arbre noté d'une placette porte le rang 1, puis chaque arbre enregistré fait passer au
+  suivant, jusqu'à `nb_arbres`. L'opérateur ne le choisit pas. Il peut rouvrir un arbre déjà noté pour le corriger :
+  l'arbre garde son rang. Provisoire : une correction écrit une nouvelle ligne du même rang, signalée `doublon_arbre` au
+  rendu ; le remplacement de la ligne est l'objet de la mission 015, et la règle de la ligne qui fait foi sera décidée
+  par Pascal.
+- **`repere` reste dans `deperis-v1`, facultatif (NULL permis).** Il désigne un repère physique qui existe déjà sur
+  l'arbre (plaque, ancienne marque), jamais demandé à l'opérateur : si la tournée de départ en porte un pour cet arbre,
+  Ramulus le recopie dans la notation ; sinon il écrit NULL. La suppression de la colonne avant le gel du format est une
+  question posée à Pascal.
+- **`doublon_arbre`** : même `plot_id` et même `rang` ; ou même `plot_id` et même `repere` si les deux `repere` sont non
+  NULL. Deux NULL ne sont pas le même arbre.
+- **Ce que ça coûte :** le suivi d'un arbre d'une année à l'autre repose sur le rang et la reproductibilité du tour
+  d'horizon (même nord, même sens, même règle de choix), non plus sur une marque sur l'arbre. Si un arbre disparaît ou
+  si la règle de choix change, les rangs se décalent. C'est le prix de ne rien peindre ; Pascal l'assume.
+
 ## Sources
 
 - Note DGAL/SDQSPV/2018-433 du DSF, « Quantifier l'état de santé de la forêt, méthode simplifiée » :

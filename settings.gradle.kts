@@ -17,6 +17,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // terrain-style (mission 019) : bibliothèque commune de pobsteta, publiée par JitPack (comme Surculus, settings.gradle.kts).
+        maven("https://jitpack.io") { content { includeGroup("com.github.pobsteta.terrain") } }
     }
 }
 

@@ -18,7 +18,7 @@ class CasCommunsLusTest {
     fun `chaque motif du catalogue du format a au moins un cas`() {
         val schema = JsonParser.parseString(File("../docs/formats/deperis-v1.schema.json").readText()).asJsonObject
         val catalogue = schema.getAsJsonObject("x-motifs").keySet()
-        assertEquals(24, catalogue.size, "motifs du catalogue (docs/formats/deperis-v1.md, tableau « Catalogue des motifs »)")
+        assertEquals(25, catalogue.size, "motifs du catalogue (docs/formats/deperis-v1.md, tableau « Catalogue des motifs »)")
         val couverts = cas.flatMap { it.motifs }.toSet()
         assertEquals(emptySet<String>(), catalogue - couverts, "motifs sans cas")
         assertEquals(emptySet<String>(), couverts - catalogue, "motifs de cas inconnus du catalogue")
@@ -26,7 +26,7 @@ class CasCommunsLusTest {
 
     @Test
     fun `les cas sont tous lus, avec leurs fichiers et leurs instantanes`() {
-        assertEquals(36, cas.size, "28 cas de 002 + 8 cas complémentaires X1 à X7b de 003, tous dans fixtures/echange")
+        assertEquals(39, cas.size, "28 cas de 002 + 8 cas complémentaires X1 à X7b de 003 + F1 et T2 de 010 + A7 de 018, tous dans fixtures/echange")
         assertEquals(cas.size, cas.map { it.id }.toSet().size, "identifiants de cas distincts")
         for (c in cas) {
             assertTrue(c.fichiers.isNotEmpty(), c.id)
@@ -48,5 +48,25 @@ class CasCommunsLusTest {
                 else -> assertTrue(c.motifs.isNotEmpty(), c.id)
             }
         }
+    }
+
+    @Test
+    fun `T2 est le seul cas de saisie, avec deux saisies dont la classe est remplie, et sa tournee reste celle de A1`() {
+        val saisies = cas.filter { it.estSaisie }
+        assertEquals(listOf("T2"), saisies.map { it.id }, "cas qui portent enregistrement (les tests de fichier les sautent)")
+        val t2 = saisies.single()
+        val enr = t2.enregistrement!!
+        assertEquals("notations", enr["table"].asString)
+        val lignes = enr.getAsJsonArray("saisies").map { it.asJsonObject }
+        assertEquals(2, lignes.size, "deux saisies : classe juste, classe fausse")
+        for (s in lignes) {
+            val classe = s.getAsJsonObject("ligne")["classe"]
+            assertTrue(classe != null && classe.isJsonPrimitive && classe.asString in setOf("A", "B", "C", "D", "E", "F"), "classe remplie de ${s["nom"]}")
+        }
+        assertEquals("refuse", t2.statut)
+        assertEquals(setOf("classe_saisie"), t2.motifs)
+        // La tournée de T2 est celle de A1 : mêmes lignes, mêmes tables (l'instantané ; les octets du .gpkg n'ont pas à l'être).
+        val a1 = Cas.instantaneAttendu(cas.single { it.id == "A1" }.fichiers.single())
+        assertEquals(a1, Cas.instantaneAttendu(t2.fichiers.single()), "T2 : la tournée à laquelle on ajoute est A1")
     }
 }
