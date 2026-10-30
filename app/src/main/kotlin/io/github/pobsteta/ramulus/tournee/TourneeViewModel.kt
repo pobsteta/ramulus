@@ -9,6 +9,9 @@ import java.util.concurrent.Executors
  * que l'écran (choisir une note, avancer d'un écran) se font tout de suite.
  */
 class TourneeViewModel(val controleur: ControleurTournee) : ViewModel() {
+    /** L'état de la capture photo, gardé ici pour traverser la rotation (mission 017). */
+    val capture = io.github.pobsteta.ramulus.photo.SuiviCapture()
+
     private val travail = Executors.newSingleThreadExecutor { r -> Thread(r, "ramulus-tournee").apply { isDaemon = true } }
 
     init {

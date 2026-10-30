@@ -175,10 +175,10 @@ internal fun ClasseEnCours(classe: Classe?) {
         Box(
             Modifier
                 .size(72.dp)
-                .background(classe?.let(::couleurClasse) ?: Color.Gray, RoundedCornerShape(12.dp)),
+                .background(classe?.let(::couleurClasse) ?: MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center,
         ) {
-            Text(classe?.name ?: "?", color = Color.White, fontSize = 40.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+            Text(classe?.name ?: "?", color = if (classe == null) MaterialTheme.colorScheme.onSurfaceVariant else Color.White, fontSize = 40.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         }
         Text(
             when (classe?.etat) {

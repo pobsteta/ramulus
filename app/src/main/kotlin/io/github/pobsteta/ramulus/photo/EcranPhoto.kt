@@ -28,10 +28,10 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
@@ -43,13 +43,11 @@ import io.github.pobsteta.ramulus.core.photo.RegimePhotos
 import io.github.pobsteta.ramulus.tournee.TourneeViewModel
 import java.util.concurrent.Executors
 
-private val Ambre = Color(0xFF8F7208)
-
 /** Le rappel de convention de prise de vue (ADR 0006), montré à l'écran de prise de vue. */
 fun rappelDeConvention(regime: RegimePhotos): List<String> = buildList {
     add("Une hauteur d'arbre de distance, le houppier entier dans le cadre.")
     add("Évitez le contre-jour : le soleil dans le dos.")
-    if (regime.max > 1) add("Placette « collecte » : ${regime.min} à ${regime.max} vues, tous les 90° autour de l'arbre.")
+    if (regime.max > 1) add("Placette « collecte » : ${fourchetteDeVues(regime)} vues, tous les 90° autour de l'arbre.")
 }
 
 /**
@@ -66,15 +64,19 @@ fun EcranPhoto(vm: TourneeViewModel, plotId: String, fini: () -> Unit) {
     val arbre = etatCourant.arbre
     BackHandler(onBack = fini)
 
-    var autorisee by remember {
+    var autorisee by rememberSaveable {
         mutableStateOf(ContextCompat.checkSelfPermission(contexte, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
     }
     val demande = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { autorisee = it }
-    var message by remember { mutableStateOf<String?>(null) }
-    var enCours by remember { mutableStateOf(false) }
+    // L'état de la capture est au ViewModel : il survit à la rotation, et il n'est écrit que depuis le fil principal.
+    val suivi = vm.capture
+    val capturee by suivi.etat.collectAsState()
+    val message = capturee.message
+    val enCours = capturee.enCours
+    val principal = ContextCompat.getMainExecutor(contexte)
 
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Photo du houppier · ${arbre.nbPhotos} sur ${if (regime.max == 1) "1" else "${regime.min} à ${regime.max}"}", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text("Photo du houppier · ${arbre.nbPhotos} sur ${fourchetteDeVues(regime)}", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         for (l in rappelDeConvention(regime)) Text(l, style = MaterialTheme.typography.bodyMedium)
 
         if (!autorisee) {
@@ -103,7 +105,7 @@ fun EcranPhoto(vm: TourneeViewModel, plotId: String, fini: () -> Unit) {
                         f.unbindAll()
                         f.bindToLifecycle(proprietaire, CameraSelector.DEFAULT_BACK_CAMERA, apercu, capture)
                     } catch (e: Exception) {
-                        message = "Caméra indisponible : ${e.message ?: e.javaClass.simpleName}"
+                        suivi.echoue("Caméra indisponible : ${e.message ?: e.javaClass.simpleName}")
                     }
                 }, ContextCompat.getMainExecutor(contexte))
                 onDispose {
@@ -117,32 +119,35 @@ fun EcranPhoto(vm: TourneeViewModel, plotId: String, fini: () -> Unit) {
 
             val derniere = arbre.photos.lastOrNull()
             if (derniere != null) {
-                for (s in derniere.signalements) Text(PriseDeVue.enClair(s), color = Ambre, fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
+                for (s in derniere.signalements) Text(PriseDeVue.enClair(s), color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
             }
-            if (message != null) Text(message!!, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
+            if (message != null) Text(message, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
             if (etatCourant.erreur != null) Text(etatCourant.erreur!!, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
 
             Button(
                 onClick = {
-                    message = null
-                    enCours = true
+                    suivi.commence()
                     capture.takePicture(
                         executeur,
                         object : ImageCapture.OnImageCapturedCallback() {
                             override fun onCaptureSuccess(image: ImageProxy) {
-                                try {
+                                // Fil de la caméra : le traitement s'y fait ; l'état n'est écrit que sur le fil principal.
+                                val verdict: String? = try {
                                     val prise = PriseDeVue.traiter(image)
                                     vm.enArriere { c.ajouterPhoto(prise.jpeg, prise.signalements) }
+                                    null
                                 } catch (e: Throwable) {
-                                    message = "Photo non gardée : ${e.message ?: e.javaClass.simpleName}"
-                                } finally {
-                                    enCours = false
+                                    "Photo non gardée : ${e.message ?: e.javaClass.simpleName}"
                                 }
+                                principal.execute { if (verdict == null) suivi.reussit() else suivi.echoue(verdict) }
                             }
 
                             override fun onError(exception: ImageCaptureException) {
-                                message = "Prise de vue impossible : ${exception.message ?: "erreur de la caméra"}"
-                                enCours = false
+                                val interrompue = exception.imageCaptureError == ImageCapture.ERROR_CAMERA_CLOSED
+                                principal.execute {
+                                    if (interrompue) suivi.interrompue()
+                                    else suivi.echoue("Prise de vue impossible : ${exception.message ?: "erreur de la caméra"}")
+                                }
                             }
                         },
                     )

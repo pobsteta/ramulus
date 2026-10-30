@@ -35,17 +35,28 @@ object PriseDeVue {
         }
     }
 
+    /**
+     * Les pixels de [brute] sont libérés ici même (réserve 5 de la mission 017) : une photo de 12 à 50 Mpx pèse 50 à
+     * 200 Mo décodée, et plusieurs prises de suite ne doivent pas attendre le ramasse-miettes. [brute] ne sert plus après.
+     */
     fun depuis(brute: Bitmap, rotationDegres: Int): PhotoPrise {
-        val droite = if (rotationDegres % 360 != 0) {
-            Bitmap.createBitmap(brute, 0, 0, brute.width, brute.height, Matrix().apply { postRotate(rotationDegres.toFloat()) }, true)
-        } else {
-            brute
+        var droite: Bitmap? = null
+        var gardee: Bitmap? = null
+        try {
+            droite = if (rotationDegres % 360 != 0) {
+                Bitmap.createBitmap(brute, 0, 0, brute.width, brute.height, Matrix().apply { postRotate(rotationDegres.toFloat()) }, true)
+            } else {
+                brute
+            }
+            val (l, h) = ControlesImage.dimensionsReduites(droite.width, droite.height, COTE_MAX_GARDE)
+            gardee = if (l == droite.width && h == droite.height) droite else Bitmap.createScaledBitmap(droite, l, h, true)
+            val sortie = ByteArrayOutputStream()
+            check(gardee.compress(Bitmap.CompressFormat.JPEG, QUALITE_JPEG, sortie)) { "JPEG non écrit" }
+            return PhotoPrise(sortie.toByteArray(), controler(gardee))
+        } finally {
+            // Chaque tampon est libéré une fois, quel que soit le chemin (même Bitmap référencé deux fois).
+            setOfNotNull(gardee, droite, brute).forEach { if (!it.isRecycled) it.recycle() }
         }
-        val (l, h) = ControlesImage.dimensionsReduites(droite.width, droite.height, COTE_MAX_GARDE)
-        val gardee = if (l == droite.width && h == droite.height) droite else Bitmap.createScaledBitmap(droite, l, h, true)
-        val sortie = ByteArrayOutputStream()
-        check(gardee.compress(Bitmap.CompressFormat.JPEG, QUALITE_JPEG, sortie)) { "JPEG non écrit" }
-        return PhotoPrise(sortie.toByteArray(), controler(gardee))
     }
 
     private fun controler(b: Bitmap): List<SignalementImage> {
@@ -53,6 +64,7 @@ object PriseDeVue {
         val petite = if (l == b.width && h == b.height) b else Bitmap.createScaledBitmap(b, l, h, true)
         val pixels = IntArray(l * h)
         petite.getPixels(pixels, 0, l, 0, 0, l, h)
+        if (petite !== b) petite.recycle()
         return ControlesImage.controler(ImageGris.depuisArgb(l, h, pixels))
     }
 

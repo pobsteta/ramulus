@@ -61,6 +61,8 @@ import io.github.pobsteta.ramulus.notation.ClasseEnCours
 import io.github.pobsteta.ramulus.notation.LigneNotes
 import io.github.pobsteta.ramulus.photo.EcranPhoto
 import io.github.pobsteta.ramulus.photo.PriseDeVue
+import io.github.pobsteta.ramulus.core.photo.RegimePhotos
+import io.github.pobsteta.ramulus.photo.fourchetteDeVues
 import io.github.pobsteta.ramulus.photo.rappelDeConvention
 import io.github.pobsteta.ramulus.ui.theme.couleurClasse
 import java.util.Locale
@@ -71,8 +73,6 @@ import java.util.Locale
  * aucune saisie au clavier sauf le numéro peint et le nom de l'opérateur. Quatre couleurs : vert (action), rouge
  * (refus), ambre (à vérifier), gris (le reste) ; les couleurs des classes A à F sont celles de l'abaque.
  */
-
-private val Ambre = Color(0xFF8F7208)
 
 /** Ce que l'écran montre. Toujours quelque chose : jamais d'écran vide (écart de 006 au premier lancement). */
 enum class Vue { NOM, ACCUEIL, PARAMETRES, PLACETTES, PLACETTE, CENTRE, ARBRES, RENDU }
@@ -145,7 +145,7 @@ private fun Page(
             Text(titre, fontSize = 34.sp, fontWeight = FontWeight.Bold)
             if (question != null) Text(question, style = MaterialTheme.typography.titleMedium)
             contenu()
-            if (pied != null) Text(pied, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            if (pied != null) Text(pied, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -167,7 +167,7 @@ private fun Erreur(texte: String?) {
 
 @Composable
 private fun AVerifier(lignes: List<String>) {
-    for (l in lignes) Text(l, color = Ambre, fontWeight = FontWeight.SemiBold)
+    for (l in lignes) Text(l, color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.SemiBold)
 }
 
 private fun pied(t: TourneeLue, operateur: String?): String =
@@ -210,9 +210,9 @@ private fun EcranPlacettes(vm: TourneeViewModel, etat: EtatTournee) {
             val statut = p.statut
             val (libelle, couleur) = when (statut) {
                 Statut.NOTEE -> "Notée" to MaterialTheme.colorScheme.primary
-                Statut.EN_COURS -> "${p.nbRangsNotes} sur ${p.nbArbres} arbres" to Ambre
-                Statut.CENTRE_RELEVE -> "Centre relevé" to Ambre
-                Statut.A_FAIRE -> "À faire" to Color.Gray
+                Statut.EN_COURS -> "${p.nbRangsNotes} sur ${p.nbArbres} arbres" to MaterialTheme.colorScheme.tertiary
+                Statut.CENTRE_RELEVE -> "Centre relevé" to MaterialTheme.colorScheme.tertiary
+                Statut.A_FAIRE -> "À faire" to MaterialTheme.colorScheme.onSurfaceVariant
             }
             Row(
                 Modifier
@@ -278,7 +278,7 @@ private fun EcranPlacette(vm: TourneeViewModel, etat: EtatTournee, plotId: Strin
         GrosBouton(
             if (p.estNotee) "Voir les arbres" else "Noter les arbres",
             principal = centre != null || t.estContreNotation,
-        ) { c.versArbres(plotId) }
+        ) { vm.enArriere { c.versArbres(plotId) } }
         if (!p.estNotee) {
             GrosBouton("Clore la placette", enabled = p.arbres.isNotEmpty(), principal = p.complete) {
                 vm.enArriere { c.cloturerPlacette(plotId) }
@@ -289,7 +289,7 @@ private fun EcranPlacette(vm: TourneeViewModel, etat: EtatTournee, plotId: Strin
             if (!t.estContreNotation && centre == null && p.arbres.isNotEmpty()) AVerifier(listOf("Aucun centre relevé."))
         }
         if (p.collectePhotos) {
-            Text("Placette « collecte » : 2 à 4 photos du houppier par arbre, à 90° les unes des autres.", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            Text("Placette « collecte » : ${fourchetteDeVues(RegimePhotos.COLLECTE)} photos du houppier par arbre, à 90° les unes des autres.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -369,7 +369,7 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
         // La note d'abord, la photo après (brief) ; elle n'est jamais obligatoire pour enregistrer l'arbre.
         if (a.complet && (!p.estNotee || a.rouvert)) {
             Text("Photo du houppier", style = MaterialTheme.typography.titleMedium)
-            for (l in rappelDeConvention(regime)) Text(l, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            for (l in rappelDeConvention(regime)) Text(l, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             // Arbre rouvert : chaque vue de la note corrigée passe à la nouvelle sous le même numéro, sauf si
             // l'opérateur la reprend : la photo reprise prend alors ce numéro (arbitrage du 2026-10-30).
             a.photosAnciennes.forEachIndexed { i, nom ->
@@ -384,7 +384,7 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
                     if (miniature != null) Image(miniature, contentDescription = "Vue ${i + 1}", modifier = Modifier.size(64.dp))
                     Column(Modifier.weight(1f)) {
                         Text("Vue ${i + 1} · " + if (reprise >= 0) "reprise" else "gardée", fontWeight = FontWeight.Bold)
-                        if (reprise >= 0) for (sg in a.photos[reprise].signalements) Text(PriseDeVue.enClair(sg), color = Ambre, fontSize = 14.sp)
+                        if (reprise >= 0) for (sg in a.photos[reprise].signalements) Text(PriseDeVue.enClair(sg), color = MaterialTheme.colorScheme.tertiary, fontSize = 14.sp)
                     }
                     if (reprise >= 0) {
                         TextButton(onClick = { vm.enArriere { c.retirerPhoto(reprise) } }, Modifier.heightIn(min = 48.dp)) { Text("Garder l'ancienne") }
@@ -408,7 +408,7 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
                     if (miniature != null) Image(miniature, contentDescription = "Vue ${i + 1}", modifier = Modifier.size(64.dp))
                     Column(Modifier.weight(1f)) {
                         Text("Vue ${i + 1}", fontWeight = FontWeight.Bold)
-                        for (sg in photo.signalements) Text(PriseDeVue.enClair(sg), color = Ambre, fontSize = 14.sp)
+                        for (sg in photo.signalements) Text(PriseDeVue.enClair(sg), color = MaterialTheme.colorScheme.tertiary, fontSize = 14.sp)
                     }
                     TextButton(onClick = { vm.enArriere { c.retirerPhoto(i0) } }, Modifier.heightIn(min = 48.dp)) { Text("Retirer") }
                 }
@@ -430,16 +430,16 @@ private fun EcranArbres(vm: TourneeViewModel, etat: EtatTournee, plotId: String)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { c.rouvrirArbre(n.rang) },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { vm.enArriere { c.rouvrirArbre(n.rang) } },
                 ) {
                     Text("${n.rang}", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.size(24.dp))
                     Box(
-                        Modifier.size(36.dp).background(n.classe?.let(::couleurClasse) ?: Color.Gray, RoundedCornerShape(8.dp)),
+                        Modifier.size(36.dp).background(n.classe?.let(::couleurClasse) ?: MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)),
                         contentAlignment = Alignment.Center,
-                    ) { Text(n.classe?.name ?: "?", color = Color.White, fontWeight = FontWeight.Bold) }
+                    ) { Text(n.classe?.name ?: "?", color = if (n.classe == null) MaterialTheme.colorScheme.onSurfaceVariant else Color.White, fontWeight = FontWeight.Bold) }
                     Column {
                         Text("${n.essence} · MB ${n.mb} · ${n.second}" + if (n.rang in p.rangsCorriges) " · en double" else "")
-                        if (n.photos.size < regime.min) Text("photo manquante", color = Ambre, fontSize = 14.sp)
+                        if (n.photos.size < regime.min) Text("photo manquante", color = MaterialTheme.colorScheme.tertiary, fontSize = 14.sp)
                     }
                 }
             }
@@ -492,7 +492,7 @@ private fun EcranRendu(vm: TourneeViewModel, etat: EtatTournee) {
                 Text("À vérifier avant l'import", style = MaterialTheme.typography.titleMedium)
                 AVerifier(r.motifs)
             }
-            for (m in r.messages) Text(m, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            for (m in r.messages) Text(m, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             GrosBouton(if (r.refuse) "Rendre de nouveau" else "Retour aux placettes", principal = !r.refuse) {
                 if (r.refuse) rendre() else vm.enArriere { c.retour() }
             }
