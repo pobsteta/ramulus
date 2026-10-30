@@ -69,6 +69,48 @@ class AccueilTest {
     }
 
     @Test
+    fun `la puce choisit la liste montree et la recherche compte l'autre`() {
+        val l = listOf(ligne("A", rendue = true), ligne("B"), ligne("C"), ligne("D", rendue = true))
+        val r = repartirListe(l)
+        assertEquals(listOf("B", "C"), listeAffichee(r, voirTerminees = false).map { it.code })
+        assertEquals(listOf("A", "D"), listeAffichee(r, voirTerminees = true).map { it.code })
+        assertEquals(listOf("A", "D"), autreListe(r, voirTerminees = false).map { it.code })
+        assertEquals("Terminées (2)", textePuceTerminees(2))
+        assertEquals("Terminées (0)", textePuceTerminees(0))
+    }
+
+    @Test
+    fun `la recherche dit combien elle trouve dans l'autre liste`() {
+        assertEquals("1 tournée terminée correspond", texteAutreListe("a", 1, voirTerminees = false))
+        assertEquals("2 tournées terminées correspondent", texteAutreListe("a", 2, voirTerminees = false))
+        assertEquals("1 tournée à faire correspond", texteAutreListe("a", 1, voirTerminees = true))
+        assertEquals("3 tournées à faire correspondent", texteAutreListe("a", 3, voirTerminees = true))
+        assertNull(texteAutreListe("a", 0, voirTerminees = false))
+        assertNull(texteAutreListe("  ", 2, voirTerminees = false))
+    }
+
+    @Test
+    fun `une liste vide dit pourquoi`() {
+        assertEquals(MessageVide.AUCUNE_TROUVEE, messageVide("zzz", voirTerminees = true))
+        assertEquals(MessageVide.AUCUNE_TROUVEE, messageVide("zzz", voirTerminees = false))
+        assertEquals(MessageVide.AUCUNE_TERMINEE, messageVide("", voirTerminees = true))
+        assertEquals(MessageVide.AUCUNE_A_FAIRE, messageVide(" ", voirTerminees = false))
+        assertEquals("Aucune tournée terminée.", MessageVide.AUCUNE_TERMINEE.texte)
+    }
+
+    @Test
+    fun `le plein ecran est faux par defaut puis garde`() {
+        val m = MagasinMemoire()
+        val r = ReglagesRamulus(m)
+        assertEquals(false, r.pleinEcran)
+        r.definirPleinEcran(true)
+        assertEquals(true, r.pleinEcran)
+        assertEquals(true, ReglagesRamulus(m).pleinEcran)
+        r.definirPleinEcran(false)
+        assertEquals(false, ReglagesRamulus(m).pleinEcran)
+    }
+
+    @Test
     fun `une ligne dit sa nature et son avancement`() {
         assertEquals("notation", ligne("A").natureEnClair)
         assertEquals("contre-notation", ligne("A", nature = "contre_notation").natureEnClair)

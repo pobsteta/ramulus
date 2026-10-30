@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -30,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -74,6 +76,9 @@ fun EcranParametres(vm: TourneeViewModel, etat: EtatTournee, reglages: ReglagesR
         ) {
             Section("Opérateur")
             SectionOperateur(etat, vm)
+
+            Section("Affichage")
+            LignePleinEcran(reglages.pleinEcran) { reglages.definirPleinEcran(it) }
 
             Section("Thème")
             LigneTheme(reglages.choixTheme) { reglages.definirTheme(it) }
@@ -140,6 +145,23 @@ private fun SectionOperateur(etat: EtatTournee, vm: TourneeViewModel) {
         enabled = nom.isNotBlank() && nom.trim() != etat.operateur,
         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
     ) { Text("Enregistrer le nom") }
+}
+
+/** Case à bascule « Plein écran » (comme Surculus, mission 044) : toute la ligne est la cible (48 dp, une main, gants). */
+@Composable
+private fun LignePleinEcran(valeur: Boolean, onChange: (Boolean) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 48.dp)
+            .toggleable(value = valeur, role = Role.Switch, onValueChange = onChange)
+            .padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text("Plein écran", style = MaterialTheme.typography.titleMedium)
+            Text("Masque les barres du système ; elles reviennent en glissant depuis le bord.", style = MaterialTheme.typography.bodySmall)
+        }
+        Switch(checked = valeur, onCheckedChange = null)
+    }
 }
 
 /** Liste Système / Clair / Sombre avec une coche sur le choix actuel, comme `ChoixThemeReglage` de Marculus. */
