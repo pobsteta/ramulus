@@ -85,3 +85,10 @@ sur 26 ; il sous-estime la mortalité de branches. Rapport :
 5. **Position** — tranché par Pascal le 2026-10-28 (ADR 0004) : centre au GNSS du téléphone, matérialisé par un
    piquet ; arbres sans position propre, pris dans l'ordre d'un tour d'horizon depuis le nord et numérotés à la
    peinture, pour suivre les mêmes arbres d'une année à l'autre.
+
+## Ajout du 2026-10-30 (Pascal)
+
+Au point 5 ci-dessus, « numérotés à la peinture » ne vaut plus. Pascal a décidé le 2026-10-29 : « Non on ne peint pas
+de numéro, les arbres sont incrémentés automatiquement depuis le nord dans le sens horaire d'une montre, de façon
+automatique. » Le **rang**, attribué par l'application dans le tour d'horizon, suffit à rattacher un arbre (ADR 0004,
+ajout du 2026-10-29). Le texte d'origine est gardé ; cet ajout le corrige.
